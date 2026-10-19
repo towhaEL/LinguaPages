@@ -25,6 +25,12 @@ import '../../data/data_source/library/local/lingua_page_database.dart'
     as _i211;
 import '../../data/data_source/library/local/local_document_metadata_extractor.dart'
     as _i570;
+import '../../data/data_source/review/local/local_review_notification_scheduler.dart'
+    as _i897;
+import '../../data/data_source/translation/local/local_english_lemmatizer.dart'
+    as _i422;
+import '../../data/data_source/translation/local/local_sentence_translation_service.dart'
+    as _i940;
 import '../../data/data_source/translation/mock/mock_dictionary_data_source.dart'
     as _i66;
 import '../../data/document_engine/local_document_engine_factory.dart' as _i996;
@@ -32,6 +38,8 @@ import '../../data/repository_impl/backup/local_backup_repository.dart'
     as _i1066;
 import '../../data/repository_impl/library/drift_library_repository.dart'
     as _i623;
+import '../../data/repository_impl/premium/local_premium_entitlement_repository.dart'
+    as _i514;
 import '../../data/repository_impl/reader/drift_reader_repositories.dart'
     as _i487;
 import '../../data/repository_impl/recap/disabled_recap_repository.dart'
@@ -47,6 +55,8 @@ import '../../data/repository_impl/vocabulary/drift_vocabulary_repository.dart'
     as _i814;
 import '../../domain/repository/backup/backup_repository.dart' as _i862;
 import '../../domain/repository/library/library_repository.dart' as _i603;
+import '../../domain/repository/premium/premium_entitlement_repository.dart'
+    as _i363;
 import '../../domain/repository/reader/bookmark_repository.dart' as _i798;
 import '../../domain/repository/reader/highlight_repository.dart' as _i749;
 import '../../domain/repository/reader/reading_session_repository.dart'
@@ -63,6 +73,9 @@ import '../../domain/service/document_engine_factory.dart' as _i304;
 import '../../domain/service/document_import_service.dart' as _i536;
 import '../../domain/service/document_metadata_extractor.dart' as _i47;
 import '../../domain/service/document_storage_service.dart' as _i824;
+import '../../domain/service/lemmatizer.dart' as _i190;
+import '../../domain/service/review_notification_scheduler.dart' as _i407;
+import '../../domain/service/sentence_translation_service.dart' as _i836;
 import '../../domain/use_cases/backup/create_backup_use_case.dart' as _i590;
 import '../../domain/use_cases/backup/restore_backup_use_case.dart' as _i895;
 import '../../domain/use_cases/library/delete_library_book_use_case.dart'
@@ -77,9 +90,12 @@ import '../../domain/use_cases/review/review_card_use_case.dart' as _i514;
 import '../../domain/use_cases/vocabulary/lookup_word_use_case.dart' as _i809;
 import '../../domain/use_cases/vocabulary/save_vocabulary_use_case.dart'
     as _i78;
+import '../../domain/use_cases/vocabulary/translate_sentence_use_case.dart'
+    as _i592;
 import '../../presentation/screen/home/cubits/library_cubit.dart' as _i655;
 import '../feature_flags/app_feature_flags.dart' as _i101;
 import '../helper/secure_storage_service.dart' as _i693;
+import '../storage/onboarding_preferences.dart' as _i732;
 import 'module.dart' as _i946;
 
 const String _development = 'development';
@@ -118,11 +134,23 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i9.VocabularyRepository>(
       () => _i814.DriftVocabularyRepository(gh<_i211.LinguaPageDatabase>()),
     );
+    gh.singleton<_i78.SaveVocabularyUseCase>(
+      () => _i78.SaveVocabularyUseCase(
+        gh<_i9.VocabularyRepository>(),
+        gh<_i101.AppFeatureFlags>(),
+        gh<_i363.PremiumEntitlementRepository>(),
+      ),
+    );
     gh.lazySingleton<_i693.SecureStorageService>(
       () => _i693.SecureStorageService(gh<_i558.FlutterSecureStorage>()),
     );
     gh.lazySingleton<_i536.IncomingDocumentService>(
       () => _i222.PlatformIncomingDocumentService(),
+    );
+    gh.lazySingleton<_i363.PremiumEntitlementRepository>(
+      () => _i514.LocalPremiumEntitlementRepository(
+        gh<_i460.SharedPreferences>(),
+      ),
     );
     gh.lazySingleton<_i824.DocumentStorageService>(
       () => _i848.AppFileStorageService(),
@@ -139,6 +167,9 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i304.DocumentEngineFactory>(
       () => _i996.LocalDocumentEngineFactory(),
     );
+    gh.lazySingleton<_i732.OnboardingPreferences>(
+      () => _i732.OnboardingPreferences(gh<_i460.SharedPreferences>()),
+    );
     gh.lazySingleton<_i603.LibraryRepository>(
       () => _i623.DriftLibraryRepository(gh<_i211.LinguaPageDatabase>()),
     );
@@ -151,6 +182,7 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i798.BookmarkRepository>(
       () => _i487.DriftBookmarkRepository(gh<_i211.LinguaPageDatabase>()),
     );
+    gh.lazySingleton<_i190.Lemmatizer>(() => _i422.LocalEnglishLemmatizer());
     gh.lazySingleton<_i121.ReadingSessionRepository>(
       () => _i487.DriftReadingSessionRepository(gh<_i211.LinguaPageDatabase>()),
     );
@@ -166,17 +198,17 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i47.DocumentMetadataExtractor>(
       () => _i570.LocalDocumentMetadataExtractor(),
     );
-    gh.singleton<_i78.SaveVocabularyUseCase>(
-      () => _i78.SaveVocabularyUseCase(
-        gh<_i9.VocabularyRepository>(),
-        gh<_i101.AppFeatureFlags>(),
-      ),
-    );
     gh.singleton<_i590.CreateBackupUseCase>(
       () => _i590.CreateBackupUseCase(gh<_i862.BackupRepository>()),
     );
     gh.singleton<_i895.RestoreBackupUseCase>(
       () => _i895.RestoreBackupUseCase(gh<_i862.BackupRepository>()),
+    );
+    gh.lazySingleton<_i836.SentenceTranslationService>(
+      () => _i940.LocalSentenceTranslationService(
+        gh<_i899.DictionaryRepository>(),
+        gh<_i190.Lemmatizer>(),
+      ),
     );
     gh.singleton<_i185.RecapRepository>(
       () => _i637.MockRecapRepository(gh<_i101.AppFeatureFlags>()),
@@ -195,6 +227,12 @@ extension GetItInjectableX on _i174.GetIt {
     gh.singleton<_i809.LookupWordUseCase>(
       () => _i809.LookupWordUseCase(gh<_i899.DictionaryRepository>()),
     );
+    gh.lazySingleton<_i407.ReviewNotificationScheduler>(
+      () => _i897.LocalReviewNotificationScheduler(
+        gh<_i621.ReviewRepository>(),
+        gh<_i55.SettingsRepository>(),
+      ),
+    );
     gh.singleton<_i964.ImportDocumentUseCase>(
       () => _i964.ImportDocumentUseCase(
         gh<_i536.DocumentImportService>(),
@@ -205,6 +243,11 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i486.DeleteLibraryBookUseCase(
         gh<_i603.LibraryRepository>(),
         gh<_i824.DocumentStorageService>(),
+      ),
+    );
+    gh.singleton<_i592.TranslateSentenceUseCase>(
+      () => _i592.TranslateSentenceUseCase(
+        gh<_i836.SentenceTranslationService>(),
       ),
     );
     gh.factory<_i655.LibraryCubit>(

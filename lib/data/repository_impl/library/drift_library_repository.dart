@@ -125,6 +125,9 @@ class DriftLibraryRepository implements LibraryRepository {
       final vocabularyIds = vocabulary.map((item) => item.id).toList();
       if (vocabularyIds.isNotEmpty) {
         await (_database.delete(
+          _database.reviewHistoryEntries,
+        )..where((entry) => entry.vocabItemId.isIn(vocabularyIds))).go();
+        await (_database.delete(
           _database.reviewCards,
         )..where((card) => card.vocabItemId.isIn(vocabularyIds))).go();
         await (_database.delete(

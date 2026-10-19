@@ -3518,6 +3518,543 @@ class ReviewCardsCompanion extends UpdateCompanion<ReviewCard> {
   }
 }
 
+class $ReviewHistoryEntriesTable extends ReviewHistoryEntries
+    with TableInfo<$ReviewHistoryEntriesTable, ReviewHistoryEntry> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ReviewHistoryEntriesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _reviewCardIdMeta = const VerificationMeta(
+    'reviewCardId',
+  );
+  @override
+  late final GeneratedColumn<String> reviewCardId = GeneratedColumn<String>(
+    'review_card_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES review_cards (id)',
+    ),
+  );
+  static const VerificationMeta _vocabItemIdMeta = const VerificationMeta(
+    'vocabItemId',
+  );
+  @override
+  late final GeneratedColumn<String> vocabItemId = GeneratedColumn<String>(
+    'vocab_item_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES vocab_items (id)',
+    ),
+  );
+  static const VerificationMeta _ratingMeta = const VerificationMeta('rating');
+  @override
+  late final GeneratedColumn<String> rating = GeneratedColumn<String>(
+    'rating',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _intervalMeta = const VerificationMeta(
+    'interval',
+  );
+  @override
+  late final GeneratedColumn<int> interval = GeneratedColumn<int>(
+    'interval',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _easeFactorMeta = const VerificationMeta(
+    'easeFactor',
+  );
+  @override
+  late final GeneratedColumn<double> easeFactor = GeneratedColumn<double>(
+    'ease_factor',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _repetitionsMeta = const VerificationMeta(
+    'repetitions',
+  );
+  @override
+  late final GeneratedColumn<int> repetitions = GeneratedColumn<int>(
+    'repetitions',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _reviewedAtMeta = const VerificationMeta(
+    'reviewedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> reviewedAt = GeneratedColumn<DateTime>(
+    'reviewed_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    reviewCardId,
+    vocabItemId,
+    rating,
+    interval,
+    easeFactor,
+    repetitions,
+    reviewedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'review_history_entries';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ReviewHistoryEntry> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('review_card_id')) {
+      context.handle(
+        _reviewCardIdMeta,
+        reviewCardId.isAcceptableOrUnknown(
+          data['review_card_id']!,
+          _reviewCardIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_reviewCardIdMeta);
+    }
+    if (data.containsKey('vocab_item_id')) {
+      context.handle(
+        _vocabItemIdMeta,
+        vocabItemId.isAcceptableOrUnknown(
+          data['vocab_item_id']!,
+          _vocabItemIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_vocabItemIdMeta);
+    }
+    if (data.containsKey('rating')) {
+      context.handle(
+        _ratingMeta,
+        rating.isAcceptableOrUnknown(data['rating']!, _ratingMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_ratingMeta);
+    }
+    if (data.containsKey('interval')) {
+      context.handle(
+        _intervalMeta,
+        interval.isAcceptableOrUnknown(data['interval']!, _intervalMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_intervalMeta);
+    }
+    if (data.containsKey('ease_factor')) {
+      context.handle(
+        _easeFactorMeta,
+        easeFactor.isAcceptableOrUnknown(data['ease_factor']!, _easeFactorMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_easeFactorMeta);
+    }
+    if (data.containsKey('repetitions')) {
+      context.handle(
+        _repetitionsMeta,
+        repetitions.isAcceptableOrUnknown(
+          data['repetitions']!,
+          _repetitionsMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_repetitionsMeta);
+    }
+    if (data.containsKey('reviewed_at')) {
+      context.handle(
+        _reviewedAtMeta,
+        reviewedAt.isAcceptableOrUnknown(data['reviewed_at']!, _reviewedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_reviewedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  ReviewHistoryEntry map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ReviewHistoryEntry(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      reviewCardId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}review_card_id'],
+      )!,
+      vocabItemId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}vocab_item_id'],
+      )!,
+      rating: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}rating'],
+      )!,
+      interval: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}interval'],
+      )!,
+      easeFactor: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}ease_factor'],
+      )!,
+      repetitions: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}repetitions'],
+      )!,
+      reviewedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}reviewed_at'],
+      )!,
+    );
+  }
+
+  @override
+  $ReviewHistoryEntriesTable createAlias(String alias) {
+    return $ReviewHistoryEntriesTable(attachedDatabase, alias);
+  }
+}
+
+class ReviewHistoryEntry extends DataClass
+    implements Insertable<ReviewHistoryEntry> {
+  final String id;
+  final String reviewCardId;
+  final String vocabItemId;
+  final String rating;
+  final int interval;
+  final double easeFactor;
+  final int repetitions;
+  final DateTime reviewedAt;
+  const ReviewHistoryEntry({
+    required this.id,
+    required this.reviewCardId,
+    required this.vocabItemId,
+    required this.rating,
+    required this.interval,
+    required this.easeFactor,
+    required this.repetitions,
+    required this.reviewedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['review_card_id'] = Variable<String>(reviewCardId);
+    map['vocab_item_id'] = Variable<String>(vocabItemId);
+    map['rating'] = Variable<String>(rating);
+    map['interval'] = Variable<int>(interval);
+    map['ease_factor'] = Variable<double>(easeFactor);
+    map['repetitions'] = Variable<int>(repetitions);
+    map['reviewed_at'] = Variable<DateTime>(reviewedAt);
+    return map;
+  }
+
+  ReviewHistoryEntriesCompanion toCompanion(bool nullToAbsent) {
+    return ReviewHistoryEntriesCompanion(
+      id: Value(id),
+      reviewCardId: Value(reviewCardId),
+      vocabItemId: Value(vocabItemId),
+      rating: Value(rating),
+      interval: Value(interval),
+      easeFactor: Value(easeFactor),
+      repetitions: Value(repetitions),
+      reviewedAt: Value(reviewedAt),
+    );
+  }
+
+  factory ReviewHistoryEntry.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ReviewHistoryEntry(
+      id: serializer.fromJson<String>(json['id']),
+      reviewCardId: serializer.fromJson<String>(json['reviewCardId']),
+      vocabItemId: serializer.fromJson<String>(json['vocabItemId']),
+      rating: serializer.fromJson<String>(json['rating']),
+      interval: serializer.fromJson<int>(json['interval']),
+      easeFactor: serializer.fromJson<double>(json['easeFactor']),
+      repetitions: serializer.fromJson<int>(json['repetitions']),
+      reviewedAt: serializer.fromJson<DateTime>(json['reviewedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'reviewCardId': serializer.toJson<String>(reviewCardId),
+      'vocabItemId': serializer.toJson<String>(vocabItemId),
+      'rating': serializer.toJson<String>(rating),
+      'interval': serializer.toJson<int>(interval),
+      'easeFactor': serializer.toJson<double>(easeFactor),
+      'repetitions': serializer.toJson<int>(repetitions),
+      'reviewedAt': serializer.toJson<DateTime>(reviewedAt),
+    };
+  }
+
+  ReviewHistoryEntry copyWith({
+    String? id,
+    String? reviewCardId,
+    String? vocabItemId,
+    String? rating,
+    int? interval,
+    double? easeFactor,
+    int? repetitions,
+    DateTime? reviewedAt,
+  }) => ReviewHistoryEntry(
+    id: id ?? this.id,
+    reviewCardId: reviewCardId ?? this.reviewCardId,
+    vocabItemId: vocabItemId ?? this.vocabItemId,
+    rating: rating ?? this.rating,
+    interval: interval ?? this.interval,
+    easeFactor: easeFactor ?? this.easeFactor,
+    repetitions: repetitions ?? this.repetitions,
+    reviewedAt: reviewedAt ?? this.reviewedAt,
+  );
+  ReviewHistoryEntry copyWithCompanion(ReviewHistoryEntriesCompanion data) {
+    return ReviewHistoryEntry(
+      id: data.id.present ? data.id.value : this.id,
+      reviewCardId: data.reviewCardId.present
+          ? data.reviewCardId.value
+          : this.reviewCardId,
+      vocabItemId: data.vocabItemId.present
+          ? data.vocabItemId.value
+          : this.vocabItemId,
+      rating: data.rating.present ? data.rating.value : this.rating,
+      interval: data.interval.present ? data.interval.value : this.interval,
+      easeFactor: data.easeFactor.present
+          ? data.easeFactor.value
+          : this.easeFactor,
+      repetitions: data.repetitions.present
+          ? data.repetitions.value
+          : this.repetitions,
+      reviewedAt: data.reviewedAt.present
+          ? data.reviewedAt.value
+          : this.reviewedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ReviewHistoryEntry(')
+          ..write('id: $id, ')
+          ..write('reviewCardId: $reviewCardId, ')
+          ..write('vocabItemId: $vocabItemId, ')
+          ..write('rating: $rating, ')
+          ..write('interval: $interval, ')
+          ..write('easeFactor: $easeFactor, ')
+          ..write('repetitions: $repetitions, ')
+          ..write('reviewedAt: $reviewedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    reviewCardId,
+    vocabItemId,
+    rating,
+    interval,
+    easeFactor,
+    repetitions,
+    reviewedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ReviewHistoryEntry &&
+          other.id == this.id &&
+          other.reviewCardId == this.reviewCardId &&
+          other.vocabItemId == this.vocabItemId &&
+          other.rating == this.rating &&
+          other.interval == this.interval &&
+          other.easeFactor == this.easeFactor &&
+          other.repetitions == this.repetitions &&
+          other.reviewedAt == this.reviewedAt);
+}
+
+class ReviewHistoryEntriesCompanion
+    extends UpdateCompanion<ReviewHistoryEntry> {
+  final Value<String> id;
+  final Value<String> reviewCardId;
+  final Value<String> vocabItemId;
+  final Value<String> rating;
+  final Value<int> interval;
+  final Value<double> easeFactor;
+  final Value<int> repetitions;
+  final Value<DateTime> reviewedAt;
+  final Value<int> rowid;
+  const ReviewHistoryEntriesCompanion({
+    this.id = const Value.absent(),
+    this.reviewCardId = const Value.absent(),
+    this.vocabItemId = const Value.absent(),
+    this.rating = const Value.absent(),
+    this.interval = const Value.absent(),
+    this.easeFactor = const Value.absent(),
+    this.repetitions = const Value.absent(),
+    this.reviewedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ReviewHistoryEntriesCompanion.insert({
+    required String id,
+    required String reviewCardId,
+    required String vocabItemId,
+    required String rating,
+    required int interval,
+    required double easeFactor,
+    required int repetitions,
+    required DateTime reviewedAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       reviewCardId = Value(reviewCardId),
+       vocabItemId = Value(vocabItemId),
+       rating = Value(rating),
+       interval = Value(interval),
+       easeFactor = Value(easeFactor),
+       repetitions = Value(repetitions),
+       reviewedAt = Value(reviewedAt);
+  static Insertable<ReviewHistoryEntry> custom({
+    Expression<String>? id,
+    Expression<String>? reviewCardId,
+    Expression<String>? vocabItemId,
+    Expression<String>? rating,
+    Expression<int>? interval,
+    Expression<double>? easeFactor,
+    Expression<int>? repetitions,
+    Expression<DateTime>? reviewedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (reviewCardId != null) 'review_card_id': reviewCardId,
+      if (vocabItemId != null) 'vocab_item_id': vocabItemId,
+      if (rating != null) 'rating': rating,
+      if (interval != null) 'interval': interval,
+      if (easeFactor != null) 'ease_factor': easeFactor,
+      if (repetitions != null) 'repetitions': repetitions,
+      if (reviewedAt != null) 'reviewed_at': reviewedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ReviewHistoryEntriesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? reviewCardId,
+    Value<String>? vocabItemId,
+    Value<String>? rating,
+    Value<int>? interval,
+    Value<double>? easeFactor,
+    Value<int>? repetitions,
+    Value<DateTime>? reviewedAt,
+    Value<int>? rowid,
+  }) {
+    return ReviewHistoryEntriesCompanion(
+      id: id ?? this.id,
+      reviewCardId: reviewCardId ?? this.reviewCardId,
+      vocabItemId: vocabItemId ?? this.vocabItemId,
+      rating: rating ?? this.rating,
+      interval: interval ?? this.interval,
+      easeFactor: easeFactor ?? this.easeFactor,
+      repetitions: repetitions ?? this.repetitions,
+      reviewedAt: reviewedAt ?? this.reviewedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (reviewCardId.present) {
+      map['review_card_id'] = Variable<String>(reviewCardId.value);
+    }
+    if (vocabItemId.present) {
+      map['vocab_item_id'] = Variable<String>(vocabItemId.value);
+    }
+    if (rating.present) {
+      map['rating'] = Variable<String>(rating.value);
+    }
+    if (interval.present) {
+      map['interval'] = Variable<int>(interval.value);
+    }
+    if (easeFactor.present) {
+      map['ease_factor'] = Variable<double>(easeFactor.value);
+    }
+    if (repetitions.present) {
+      map['repetitions'] = Variable<int>(repetitions.value);
+    }
+    if (reviewedAt.present) {
+      map['reviewed_at'] = Variable<DateTime>(reviewedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ReviewHistoryEntriesCompanion(')
+          ..write('id: $id, ')
+          ..write('reviewCardId: $reviewCardId, ')
+          ..write('vocabItemId: $vocabItemId, ')
+          ..write('rating: $rating, ')
+          ..write('interval: $interval, ')
+          ..write('easeFactor: $easeFactor, ')
+          ..write('repetitions: $repetitions, ')
+          ..write('reviewedAt: $reviewedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $AppSettingsTable extends AppSettings
     with TableInfo<$AppSettingsTable, AppSetting> {
   @override
@@ -3737,6 +4274,8 @@ abstract class _$LinguaPageDatabase extends GeneratedDatabase {
   );
   late final $VocabItemsTable vocabItems = $VocabItemsTable(this);
   late final $ReviewCardsTable reviewCards = $ReviewCardsTable(this);
+  late final $ReviewHistoryEntriesTable reviewHistoryEntries =
+      $ReviewHistoryEntriesTable(this);
   late final $AppSettingsTable appSettings = $AppSettingsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
@@ -3749,6 +4288,7 @@ abstract class _$LinguaPageDatabase extends GeneratedDatabase {
     readingSessions,
     vocabItems,
     reviewCards,
+    reviewHistoryEntries,
     appSettings,
   ];
 }
@@ -5698,6 +6238,31 @@ final class $$VocabItemsTableReferences
       manager.$state.copyWith(prefetchedData: cache),
     );
   }
+
+  static MultiTypedResultKey<
+    $ReviewHistoryEntriesTable,
+    List<ReviewHistoryEntry>
+  >
+  _reviewHistoryEntriesRefsTable(_$LinguaPageDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.reviewHistoryEntries,
+        aliasName: 'vocab_items__id__review_history_entries__vocab_item_id',
+      );
+
+  $$ReviewHistoryEntriesTableProcessedTableManager
+  get reviewHistoryEntriesRefs {
+    final manager = $$ReviewHistoryEntriesTableTableManager(
+      $_db,
+      $_db.reviewHistoryEntries,
+    ).filter((f) => f.vocabItemId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _reviewHistoryEntriesRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $$VocabItemsTableFilterComposer
@@ -5798,6 +6363,31 @@ class $$VocabItemsTableFilterComposer
           }) => $$ReviewCardsTableFilterComposer(
             $db: $db,
             $table: $db.reviewCards,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> reviewHistoryEntriesRefs(
+    Expression<bool> Function($$ReviewHistoryEntriesTableFilterComposer f) f,
+  ) {
+    final $$ReviewHistoryEntriesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.reviewHistoryEntries,
+      getReferencedColumn: (t) => t.vocabItemId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ReviewHistoryEntriesTableFilterComposer(
+            $db: $db,
+            $table: $db.reviewHistoryEntries,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -5987,6 +6577,32 @@ class $$VocabItemsTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> reviewHistoryEntriesRefs<T extends Object>(
+    Expression<T> Function($$ReviewHistoryEntriesTableAnnotationComposer a) f,
+  ) {
+    final $$ReviewHistoryEntriesTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.reviewHistoryEntries,
+          getReferencedColumn: (t) => t.vocabItemId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$ReviewHistoryEntriesTableAnnotationComposer(
+                $db: $db,
+                $table: $db.reviewHistoryEntries,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
 }
 
 class $$VocabItemsTableTableManager
@@ -6002,7 +6618,11 @@ class $$VocabItemsTableTableManager
           $$VocabItemsTableUpdateCompanionBuilder,
           (VocabItem, $$VocabItemsTableReferences),
           VocabItem,
-          PrefetchHooks Function({bool bookId, bool reviewCardsRefs})
+          PrefetchHooks Function({
+            bool bookId,
+            bool reviewCardsRefs,
+            bool reviewHistoryEntriesRefs,
+          })
         > {
   $$VocabItemsTableTableManager(_$LinguaPageDatabase db, $VocabItemsTable table)
     : super(
@@ -6079,69 +6699,99 @@ class $$VocabItemsTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({bookId = false, reviewCardsRefs = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [if (reviewCardsRefs) db.reviewCards],
-              addJoins:
-                  <
-                    T extends TableManagerState<
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic
-                    >
-                  >(state) {
-                    if (bookId) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.bookId,
-                                referencedTable: $$VocabItemsTableReferences
-                                    ._bookIdTable(db),
-                                referencedColumn: $$VocabItemsTableReferences
-                                    ._bookIdTable(db)
-                                    .id,
-                              )
-                              as T;
-                    }
+          prefetchHooksCallback:
+              ({
+                bookId = false,
+                reviewCardsRefs = false,
+                reviewHistoryEntriesRefs = false,
+              }) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (reviewCardsRefs) db.reviewCards,
+                    if (reviewHistoryEntriesRefs) db.reviewHistoryEntries,
+                  ],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (bookId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.bookId,
+                                    referencedTable: $$VocabItemsTableReferences
+                                        ._bookIdTable(db),
+                                    referencedColumn:
+                                        $$VocabItemsTableReferences
+                                            ._bookIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
 
-                    return state;
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (reviewCardsRefs)
+                        await $_getPrefetchedData<
+                          VocabItem,
+                          $VocabItemsTable,
+                          ReviewCard
+                        >(
+                          currentTable: table,
+                          referencedTable: $$VocabItemsTableReferences
+                              ._reviewCardsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$VocabItemsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).reviewCardsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.vocabItemId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (reviewHistoryEntriesRefs)
+                        await $_getPrefetchedData<
+                          VocabItem,
+                          $VocabItemsTable,
+                          ReviewHistoryEntry
+                        >(
+                          currentTable: table,
+                          referencedTable: $$VocabItemsTableReferences
+                              ._reviewHistoryEntriesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$VocabItemsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).reviewHistoryEntriesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.vocabItemId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
                   },
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (reviewCardsRefs)
-                    await $_getPrefetchedData<
-                      VocabItem,
-                      $VocabItemsTable,
-                      ReviewCard
-                    >(
-                      currentTable: table,
-                      referencedTable: $$VocabItemsTableReferences
-                          ._reviewCardsRefsTable(db),
-                      managerFromTypedResult: (p0) =>
-                          $$VocabItemsTableReferences(
-                            db,
-                            table,
-                            p0,
-                          ).reviewCardsRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where(
-                            (e) => e.vocabItemId == item.id,
-                          ),
-                      typedResults: items,
-                    ),
-                ];
+                );
               },
-            );
-          },
         ),
       );
 }
@@ -6158,7 +6808,11 @@ typedef $$VocabItemsTableProcessedTableManager =
       $$VocabItemsTableUpdateCompanionBuilder,
       (VocabItem, $$VocabItemsTableReferences),
       VocabItem,
-      PrefetchHooks Function({bool bookId, bool reviewCardsRefs})
+      PrefetchHooks Function({
+        bool bookId,
+        bool reviewCardsRefs,
+        bool reviewHistoryEntriesRefs,
+      })
     >;
 typedef $$ReviewCardsTableCreateCompanionBuilder =
     ReviewCardsCompanion Function({
@@ -6206,6 +6860,31 @@ final class $$ReviewCardsTableReferences
     if (item == null) return manager;
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static MultiTypedResultKey<
+    $ReviewHistoryEntriesTable,
+    List<ReviewHistoryEntry>
+  >
+  _reviewHistoryEntriesRefsTable(_$LinguaPageDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.reviewHistoryEntries,
+        aliasName: 'review_cards__id__review_history_entries__review_card_id',
+      );
+
+  $$ReviewHistoryEntriesTableProcessedTableManager
+  get reviewHistoryEntriesRefs {
+    final manager = $$ReviewHistoryEntriesTableTableManager(
+      $_db,
+      $_db.reviewHistoryEntries,
+    ).filter((f) => f.reviewCardId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _reviewHistoryEntriesRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
     );
   }
 }
@@ -6280,6 +6959,31 @@ class $$ReviewCardsTableFilterComposer
           ),
     );
     return composer;
+  }
+
+  Expression<bool> reviewHistoryEntriesRefs(
+    Expression<bool> Function($$ReviewHistoryEntriesTableFilterComposer f) f,
+  ) {
+    final $$ReviewHistoryEntriesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.reviewHistoryEntries,
+      getReferencedColumn: (t) => t.reviewCardId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ReviewHistoryEntriesTableFilterComposer(
+            $db: $db,
+            $table: $db.reviewHistoryEntries,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
   }
 }
 
@@ -6419,6 +7123,32 @@ class $$ReviewCardsTableAnnotationComposer
     );
     return composer;
   }
+
+  Expression<T> reviewHistoryEntriesRefs<T extends Object>(
+    Expression<T> Function($$ReviewHistoryEntriesTableAnnotationComposer a) f,
+  ) {
+    final $$ReviewHistoryEntriesTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.reviewHistoryEntries,
+          getReferencedColumn: (t) => t.reviewCardId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$ReviewHistoryEntriesTableAnnotationComposer(
+                $db: $db,
+                $table: $db.reviewHistoryEntries,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
 }
 
 class $$ReviewCardsTableTableManager
@@ -6434,7 +7164,10 @@ class $$ReviewCardsTableTableManager
           $$ReviewCardsTableUpdateCompanionBuilder,
           (ReviewCard, $$ReviewCardsTableReferences),
           ReviewCard,
-          PrefetchHooks Function({bool vocabItemId})
+          PrefetchHooks Function({
+            bool vocabItemId,
+            bool reviewHistoryEntriesRefs,
+          })
         > {
   $$ReviewCardsTableTableManager(
     _$LinguaPageDatabase db,
@@ -6505,7 +7238,506 @@ class $$ReviewCardsTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({vocabItemId = false}) {
+          prefetchHooksCallback:
+              ({vocabItemId = false, reviewHistoryEntriesRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (reviewHistoryEntriesRefs) db.reviewHistoryEntries,
+                  ],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (vocabItemId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.vocabItemId,
+                                    referencedTable:
+                                        $$ReviewCardsTableReferences
+                                            ._vocabItemIdTable(db),
+                                    referencedColumn:
+                                        $$ReviewCardsTableReferences
+                                            ._vocabItemIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (reviewHistoryEntriesRefs)
+                        await $_getPrefetchedData<
+                          ReviewCard,
+                          $ReviewCardsTable,
+                          ReviewHistoryEntry
+                        >(
+                          currentTable: table,
+                          referencedTable: $$ReviewCardsTableReferences
+                              ._reviewHistoryEntriesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$ReviewCardsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).reviewHistoryEntriesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.reviewCardId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $$ReviewCardsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$LinguaPageDatabase,
+      $ReviewCardsTable,
+      ReviewCard,
+      $$ReviewCardsTableFilterComposer,
+      $$ReviewCardsTableOrderingComposer,
+      $$ReviewCardsTableAnnotationComposer,
+      $$ReviewCardsTableCreateCompanionBuilder,
+      $$ReviewCardsTableUpdateCompanionBuilder,
+      (ReviewCard, $$ReviewCardsTableReferences),
+      ReviewCard,
+      PrefetchHooks Function({bool vocabItemId, bool reviewHistoryEntriesRefs})
+    >;
+typedef $$ReviewHistoryEntriesTableCreateCompanionBuilder =
+    ReviewHistoryEntriesCompanion Function({
+      required String id,
+      required String reviewCardId,
+      required String vocabItemId,
+      required String rating,
+      required int interval,
+      required double easeFactor,
+      required int repetitions,
+      required DateTime reviewedAt,
+      Value<int> rowid,
+    });
+typedef $$ReviewHistoryEntriesTableUpdateCompanionBuilder =
+    ReviewHistoryEntriesCompanion Function({
+      Value<String> id,
+      Value<String> reviewCardId,
+      Value<String> vocabItemId,
+      Value<String> rating,
+      Value<int> interval,
+      Value<double> easeFactor,
+      Value<int> repetitions,
+      Value<DateTime> reviewedAt,
+      Value<int> rowid,
+    });
+
+final class $$ReviewHistoryEntriesTableReferences
+    extends
+        BaseReferences<
+          _$LinguaPageDatabase,
+          $ReviewHistoryEntriesTable,
+          ReviewHistoryEntry
+        > {
+  $$ReviewHistoryEntriesTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $ReviewCardsTable _reviewCardIdTable(_$LinguaPageDatabase db) => db
+      .reviewCards
+      .createAlias('review_history_entries__review_card_id__review_cards__id');
+
+  $$ReviewCardsTableProcessedTableManager get reviewCardId {
+    final $_column = $_itemColumn<String>('review_card_id')!;
+
+    final manager = $$ReviewCardsTableTableManager(
+      $_db,
+      $_db.reviewCards,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_reviewCardIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $VocabItemsTable _vocabItemIdTable(_$LinguaPageDatabase db) => db
+      .vocabItems
+      .createAlias('review_history_entries__vocab_item_id__vocab_items__id');
+
+  $$VocabItemsTableProcessedTableManager get vocabItemId {
+    final $_column = $_itemColumn<String>('vocab_item_id')!;
+
+    final manager = $$VocabItemsTableTableManager(
+      $_db,
+      $_db.vocabItems,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_vocabItemIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$ReviewHistoryEntriesTableFilterComposer
+    extends Composer<_$LinguaPageDatabase, $ReviewHistoryEntriesTable> {
+  $$ReviewHistoryEntriesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get rating => $composableBuilder(
+    column: $table.rating,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get interval => $composableBuilder(
+    column: $table.interval,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get easeFactor => $composableBuilder(
+    column: $table.easeFactor,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get repetitions => $composableBuilder(
+    column: $table.repetitions,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get reviewedAt => $composableBuilder(
+    column: $table.reviewedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$ReviewCardsTableFilterComposer get reviewCardId {
+    final $$ReviewCardsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.reviewCardId,
+      referencedTable: $db.reviewCards,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ReviewCardsTableFilterComposer(
+            $db: $db,
+            $table: $db.reviewCards,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$VocabItemsTableFilterComposer get vocabItemId {
+    final $$VocabItemsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.vocabItemId,
+      referencedTable: $db.vocabItems,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$VocabItemsTableFilterComposer(
+            $db: $db,
+            $table: $db.vocabItems,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$ReviewHistoryEntriesTableOrderingComposer
+    extends Composer<_$LinguaPageDatabase, $ReviewHistoryEntriesTable> {
+  $$ReviewHistoryEntriesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get rating => $composableBuilder(
+    column: $table.rating,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get interval => $composableBuilder(
+    column: $table.interval,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get easeFactor => $composableBuilder(
+    column: $table.easeFactor,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get repetitions => $composableBuilder(
+    column: $table.repetitions,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get reviewedAt => $composableBuilder(
+    column: $table.reviewedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$ReviewCardsTableOrderingComposer get reviewCardId {
+    final $$ReviewCardsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.reviewCardId,
+      referencedTable: $db.reviewCards,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ReviewCardsTableOrderingComposer(
+            $db: $db,
+            $table: $db.reviewCards,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$VocabItemsTableOrderingComposer get vocabItemId {
+    final $$VocabItemsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.vocabItemId,
+      referencedTable: $db.vocabItems,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$VocabItemsTableOrderingComposer(
+            $db: $db,
+            $table: $db.vocabItems,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$ReviewHistoryEntriesTableAnnotationComposer
+    extends Composer<_$LinguaPageDatabase, $ReviewHistoryEntriesTable> {
+  $$ReviewHistoryEntriesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get rating =>
+      $composableBuilder(column: $table.rating, builder: (column) => column);
+
+  GeneratedColumn<int> get interval =>
+      $composableBuilder(column: $table.interval, builder: (column) => column);
+
+  GeneratedColumn<double> get easeFactor => $composableBuilder(
+    column: $table.easeFactor,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get repetitions => $composableBuilder(
+    column: $table.repetitions,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get reviewedAt => $composableBuilder(
+    column: $table.reviewedAt,
+    builder: (column) => column,
+  );
+
+  $$ReviewCardsTableAnnotationComposer get reviewCardId {
+    final $$ReviewCardsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.reviewCardId,
+      referencedTable: $db.reviewCards,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ReviewCardsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.reviewCards,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$VocabItemsTableAnnotationComposer get vocabItemId {
+    final $$VocabItemsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.vocabItemId,
+      referencedTable: $db.vocabItems,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$VocabItemsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.vocabItems,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$ReviewHistoryEntriesTableTableManager
+    extends
+        RootTableManager<
+          _$LinguaPageDatabase,
+          $ReviewHistoryEntriesTable,
+          ReviewHistoryEntry,
+          $$ReviewHistoryEntriesTableFilterComposer,
+          $$ReviewHistoryEntriesTableOrderingComposer,
+          $$ReviewHistoryEntriesTableAnnotationComposer,
+          $$ReviewHistoryEntriesTableCreateCompanionBuilder,
+          $$ReviewHistoryEntriesTableUpdateCompanionBuilder,
+          (ReviewHistoryEntry, $$ReviewHistoryEntriesTableReferences),
+          ReviewHistoryEntry,
+          PrefetchHooks Function({bool reviewCardId, bool vocabItemId})
+        > {
+  $$ReviewHistoryEntriesTableTableManager(
+    _$LinguaPageDatabase db,
+    $ReviewHistoryEntriesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ReviewHistoryEntriesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ReviewHistoryEntriesTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$ReviewHistoryEntriesTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> reviewCardId = const Value.absent(),
+                Value<String> vocabItemId = const Value.absent(),
+                Value<String> rating = const Value.absent(),
+                Value<int> interval = const Value.absent(),
+                Value<double> easeFactor = const Value.absent(),
+                Value<int> repetitions = const Value.absent(),
+                Value<DateTime> reviewedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ReviewHistoryEntriesCompanion(
+                id: id,
+                reviewCardId: reviewCardId,
+                vocabItemId: vocabItemId,
+                rating: rating,
+                interval: interval,
+                easeFactor: easeFactor,
+                repetitions: repetitions,
+                reviewedAt: reviewedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String reviewCardId,
+                required String vocabItemId,
+                required String rating,
+                required int interval,
+                required double easeFactor,
+                required int repetitions,
+                required DateTime reviewedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => ReviewHistoryEntriesCompanion.insert(
+                id: id,
+                reviewCardId: reviewCardId,
+                vocabItemId: vocabItemId,
+                rating: rating,
+                interval: interval,
+                easeFactor: easeFactor,
+                repetitions: repetitions,
+                reviewedAt: reviewedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$ReviewHistoryEntriesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({reviewCardId = false, vocabItemId = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [],
@@ -6525,16 +7757,33 @@ class $$ReviewCardsTableTableManager
                       dynamic
                     >
                   >(state) {
+                    if (reviewCardId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.reviewCardId,
+                                referencedTable:
+                                    $$ReviewHistoryEntriesTableReferences
+                                        ._reviewCardIdTable(db),
+                                referencedColumn:
+                                    $$ReviewHistoryEntriesTableReferences
+                                        ._reviewCardIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
                     if (vocabItemId) {
                       state =
                           state.withJoin(
                                 currentTable: table,
                                 currentColumn: table.vocabItemId,
-                                referencedTable: $$ReviewCardsTableReferences
-                                    ._vocabItemIdTable(db),
-                                referencedColumn: $$ReviewCardsTableReferences
-                                    ._vocabItemIdTable(db)
-                                    .id,
+                                referencedTable:
+                                    $$ReviewHistoryEntriesTableReferences
+                                        ._vocabItemIdTable(db),
+                                referencedColumn:
+                                    $$ReviewHistoryEntriesTableReferences
+                                        ._vocabItemIdTable(db)
+                                        .id,
                               )
                               as T;
                     }
@@ -6550,19 +7799,19 @@ class $$ReviewCardsTableTableManager
       );
 }
 
-typedef $$ReviewCardsTableProcessedTableManager =
+typedef $$ReviewHistoryEntriesTableProcessedTableManager =
     ProcessedTableManager<
       _$LinguaPageDatabase,
-      $ReviewCardsTable,
-      ReviewCard,
-      $$ReviewCardsTableFilterComposer,
-      $$ReviewCardsTableOrderingComposer,
-      $$ReviewCardsTableAnnotationComposer,
-      $$ReviewCardsTableCreateCompanionBuilder,
-      $$ReviewCardsTableUpdateCompanionBuilder,
-      (ReviewCard, $$ReviewCardsTableReferences),
-      ReviewCard,
-      PrefetchHooks Function({bool vocabItemId})
+      $ReviewHistoryEntriesTable,
+      ReviewHistoryEntry,
+      $$ReviewHistoryEntriesTableFilterComposer,
+      $$ReviewHistoryEntriesTableOrderingComposer,
+      $$ReviewHistoryEntriesTableAnnotationComposer,
+      $$ReviewHistoryEntriesTableCreateCompanionBuilder,
+      $$ReviewHistoryEntriesTableUpdateCompanionBuilder,
+      (ReviewHistoryEntry, $$ReviewHistoryEntriesTableReferences),
+      ReviewHistoryEntry,
+      PrefetchHooks Function({bool reviewCardId, bool vocabItemId})
     >;
 typedef $$AppSettingsTableCreateCompanionBuilder =
     AppSettingsCompanion Function({
@@ -6721,6 +7970,8 @@ class $LinguaPageDatabaseManager {
       $$VocabItemsTableTableManager(_db, _db.vocabItems);
   $$ReviewCardsTableTableManager get reviewCards =>
       $$ReviewCardsTableTableManager(_db, _db.reviewCards);
+  $$ReviewHistoryEntriesTableTableManager get reviewHistoryEntries =>
+      $$ReviewHistoryEntriesTableTableManager(_db, _db.reviewHistoryEntries);
   $$AppSettingsTableTableManager get appSettings =>
       $$AppSettingsTableTableManager(_db, _db.appSettings);
 }

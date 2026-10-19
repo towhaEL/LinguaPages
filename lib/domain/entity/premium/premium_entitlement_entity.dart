@@ -14,6 +14,8 @@ class PremiumEntitlementEntity {
 
   bool get isExpired =>
       expiresAt != null && expiresAt!.isBefore(DateTime.now());
+
+  bool get isActive => isPremium && !isExpired;
 }
 
 enum PremiumEntitlementSource { none, purchase, restored, cache }

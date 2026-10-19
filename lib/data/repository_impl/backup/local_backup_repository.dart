@@ -44,6 +44,10 @@ class LocalBackupRepository implements BackupRepository {
       'reviewCards': (await _database.select(_database.reviewCards).get())
           .map((row) => row.toJson())
           .toList(),
+      'reviewHistory':
+          (await _database.select(_database.reviewHistoryEntries).get())
+              .map((row) => row.toJson())
+              .toList(),
       'settings': (await _database.select(_database.appSettings).get())
           .map((row) => row.toJson())
           .toList(),
@@ -61,6 +65,7 @@ class LocalBackupRepository implements BackupRepository {
     var bookmarksRestored = 0;
     var vocabItemsRestored = 0;
     var reviewCardsRestored = 0;
+    var reviewHistoryRestored = 0;
     var duplicatesSkipped = 0;
 
     for (final raw in _records(payload, 'books')) {
@@ -139,6 +144,21 @@ class LocalBackupRepository implements BackupRepository {
       reviewCardsRestored++;
     }
 
+    for (final raw in _records(payload, 'reviewHistory')) {
+      final row = ReviewHistoryEntry.fromJson(raw);
+      final exists = await (_database.select(
+        _database.reviewHistoryEntries,
+      )..where((item) => item.id.equals(row.id))).getSingleOrNull();
+      if (exists != null) {
+        duplicatesSkipped++;
+        continue;
+      }
+      await _database
+          .into(_database.reviewHistoryEntries)
+          .insert(row.toCompanion(false));
+      reviewHistoryRestored++;
+    }
+
     for (final raw in _records(payload, 'settings')) {
       final row = AppSetting.fromJson(raw);
       await _database
@@ -152,6 +172,7 @@ class LocalBackupRepository implements BackupRepository {
       bookmarksRestored: bookmarksRestored,
       vocabItemsRestored: vocabItemsRestored,
       reviewCardsRestored: reviewCardsRestored,
+      reviewHistoryRestored: reviewHistoryRestored,
       duplicatesSkipped: duplicatesSkipped,
     );
   }

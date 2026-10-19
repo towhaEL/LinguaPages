@@ -14,6 +14,9 @@ class AppConstant {
   static double get verticalGap12 => 12.h;
   static double get verticalGap16 => 16.h;
   static double get verticalGap20 => 20.h;
+  static double get verticalGap24 => 24.h;
+  static double get verticalGap28 => 28.h;
+  static double get verticalGap32 => 32.h;
 
   /// border radius
   static double get borderRadius100 => 100.r;

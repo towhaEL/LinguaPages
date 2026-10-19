@@ -29,8 +29,11 @@ dependencies:
   drift: ^2.31.0
   drift_flutter: ^0.3.1
   archive: ^4.0.9
+  crypto: ^3.0.7
   pdfrx: ^2.6.5
   flutter_readium: ^0.6.2
+  flutter_local_notifications: ^22.3.2
+  flutter_timezone: ^5.1.1
   wakelock_plus: ^1.8.0
   file_picker: ^13.1.0
   path_provider: ^2.1.5
@@ -40,6 +43,7 @@ dependencies:
   flutter_svg: ^2.3.0
   flutter_lints: ^6.0.0
   shared_preferences: ^2.5.5
+  timezone: ^0.11.2
   flutter_screenutil: ^5.9.3
   connectivity_plus: ^7.1.1
   flutter_gen: ^5.14.1
@@ -54,6 +58,7 @@ dev_dependencies:
   drift_dev: ^2.31.0
   flutter_test:
     sdk: flutter
+  sqlite3: ^3.5.2
   json_serializable: ^6.13.2
   retrofit_generator: ^10.2.6
   flutter_gen_runner: ^5.14.1
@@ -65,3 +70,4 @@ flutter:
 
   assets:
     - assets/images/
+    - assets/translation/

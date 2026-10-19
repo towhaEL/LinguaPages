@@ -120,6 +120,24 @@ class ReviewCards extends Table {
 }
 
 // ---------------------------------------------------------------------------
+// Review — Historical attempts
+// ---------------------------------------------------------------------------
+
+class ReviewHistoryEntries extends Table {
+  TextColumn get id => text()();
+  TextColumn get reviewCardId => text().references(ReviewCards, #id)();
+  TextColumn get vocabItemId => text().references(VocabItems, #id)();
+  TextColumn get rating => text()(); // ReviewRating.name
+  IntColumn get interval => integer()();
+  RealColumn get easeFactor => real()();
+  IntColumn get repetitions => integer()();
+  DateTimeColumn get reviewedAt => dateTime()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+// ---------------------------------------------------------------------------
 // Settings — Reader preferences and study config
 // ---------------------------------------------------------------------------
 
@@ -143,6 +161,7 @@ class AppSettings extends Table {
     ReadingSessions,
     VocabItems,
     ReviewCards,
+    ReviewHistoryEntries,
     AppSettings,
   ],
 )
@@ -152,7 +171,7 @@ class LinguaPageDatabase extends _$LinguaPageDatabase {
   LinguaPageDatabase.defaults() : super(driftDatabase(name: 'lingua_page'));
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -164,6 +183,7 @@ class LinguaPageDatabase extends _$LinguaPageDatabase {
         await m.createTable(readingSessions);
         await m.createTable(vocabItems);
         await m.createTable(reviewCards);
+        await m.createTable(reviewHistoryEntries);
         await m.createTable(appSettings);
       }
       if (from < 3) {
@@ -174,6 +194,9 @@ class LinguaPageDatabase extends _$LinguaPageDatabase {
       }
       if (from < 5) {
         await m.addColumn(libraryBooks, libraryBooks.tableOfContentsJson);
+      }
+      if (from < 6) {
+        await m.createTable(reviewHistoryEntries);
       }
     },
   );

@@ -46,6 +46,13 @@ void main() {
       expect(reviewed.repetitions, 1);
       expect(reviewed.nextReviewDate.isAfter(DateTime.now()), isTrue);
       expect(await repository.dueCount(), 0);
+
+      final history = await repository.getHistory();
+      expect(history, hasLength(1));
+      expect(history.single.reviewCardId, card.id);
+      expect(history.single.vocabItemId, 'vocab-1');
+      expect(history.single.rating, ReviewRating.good);
+      expect(history.single.repetitions, 1);
     });
 
     test('again resets repetitions and keeps the card in learning', () async {
@@ -59,6 +66,9 @@ void main() {
       expect(reviewed.interval, 0);
       expect(reviewed.repetitions, 0);
       expect(reviewed.nextReviewDate.isAfter(DateTime.now()), isTrue);
+
+      final history = await repository.getHistory();
+      expect(history.single.rating, ReviewRating.again);
     });
   });
 }

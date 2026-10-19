@@ -1,0 +1,40 @@
+{
+  "id": "en-es",
+  "version": "1.0.0-fixture",
+  "sourceLanguage": "en",
+  "targetLanguage": "es",
+  "entries": {
+    "book": {
+      "lemma": "book",
+      "translation": "libro",
+      "partOfSpeech": "noun",
+      "example": "I read a book every week."
+    },
+    "read": {
+      "lemma": "read",
+      "translation": "leer",
+      "partOfSpeech": "verb",
+      "example": "She likes to read before bed."
+    },
+    "i": {
+      "lemma": "I",
+      "translation": "yo",
+      "partOfSpeech": "pronoun"
+    },
+    "a": {
+      "lemma": "a",
+      "translation": "un",
+      "partOfSpeech": "article"
+    },
+    "every": {
+      "lemma": "every",
+      "translation": "cada",
+      "partOfSpeech": "determiner"
+    },
+    "week": {
+      "lemma": "week",
+      "translation": "semana",
+      "partOfSpeech": "noun"
+    }
+  }
+}

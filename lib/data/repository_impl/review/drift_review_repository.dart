@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:injectable/injectable.dart';
 import 'package:lingua_pages/data/data_source/library/local/lingua_page_database.dart';
 import 'package:lingua_pages/domain/entity/review/review_card_entity.dart';
+import 'package:lingua_pages/domain/entity/review/review_history_entry.dart';
 import 'package:lingua_pages/domain/repository/review/review_repository.dart';
 
 @LazySingleton(as: ReviewRepository)
@@ -66,24 +67,39 @@ class DriftReviewRepository implements ReviewRepository {
     required String cardId,
     required ReviewRating rating,
   }) async {
-    final row = await (_database.select(
-      _database.reviewCards,
-    )..where((card) => card.id.equals(cardId))).getSingle();
-    final current = _toEntity(row);
-    final next = _schedule(current, rating, DateTime.now());
-    await (_database.update(
-      _database.reviewCards,
-    )..where((card) => card.id.equals(cardId))).write(
-      ReviewCardsCompanion(
-        interval: Value(next.interval),
-        easeFactor: Value(next.easeFactor),
-        repetitions: Value(next.repetitions),
-        nextReviewDate: Value(next.nextReviewDate),
-        lastReviewedAt: Value(next.lastReviewedAt),
-        state: Value(next.state.name),
-      ),
-    );
-    return next;
+    return _database.transaction(() async {
+      final row = await (_database.select(
+        _database.reviewCards,
+      )..where((card) => card.id.equals(cardId))).getSingle();
+      final current = _toEntity(row);
+      final reviewedAt = DateTime.now();
+      final next = _schedule(current, rating, reviewedAt);
+      await (_database.update(
+        _database.reviewCards,
+      )..where((card) => card.id.equals(cardId))).write(
+        ReviewCardsCompanion(
+          interval: Value(next.interval),
+          easeFactor: Value(next.easeFactor),
+          repetitions: Value(next.repetitions),
+          nextReviewDate: Value(next.nextReviewDate),
+          lastReviewedAt: Value(next.lastReviewedAt),
+          state: Value(next.state.name),
+        ),
+      );
+      await _database.into(_database.reviewHistoryEntries).insert(
+        ReviewHistoryEntriesCompanion.insert(
+          id: 'review-$cardId-${reviewedAt.microsecondsSinceEpoch}',
+          reviewCardId: cardId,
+          vocabItemId: current.vocabItemId,
+          rating: rating.name,
+          interval: next.interval,
+          easeFactor: next.easeFactor,
+          repetitions: next.repetitions,
+          reviewedAt: reviewedAt,
+        ),
+      );
+      return next;
+    });
   }
 
   @override
@@ -98,10 +114,24 @@ class DriftReviewRepository implements ReviewRepository {
   }
 
   @override
+  Future<List<ReviewHistoryItem>> getHistory({int limit = 100}) async {
+    final rows = await (_database.select(_database.reviewHistoryEntries)
+          ..orderBy([(entry) => OrderingTerm.desc(entry.reviewedAt)])
+          ..limit(limit.clamp(1, 1000)))
+        .get();
+    return rows.map(_toHistoryItem).toList();
+  }
+
+  @override
   Future<void> deleteForVocabItem(String vocabItemId) async {
-    await (_database.delete(
-      _database.reviewCards,
-    )..where((card) => card.vocabItemId.equals(vocabItemId))).go();
+    await _database.transaction(() async {
+      await (_database.delete(
+        _database.reviewHistoryEntries,
+      )..where((entry) => entry.vocabItemId.equals(vocabItemId))).go();
+      await (_database.delete(
+        _database.reviewCards,
+      )..where((card) => card.vocabItemId.equals(vocabItemId))).go();
+    });
   }
 
   ReviewCardEntity _schedule(
@@ -171,4 +201,15 @@ class DriftReviewRepository implements ReviewRepository {
     state: ReviewCardState.values.byName(row.state),
     createdAt: row.createdAt,
   );
+
+  ReviewHistoryItem _toHistoryItem(ReviewHistoryEntry row) => ReviewHistoryItem(
+        id: row.id,
+        reviewCardId: row.reviewCardId,
+        vocabItemId: row.vocabItemId,
+        rating: ReviewRating.values.byName(row.rating),
+        interval: row.interval,
+        easeFactor: row.easeFactor,
+        repetitions: row.repetitions,
+        reviewedAt: row.reviewedAt,
+      );
 }

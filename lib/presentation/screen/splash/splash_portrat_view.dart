@@ -2,6 +2,8 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:lingua_pages/core/constants/app_constant.dart';
+import 'package:lingua_pages/core/injector/injector.dart';
+import 'package:lingua_pages/core/storage/onboarding_preferences.dart';
 import 'package:lingua_pages/l10n/l10n.dart';
 import 'package:lingua_pages/presentation/route/app_router.gr.dart';
 import 'package:lingua_pages/presentation/theme/base/theme_extension.dart';
@@ -57,7 +59,11 @@ class _SplashPortraitViewState extends State<SplashPortraitView>
     await Future<void>.delayed(const Duration(milliseconds: 1800));
 
     if (!mounted) return;
-    context.replaceRoute(const DashboardRoute());
+    if (injector<OnboardingPreferences>().isComplete) {
+      context.replaceRoute(const DashboardRoute());
+    } else {
+      context.replaceRoute(const OnboardingRoute());
+    }
   }
 
   @override

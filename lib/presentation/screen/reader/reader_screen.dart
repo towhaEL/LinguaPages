@@ -26,9 +26,12 @@ import 'package:lingua_pages/domain/repository/settings/settings_repository.dart
 import 'package:lingua_pages/domain/service/document_engine.dart';
 import 'package:lingua_pages/domain/service/document_engine_factory.dart';
 import 'package:lingua_pages/domain/service/annotation_markdown_exporter.dart';
+import 'package:lingua_pages/domain/service/review_notification_scheduler.dart';
 import 'package:lingua_pages/domain/use_cases/reader/save_reading_progress_use_case.dart';
 import 'package:lingua_pages/domain/use_cases/vocabulary/lookup_word_use_case.dart';
 import 'package:lingua_pages/domain/use_cases/vocabulary/save_vocabulary_use_case.dart';
+import 'package:lingua_pages/domain/use_cases/vocabulary/translate_sentence_use_case.dart';
+import 'package:lingua_pages/domain/service/sentence_translation_service.dart';
 import 'package:lingua_pages/l10n/l10n.dart';
 import 'package:lingua_pages/presentation/theme/base/theme_extension.dart';
 
@@ -55,6 +58,8 @@ class _ReaderScreenState extends State<ReaderScreen>
   late final ReviewRepository _reviewRepository;
   late final LookupWordUseCase _lookupWord;
   late final SaveVocabularyUseCase _saveVocabulary;
+  late final TranslateSentenceUseCase _translateSentence;
+  late final ReviewNotificationScheduler _reviewNotifications;
   late final SettingsRepository _settingsRepository;
 
   SettingsEntity _settings = const SettingsEntity();
@@ -92,6 +97,8 @@ class _ReaderScreenState extends State<ReaderScreen>
     _reviewRepository = injector<ReviewRepository>();
     _lookupWord = injector<LookupWordUseCase>();
     _saveVocabulary = injector<SaveVocabularyUseCase>();
+    _translateSentence = injector<TranslateSentenceUseCase>();
+    _reviewNotifications = injector<ReviewNotificationScheduler>();
     _settingsRepository = injector<SettingsRepository>();
     _loadReaderSettings();
     if (_usesReadium) {
@@ -1009,6 +1016,11 @@ class _ReaderScreenState extends State<ReaderScreen>
           sourceLanguage: _settings.sourceLanguage,
           targetLanguage: _settings.targetLanguage,
         ),
+        translate: () => _translateSentence.execute(
+          sentence: selectedText,
+          sourceLanguage: _settings.sourceLanguage,
+          targetLanguage: _settings.targetLanguage,
+        ),
         onSave: (entry) => _saveVocabularyItem(
           word: word,
           selectedText: selectedText,
@@ -1054,6 +1066,7 @@ class _ReaderScreenState extends State<ReaderScreen>
         ),
       );
       await _reviewRepository.createForVocabItem(item.id);
+      await _reviewNotifications.sync();
       if (!mounted) return;
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
@@ -2160,12 +2173,14 @@ class _ReaderLookupSheet extends StatefulWidget {
   const _ReaderLookupSheet({
     required this.word,
     required this.lookup,
+    required this.translate,
     required this.onSave,
     required this.onHighlight,
   });
 
   final String word;
   final Future<DictionaryEntry?> Function() lookup;
+  final Future<SentenceTranslationResult> Function() translate;
   final Future<void> Function(DictionaryEntry entry) onSave;
   final Future<void> Function() onHighlight;
 
@@ -2175,6 +2190,8 @@ class _ReaderLookupSheet extends StatefulWidget {
 
 class _ReaderLookupSheetState extends State<_ReaderLookupSheet> {
   late final Future<DictionaryEntry?> _entryFuture = widget.lookup();
+  late final Future<SentenceTranslationResult> _translationFuture = widget
+      .translate();
 
   Future<void> _copy(DictionaryEntry entry) async {
     await Clipboard.setData(
@@ -2200,7 +2217,7 @@ class _ReaderLookupSheetState extends State<_ReaderLookupSheet> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: SizedBox(
-        height: MediaQuery.sizeOf(context).height * .48,
+        height: MediaQuery.sizeOf(context).height * .62,
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
           child: FutureBuilder<DictionaryEntry?>(
@@ -2225,7 +2242,19 @@ class _ReaderLookupSheetState extends State<_ReaderLookupSheet> {
               }
               final entry = snapshot.data;
               if (entry == null) {
-                return Center(child: Text(context.l10n.readerNoTranslation));
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      context.l10n.readerLookupFor(widget.word),
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: 12),
+                    _SentenceTranslationCard(future: _translationFuture),
+                    const SizedBox(height: 18),
+                    Text(context.l10n.readerNoTranslation),
+                  ],
+                );
               }
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -2234,6 +2263,8 @@ class _ReaderLookupSheetState extends State<_ReaderLookupSheet> {
                     context.l10n.readerLookupFor(widget.word),
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
+                  const SizedBox(height: 12),
+                  _SentenceTranslationCard(future: _translationFuture),
                   const SizedBox(height: 18),
                   Text(
                     entry.translation,
@@ -2278,6 +2309,66 @@ class _ReaderLookupSheetState extends State<_ReaderLookupSheet> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _SentenceTranslationCard extends StatelessWidget {
+  const _SentenceTranslationCard({required this.future});
+
+  final Future<SentenceTranslationResult> future;
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<SentenceTranslationResult>(
+      future: future,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const SizedBox(
+            height: 28,
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: SizedBox(
+                height: 18,
+                width: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
+          );
+        }
+        if (snapshot.hasError || !snapshot.hasData) return const SizedBox();
+
+        final result = snapshot.data!;
+        return Card(
+          margin: EdgeInsets.zero,
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  context.l10n.readerSentenceTranslation,
+                  style: Theme.of(context).textTheme.labelLarge,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  result.translation,
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
+                if (result.untranslatedWords.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    context.l10n.readerUntranslatedWords(
+                      result.untranslatedWords.join(', '),
+                    ),
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

@@ -44,8 +44,11 @@ class _HomePortraitViewState extends State<HomePortraitView>
   }
 
   void _refreshDueCount() {
+    final dueCount = _reviewRepository.dueCount();
     if (!mounted) return;
-    setState(() => _dueCount = _reviewRepository.dueCount());
+    setState(() {
+      _dueCount = dueCount;
+    });
   }
 
   @override

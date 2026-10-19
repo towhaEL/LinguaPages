@@ -62,6 +62,7 @@ class DriftSettingsRepository implements SettingsRepository {
     'sourceLanguage': settings.sourceLanguage,
     'targetLanguage': settings.targetLanguage,
     'dailyNewCardLimit': settings.dailyNewCardLimit,
+    'reviewNotificationsEnabled': settings.reviewNotificationsEnabled,
   };
 
   SettingsEntity _fromValues(Map<String, dynamic> values) {
@@ -98,6 +99,8 @@ class DriftSettingsRepository implements SettingsRepository {
       sourceLanguage: values['sourceLanguage'] as String? ?? 'en',
       targetLanguage: values['targetLanguage'] as String? ?? 'es',
       dailyNewCardLimit: values['dailyNewCardLimit'] as int? ?? 15,
+      reviewNotificationsEnabled:
+          values['reviewNotificationsEnabled'] as bool? ?? false,
     );
   }
 

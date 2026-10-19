@@ -92,6 +92,10 @@ void main() {
       expect(await database.select(database.bookmarks).get(), hasLength(1));
       expect(await database.select(database.vocabItems).get(), hasLength(1));
       expect(await database.select(database.reviewCards).get(), hasLength(1));
+      expect(
+        await database.select(database.reviewHistoryEntries).get(),
+        hasLength(1),
+      );
     });
 
     test('removes a book and all linked study data when requested', () async {
@@ -104,6 +108,10 @@ void main() {
       expect(await database.select(database.bookmarks).get(), isEmpty);
       expect(await database.select(database.vocabItems).get(), isEmpty);
       expect(await database.select(database.reviewCards).get(), isEmpty);
+      expect(
+        await database.select(database.reviewHistoryEntries).get(),
+        isEmpty,
+      );
     });
   });
 }
@@ -146,6 +154,20 @@ Future<void> _seedLinkedStudyData(
           vocabItemId: 'vocab-$bookId',
           nextReviewDate: now,
           createdAt: now,
+        ),
+      );
+  await database
+      .into(database.reviewHistoryEntries)
+      .insert(
+        ReviewHistoryEntriesCompanion.insert(
+          id: 'history-$bookId',
+          reviewCardId: 'review-$bookId',
+          vocabItemId: 'vocab-$bookId',
+          rating: 'good',
+          interval: 1,
+          easeFactor: 2.5,
+          repetitions: 1,
+          reviewedAt: now,
         ),
       );
 }

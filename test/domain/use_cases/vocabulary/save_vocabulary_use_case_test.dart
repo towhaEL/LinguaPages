@@ -1,7 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lingua_pages/core/feature_flags/app_feature_flags.dart';
 import 'package:lingua_pages/domain/entity/vocabulary/vocab_item_entity.dart';
+import 'package:lingua_pages/domain/entity/premium/premium_entitlement_entity.dart';
 import 'package:lingua_pages/domain/exceptions/vocabulary_limit_exception.dart';
+import 'package:lingua_pages/domain/repository/premium/premium_entitlement_repository.dart';
 import 'package:lingua_pages/domain/repository/vocabulary/vocabulary_repository.dart';
 import 'package:lingua_pages/domain/use_cases/vocabulary/save_vocabulary_use_case.dart';
 
@@ -9,7 +11,7 @@ void main() {
   test('blocks the 501st item for non-premium users', () async {
     final repository = _FakeVocabularyRepository()
       ..items.addAll(List.generate(500, _item));
-    final useCase = SaveVocabularyUseCase(repository, _flags());
+    final useCase = SaveVocabularyUseCase(repository, _flags(), null);
 
     await expectLater(
       useCase.execute(_item(500)),
@@ -24,10 +26,30 @@ void main() {
     final useCase = SaveVocabularyUseCase(
       repository,
       _flags(premiumEnabled: true),
+      null,
     );
 
     await useCase.execute(_item(500));
 
+    expect(repository.items, hasLength(501));
+  });
+
+  test('uses an active cached entitlement when billing is wired', () async {
+    final repository = _FakeVocabularyRepository()
+      ..items.addAll(List.generate(500, _item));
+    final entitlement = _FakeEntitlementRepository(
+      const PremiumEntitlementEntity(
+        isPremium: true,
+        source: PremiumEntitlementSource.purchase,
+      ),
+    );
+    final useCase = SaveVocabularyUseCase(
+      repository,
+      _flags(premiumEnabled: true),
+      entitlement,
+    );
+
+    await useCase.execute(_item(500));
     expect(repository.items, hasLength(501));
   });
 }
@@ -81,4 +103,26 @@ class _FakeVocabularyRepository implements VocabularyRepository {
 
   @override
   Future<int> totalCount() async => items.length;
+}
+
+class _FakeEntitlementRepository implements PremiumEntitlementRepository {
+  _FakeEntitlementRepository(this.current);
+
+  PremiumEntitlementEntity current;
+
+  @override
+  Future<PremiumEntitlementEntity> getCurrent() async => current;
+
+  @override
+  Future<void> save(PremiumEntitlementEntity entitlement) async {
+    current = entitlement;
+  }
+
+  @override
+  Future<void> clear() async {
+    current = const PremiumEntitlementEntity(
+      isPremium: false,
+      source: PremiumEntitlementSource.none,
+    );
+  }
 }

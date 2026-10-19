@@ -15,6 +15,7 @@ class BackupRestoreResult {
     required this.bookmarksRestored,
     required this.vocabItemsRestored,
     required this.reviewCardsRestored,
+    required this.reviewHistoryRestored,
     required this.duplicatesSkipped,
   });
 
@@ -23,6 +24,7 @@ class BackupRestoreResult {
   final int bookmarksRestored;
   final int vocabItemsRestored;
   final int reviewCardsRestored;
+  final int reviewHistoryRestored;
   final int duplicatesSkipped;
 
   int get totalRestored =>
@@ -30,5 +32,6 @@ class BackupRestoreResult {
       highlightsRestored +
       bookmarksRestored +
       vocabItemsRestored +
-      reviewCardsRestored;
+      reviewCardsRestored +
+      reviewHistoryRestored;
 }

@@ -5,6 +5,7 @@ class LanguagePackInfo {
     required this.targetLanguage,
     required this.version,
     required this.sizeBytes,
+    this.checksum = '',
     required this.isInstalled,
   });
 
@@ -13,6 +14,7 @@ class LanguagePackInfo {
   final String targetLanguage;
   final String version;
   final int sizeBytes;
+  final String checksum;
   final bool isInstalled;
 }
 

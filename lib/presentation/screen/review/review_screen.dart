@@ -2,11 +2,13 @@ import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
 import 'package:lingua_pages/core/injector/injector.dart';
 import 'package:lingua_pages/domain/entity/review/review_card_entity.dart';
+import 'package:lingua_pages/domain/entity/review/review_history_entry.dart';
 import 'package:lingua_pages/domain/entity/settings/settings_entity.dart';
 import 'package:lingua_pages/domain/entity/vocabulary/vocab_item_entity.dart';
 import 'package:lingua_pages/domain/repository/settings/settings_repository.dart';
 import 'package:lingua_pages/domain/repository/vocabulary/vocabulary_repository.dart';
 import 'package:lingua_pages/domain/service/review_statistics.dart';
+import 'package:lingua_pages/domain/service/review_notification_scheduler.dart';
 import 'package:lingua_pages/domain/use_cases/review/review_card_use_case.dart';
 import 'package:lingua_pages/l10n/l10n.dart';
 
@@ -31,6 +33,8 @@ class _ReviewViewState extends State<_ReviewView> {
       injector<VocabularyRepository>();
   late final SettingsRepository _settingsRepository =
       injector<SettingsRepository>();
+  late final ReviewNotificationScheduler _reviewNotifications =
+      injector<ReviewNotificationScheduler>();
 
   List<ReviewCardEntity> _cards = const [];
   ReviewStatistics _statistics = const ReviewStatistics(
@@ -41,6 +45,7 @@ class _ReviewViewState extends State<_ReviewView> {
     currentStreak: 0,
   );
   Map<String, VocabItemEntity> _vocabulary = const {};
+  List<ReviewHistoryItem> _history = const [];
   var _isLoading = true;
   var _isAnswerVisible = false;
   String? _errorMessage;
@@ -67,11 +72,13 @@ class _ReviewViewState extends State<_ReviewView> {
         _reviewUseCase.getAllCards(),
         _vocabularyRepository.getAll(),
         _settingsRepository.getSettings(),
+        _reviewUseCase.getHistory(),
       ]);
       if (!mounted) return;
       final dueCards = results[0] as List<ReviewCardEntity>;
       final allCards = results[1] as List<ReviewCardEntity>;
       final settings = results[3] as SettingsEntity;
+      final history = results[4] as List<ReviewHistoryItem>;
       final cards = _applyDailyNewCardLimit(
         dueCards,
         settings.dailyNewCardLimit,
@@ -82,12 +89,14 @@ class _ReviewViewState extends State<_ReviewView> {
         _vocabulary = {
           for (final item in results[2] as List<VocabItemEntity>) item.id: item,
         };
+        _history = history;
         _isLoading = false;
       });
     } catch (_) {
       if (!mounted) return;
       setState(() {
         _cards = const [];
+        _history = const [];
         _isLoading = false;
         _errorMessage = context.l10n.reviewLoadFailed;
       });
@@ -110,6 +119,7 @@ class _ReviewViewState extends State<_ReviewView> {
     if (card == null || !_isAnswerVisible) return;
     try {
       await _reviewUseCase.recordReview(cardId: card.id, rating: rating);
+      await _reviewNotifications.sync();
       await _load();
     } catch (_) {
       if (!mounted) return;
@@ -146,6 +156,8 @@ class _ReviewViewState extends State<_ReviewView> {
       padding: const EdgeInsets.fromLTRB(20, 24, 20, 96),
       children: [
         _buildStatistics(context),
+        const SizedBox(height: 20),
+        _buildRecentHistory(context),
         const SizedBox(height: 20),
         Text(
           context.l10n.reviewDueCount(_cards.length),
@@ -234,6 +246,8 @@ class _ReviewViewState extends State<_ReviewView> {
       padding: const EdgeInsets.fromLTRB(20, 24, 20, 96),
       children: [
         _buildStatistics(context),
+        const SizedBox(height: 20),
+        _buildRecentHistory(context),
         const SizedBox(height: 36),
         Center(child: Text(context.l10n.reviewEmpty)),
       ],
@@ -264,6 +278,42 @@ class _ReviewViewState extends State<_ReviewView> {
               _statistics.activeDays,
               textTheme,
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRecentHistory(BuildContext context) {
+    if (_history.isEmpty) return const SizedBox.shrink();
+    final entries = _history.take(10);
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+              child: Text(
+                context.l10n.reviewRecentHistory,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+            ),
+            for (final entry in entries)
+              ListTile(
+                dense: true,
+                leading: const Icon(Icons.history_rounded),
+                title: Text(
+                  _vocabulary[entry.vocabItemId]?.word ?? entry.vocabItemId,
+                ),
+                subtitle: Text(_ratingLabel(context, entry.rating)),
+                trailing: Text(
+                  MaterialLocalizations.of(context).formatShortDate(
+                    entry.reviewedAt,
+                  ),
+                ),
+              ),
           ],
         ),
       ),

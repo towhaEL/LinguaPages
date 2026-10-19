@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:auto_route/auto_route.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
@@ -9,10 +10,12 @@ import 'package:lingua_pages/domain/repository/backup/backup_repository.dart';
 import 'package:lingua_pages/domain/entity/settings/settings_entity.dart';
 import 'package:lingua_pages/domain/repository/settings/settings_repository.dart';
 import 'package:lingua_pages/domain/repository/translation/language_pack_repository.dart';
+import 'package:lingua_pages/domain/service/review_notification_scheduler.dart';
 import 'package:lingua_pages/domain/use_cases/backup/create_backup_use_case.dart';
 import 'package:lingua_pages/domain/use_cases/backup/restore_backup_use_case.dart';
 import 'package:lingua_pages/l10n/l10n.dart';
 import 'package:lingua_pages/presentation/screen/settings/components/language_drop_down_button.dart';
+import 'package:lingua_pages/presentation/route/app_router.gr.dart';
 import 'package:lingua_pages/presentation/theme/base/theme_extension.dart';
 import 'package:lingua_pages/presentation/theme/text/app_text.dart';
 import 'package:lingua_pages/presentation/widgets/app_bar/widgets.dart';
@@ -71,6 +74,12 @@ class SettingsPortraitView extends StatelessWidget {
                 icon: Icons.info_outline_rounded,
                 title: l10n.appName,
                 subtitle: 'v1.0.0',
+              ),
+              _SettingsTile(
+                icon: Icons.privacy_tip_outlined,
+                title: l10n.settingsPrivacy,
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.router.root.push(const PrivacyRoute()),
               ),
             ],
           ),
@@ -226,6 +235,8 @@ class _StudySettings extends StatefulWidget {
 
 class _StudySettingsState extends State<_StudySettings> {
   late final SettingsRepository _repository = injector<SettingsRepository>();
+  late final ReviewNotificationScheduler _reviewNotifications =
+      injector<ReviewNotificationScheduler>();
   SettingsEntity? _settings;
   String? _error;
   var _saving = false;
@@ -272,6 +283,30 @@ class _StudySettingsState extends State<_StudySettings> {
     }
   }
 
+  Future<void> _updateReviewNotifications(bool value) async {
+    setState(() => _saving = true);
+    try {
+      final settings = await _repository.updateSetting<bool>(
+        key: 'reviewNotificationsEnabled',
+        value: value,
+      );
+      if (value) await _reviewNotifications.requestPermission();
+      await _reviewNotifications.sync();
+      if (!mounted) return;
+      setState(() {
+        _settings = settings;
+        _saving = false;
+        _error = null;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _saving = false;
+        _error = context.l10n.settingsSaveFailed;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final settings = _settings;
@@ -296,32 +331,45 @@ class _StudySettingsState extends State<_StudySettings> {
     final limits = {5, 10, 15, 20, 30, 50, settings.dailyNewCardLimit}.toList()
       ..sort();
 
-    return _SettingsTile(
-      icon: Icons.school_outlined,
-      title: context.l10n.settingsDailyNewCardLimit,
-      subtitle: context.l10n.settingsDailyNewCardLimitValue(
-        settings.dailyNewCardLimit,
-      ),
-      trailing: _saving
-          ? const SizedBox(
-              height: 20,
-              width: 20,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            )
-          : DropdownButton<int>(
-              value: settings.dailyNewCardLimit,
-              onChanged: (value) {
-                if (value != null) _updateDailyLimit(value);
-              },
-              items: limits
-                  .map(
-                    (value) => DropdownMenuItem<int>(
-                      value: value,
-                      child: Text('$value'),
-                    ),
-                  )
-                  .toList(),
-            ),
+    return Column(
+      children: [
+        _SettingsTile(
+          icon: Icons.school_outlined,
+          title: context.l10n.settingsDailyNewCardLimit,
+          subtitle: context.l10n.settingsDailyNewCardLimitValue(
+            settings.dailyNewCardLimit,
+          ),
+          trailing: _saving
+              ? const SizedBox(
+                  height: 20,
+                  width: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : DropdownButton<int>(
+                  value: settings.dailyNewCardLimit,
+                  onChanged: (value) {
+                    if (value != null) _updateDailyLimit(value);
+                  },
+                  items: limits
+                      .map(
+                        (value) => DropdownMenuItem<int>(
+                          value: value,
+                          child: Text('$value'),
+                        ),
+                      )
+                      .toList(),
+                ),
+        ),
+        _SettingsTile(
+          icon: Icons.notifications_none_outlined,
+          title: context.l10n.settingsReviewNotifications,
+          subtitle: context.l10n.settingsReviewNotificationsSubtitle,
+          trailing: Switch.adaptive(
+            value: settings.reviewNotificationsEnabled,
+            onChanged: _saving ? null : _updateReviewNotifications,
+          ),
+        ),
+      ],
     );
   }
 }
@@ -499,18 +547,21 @@ class _SettingsTile extends StatelessWidget {
     required this.title,
     this.subtitle,
     this.trailing,
+    this.onTap,
   });
 
   final IconData icon;
   final String title;
   final String? subtitle;
   final Widget? trailing;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final theme = context.colors;
 
     return InkWell(
+      onTap: onTap,
       borderRadius: BorderRadius.circular(AppConstant.borderRadius12),
       child: Padding(
         padding: EdgeInsets.symmetric(

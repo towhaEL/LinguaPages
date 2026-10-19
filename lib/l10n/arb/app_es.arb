@@ -1,6 +1,6 @@
 {
   "@@locale": "es",
-  "welcome": "¡¡Bienvenido a Flutter!!",
+  "welcome": "Bienvenido a LinguaPages",
 
   "errorBadRequest": "Solicitud incorrecta. Revisa los datos e inténtalo de nuevo.",
   "errorNotFound": "Recurso no encontrado.",
@@ -128,6 +128,15 @@
   },
   "readerLookupFailed": "No se pudo completar la búsqueda",
   "readerNoTranslation": "No se encontró traducción",
+  "readerSentenceTranslation": "Traducción de la frase",
+  "readerUntranslatedWords": "Palabras que se mantienen en inglés: {words}",
+  "@readerUntranslatedWords": {
+    "placeholders": {
+      "words": {
+        "type": "String"
+      }
+    }
+  },
   "readerCopy": "Copiar",
   "readerWordCopied": "Copiado al portapapeles",
   "readerSaveWord": "Guardar palabra",
@@ -260,6 +269,8 @@
   "settingsStudy": "Estudio",
   "settingsDailyNewCardLimit": "Palabras nuevas diarias",
   "settingsDailyNewCardLimitValue": "{count} palabras nuevas al día",
+  "settingsReviewNotifications": "Recordatorios de repaso",
+  "settingsReviewNotificationsSubtitle": "Avisarme a las 9:00 cuando haya tarjetas pendientes",
   "settingsSaveFailed": "No se pudieron guardar los ajustes",
   "@settingsDailyNewCardLimitValue": {
     "placeholders": {
@@ -269,6 +280,24 @@
     }
   },
   "settingsAccount": "Cuenta",
+  "settingsPrivacy": "Privacidad",
+  "privacyTitle": "Privacidad",
+  "privacyLocalDataTitle": "Tus datos permanecen en este dispositivo",
+  "privacyLocalDataBody": "Los libros, anotaciones, vocabulario, repasos y ajustes se guardan localmente. La versión actual no necesita una cuenta ni sincronización en la nube.",
+  "privacyBackupTitle": "Tú controlas las copias",
+  "privacyBackupBody": "La copia solo se crea cuando la exportas desde Ajustes. Es un archivo JSON que eliges dónde guardar y restaurar.",
+  "privacyTranslationTitle": "Traducción sin conexión",
+  "privacyTranslationBody": "El diccionario actual de inglés → español es un recurso de desarrollo incluido. No se envía texto a ningún servicio de traducción.",
+  "onboardingTitle": "Empieza a aprender con LinguaPages",
+  "onboardingSubtitle": "Un espacio privado para leer en inglés y aprender vocabulario en español.",
+  "onboardingPairTitle": "Tu combinación de estudio",
+  "onboardingPairBody": "La versión 1.0 se centra en lectores nativos de inglés que aprenden español.",
+  "onboardingOfflineTitle": "Funciona sin conexión",
+  "onboardingOfflineBody": "Instala una vez el paquete de inglés → español y busca palabras sin cuenta ni conexión.",
+  "onboardingTapTitle": "Toca una palabra mientras lees",
+  "onboardingTapBody": "Selecciona una palabra para buscarla, resaltarla o guardarla para repasarla después.",
+  "onboardingContinue": "Continuar a tu biblioteca",
+  "onboardingPackFailed": "No se pudo preparar el paquete de idioma. Inténtalo de nuevo.",
   "logoutSubtitle": "Cierra la sesión de tu cuenta",
   "vocabularyTitle": "Vocabulario",
   "vocabularySearchHint": "Buscar palabras guardadas",
@@ -296,6 +325,7 @@
   "reviewStatsReviewed": "Repasadas",
   "reviewStatsStreak": "Racha",
   "reviewStatsActiveDays": "Días activos",
+  "reviewRecentHistory": "Actividad reciente",
   "reviewDueCount": "{count} tarjetas pendientes",
   "@reviewDueCount": {
     "placeholders": {

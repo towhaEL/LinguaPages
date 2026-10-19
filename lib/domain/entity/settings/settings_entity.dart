@@ -13,6 +13,7 @@ class SettingsEntity {
     this.sourceLanguage = 'en',
     this.targetLanguage = 'es',
     this.dailyNewCardLimit = 15,
+    this.reviewNotificationsEnabled = false,
   });
 
   final ReaderTheme readerTheme;
@@ -27,6 +28,7 @@ class SettingsEntity {
   final String sourceLanguage;
   final String targetLanguage;
   final int dailyNewCardLimit;
+  final bool reviewNotificationsEnabled;
 
   SettingsEntity copyWith({
     ReaderTheme? readerTheme,
@@ -41,6 +43,7 @@ class SettingsEntity {
     String? sourceLanguage,
     String? targetLanguage,
     int? dailyNewCardLimit,
+    bool? reviewNotificationsEnabled,
   }) {
     return SettingsEntity(
       readerTheme: readerTheme ?? this.readerTheme,
@@ -55,6 +58,8 @@ class SettingsEntity {
       sourceLanguage: sourceLanguage ?? this.sourceLanguage,
       targetLanguage: targetLanguage ?? this.targetLanguage,
       dailyNewCardLimit: dailyNewCardLimit ?? this.dailyNewCardLimit,
+      reviewNotificationsEnabled:
+          reviewNotificationsEnabled ?? this.reviewNotificationsEnabled,
     );
   }
 }

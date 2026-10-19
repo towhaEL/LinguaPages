@@ -2,6 +2,8 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.ProjectEvaluationListener
 import org.gradle.api.ProjectState
 import org.gradle.api.tasks.compile.JavaCompile
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 pluginManagement {
     val flutterSdkPath = run {
@@ -34,6 +36,10 @@ gradle.addProjectEvaluationListener(object : ProjectEvaluationListener {
         project.tasks.withType(JavaCompile::class.java).configureEach {
             sourceCompatibility = JavaVersion.VERSION_17.toString()
             targetCompatibility = JavaVersion.VERSION_17.toString()
+        }
+
+        project.tasks.withType(KotlinCompile::class.java).configureEach {
+            compilerOptions.jvmTarget.set(JvmTarget.JVM_17)
         }
 
         val androidExtension = project.extensions.findByName("android") ?: return

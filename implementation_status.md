@@ -2,9 +2,9 @@
 
 ## Current Status Summary
 
-**Last verified: 2026-10-19.** The project is in an active migration from the Flutter template to LinguaPages. The Dart package has been renamed and the old auth/user/architecture screens and data sources have been removed. The application now **builds and passes its current automated checks**. The working product now includes a first reader route and screen, but no end-to-end study flow exists yet.
+**Last verified: 2026-10-20.** The project is in an active migration from the Flutter template to LinguaPages. The Dart package has been renamed and the old auth/user/architecture screens and data sources have been removed. The Dart/Flutter VM package checks pass, and the Android development debug build is verified with Flutter 3.47.7. The working product includes a first reader route and an end-to-end local library → reader → vocabulary → review flow, while production dictionary licensing, billing and release hardening remain.
 
-The practical status is approximately **Phase 0: 70%**, **Phase 1: 75%**, **Phase 2: 85%**, **Phase 3: 90%**, **Phase 4: 55%**, **Phase 5: 63%**, and **Phase 6: 20%**. The project has a working local foundation, validated import storage and library flow, Android "Open with" intake, shared text-format support, typed corrupt/unsupported import feedback, imported EPUB/Markdown/HTML/FB2 TOC metadata, early EPUB/PDF adapters, a native Readium EPUB/PDF reader on Android/iOS, a format-aware fallback engine, locator-backed TOC/outline navigation, in-document search, paginated/continuous reflowable reading, debounced locator-based progress persistence, persisted reader appearance/alignment settings, persisted PDF fit-to-page/fit-to-width and selectable-text controls, lazy PDF page thumbnails, explicit fallback-PDF zoom controls, screen wake-lock support, accessible fallback page tap zones, persisted bookmarks/highlights, a unified annotation list with editable notes and Markdown export, an offline dictionary-to-vocabulary lookup flow with normalized in-memory response caching, Vocabulary and Review tabs with book/language/status filters and a Library due-count shortcut, a persisted Settings control for the daily new-card limit, hidden-word context cards with local review statistics/streaks, a local English→Spanish language-pack manager, and metadata backup/restore controls. PDF cover rendering, chapter-aware library progress, real downloadable/checksum-backed language packs, sentence translation, binary/encrypted backups, and broader device-level interaction testing remain. Overall v1.0 implementation is approximately **64%**, with architectural scaffolding counted separately from product functionality.
+The practical status is approximately **Phase 0: 70%**, **Phase 1: 80%**, **Phase 2: 85%**, **Phase 3: 90%**, **Phase 4: 72%**, **Phase 5: 75%**, and **Phase 6: 40%**. The project has a working local foundation, validated import storage and library flow, Android "Open with" intake, shared text-format support, typed corrupt/unsupported import feedback, imported EPUB/Markdown/HTML/FB2 TOC metadata, early EPUB/PDF adapters, a native Readium EPUB/PDF reader on Android/iOS, a format-aware fallback engine, locator-backed TOC/outline navigation, in-document search, paginated/continuous reflowable reading, debounced locator-based progress persistence, persisted reader appearance/alignment settings, persisted PDF fit-to-page/fit-to-width and selectable-text controls, lazy PDF page thumbnails, explicit fallback-PDF zoom controls, screen wake-lock support, accessible fallback page tap zones, persisted bookmarks/highlights, a unified annotation list with editable notes and Markdown export, an offline dictionary-to-vocabulary lookup flow with normalized in-memory response caching, Vocabulary and Review tabs with book/language/status filters and a Library due-count shortcut, a persisted Settings control for the daily new-card limit, hidden-word context cards with local review statistics/streaks, an opt-in daily local review reminder synchronized to due-card state, persisted review history with recent activity, a local English→Spanish language-pack manager, metadata backup/restore controls, first-run onboarding, a local privacy screen, deterministic lemmatization and sentence translation services, a local premium entitlement cache with active/expired vocabulary-limit enforcement, and a stable English-native → Spanish-target contract. PDF cover rendering, chapter-aware library progress, remote language-pack downloads, binary/encrypted backups, Play Billing and broader device-level interaction testing remain. Overall v1.0 implementation is approximately **70%**, with architectural scaffolding counted separately from product functionality.
 
 ### Native book handling decision
 
@@ -15,15 +15,26 @@ Readium's Android integration uses `FlutterFragmentActivity`, Android API 24+ an
 ### Verification snapshot
 
 - `dart run build_runner build` — passed; generated Drift, injectable and route outputs.
-- `flutter analyze` — passed with **no issues**.
-- `flutter test` — passed: **39 tests**, with **2 PDF runtime tests skipped** because Flutter VM tests do not provide pdfrx's native PDFium assets.
+- `dart analyze` on the changed translation, onboarding, privacy and reader files — passed with **no issues**; a full project analyzer run is memory-heavy on this host.
+- `flutter test` — passed: **76 tests**, with **2 PDF runtime tests skipped** because Flutter VM tests do not provide pdfrx's native PDFium assets.
+- Premium entitlement tests — local purchase/restoration cache, expiry, clearing and vocabulary-limit access all pass.
+- `flutter build apk --debug --flavor development -t lib/main_development.dart` — passed with Flutter 3.47.7; generated `build/app/outputs/flutter-apk/app-development-debug.apk`.
+- Database migration tests — version 1, 2, 3 and 4 SQLite schemas upgrade to schema version 6 without data loss; existing highlights and settings survive the upgrade.
+- Review history — schema version 6 stores each rating atomically with card scheduling, exposes recent activity in Review, and includes history in metadata backup/restore.
 - Metadata tests — EPUB title/author/language/cover extraction, PDF Info metadata extraction, cover storage wiring and repository persistence are covered by focused tests.
 - Import error tests — unsupported extensions, malformed EPUB packages, invalid signatures and empty files now produce typed failures; the library maps them to localized feedback.
 - Library view-mode test — grid/list state switching is covered; the library now supports both grid and list presentations.
+- Library Cubit tests — load/search/sort/view-mode transitions, retry after load failure, delete refresh/failure, import feedback, and incoming-document handling are covered through the real library use cases.
+- Domain library tests — `BookEntity` invariants/copying and library import, search, load, incoming-file and delete use cases are covered with repository/service fakes.
+- Review domain tests — due-date boundaries, review-card metadata and `ReviewCardUseCase` delegation for due cards, history, ratings and due counts are covered.
+- ARTEMIS device diagnosis — UI exploration is currently blocked because no authorized phone is attached and `Medium_Phone_API_35` exits immediately with emulator code 1; widget and Android integration tests remain pending an available device.
 - Library sorting test — repository progress ordering is covered; the UI exposes recent, title, author, and progress sorting.
 - Library presentation — format badges and localized progress status labels are now rendered in both grid and list cards.
 - Reader search — the reader exposes localized search for native Readium EPUB/PDF documents and fallback formats, with chapter/context results and locator/page jumps.
 - Reader progress persistence — rapid page/locator events are coalesced, then flushed on app backgrounding and reader disposal so the newest position is retained without writing on every event.
+- Reader sentence translation — the lookup sheet translates the selected sentence with the local English→Spanish service and reports words that remain untranslated.
+- Language pack integrity — the bundled English→Spanish asset has a published SHA-256 checksum; install verifies it and delete clears the stored installation/checksum state.
+- Review reminders — the optional local reminder scheduler follows the persisted setting and due-card count, resyncing on startup, vocabulary creation and review completion.
 - Reader appearance settings — light/sepia/dark themes, font size, line spacing and margins are persisted locally and applied to fallback pages plus native Readium EPUB/PDF preferences where supported.
 - Reader alignment settings — left, centered and justified text layouts are persisted and applied to fallback pages and native Readium EPUB preferences.
 - Reader modes — Pages/Continuous selection is persisted; fallback reflowable documents scroll continuously with progress tracking, while Readium applies the matching native EPUB/PDF mode.
@@ -40,6 +51,7 @@ Readium's Android integration uses `FlutterFragmentActivity`, Android API 24+ an
 - Annotation export — the reader copies a stable Markdown export containing book title, highlight text/colors/notes/locators and bookmarks.
 - Lookup flow — selected text can use the offline English→Spanish dictionary fixture, copy the result, save a vocabulary item with book/locator context, or create a highlight.
 - Lookup caching — normalized dictionary lookups and misses are cached in memory for the app session; failed provider requests are evicted and can be retried.
+- Translation foundation — the English-native → Spanish-target pair now has a replaceable lemmatizer and on-device sentence translation service backed by the local dictionary fixture.
 - Vocabulary/review flow — the dashboard exposes Vocabulary and Review tabs; saved words create review cards, vocabulary search/delete are available, and Again/Hard/Good/Easy actions update deterministic local scheduling.
 - Daily review limit — the persisted default of 15 new cards is enforced when due cards are loaded for review.
 - Vocabulary filters — the Vocabulary tab filters by book, source language and review status using all persisted review cards.
@@ -47,6 +59,8 @@ Readium's Android integration uses `FlutterFragmentActivity`, Android API 24+ an
 - Study settings — Settings persists a selectable daily new-card limit, and Review enforces it when loading new cards.
 - Review cards — the prompt masks the saved word in its context sentence before reveal and shows due/reviewed/streak/active-day statistics from local card timestamps.
 - Language-pack manager — Settings exposes the replaceable language-pack repository with persisted local install/delete state for the bundled English→Spanish fixture.
+- Onboarding — first launch explains the fixed v1.0 study pair, offline behavior and word-selection tutorial, prepares the local language pack, then enters the library.
+- Privacy — Settings links to a local-data privacy screen describing storage, user-controlled backups and offline translation behavior.
 - Backup controls — Settings exports the metadata JSON snapshot through the native save dialog and restores/merges a selected backup with localized restored/duplicate counts; book binaries and encryption remain out of scope for this slice.
 - Delete-flow tests — keep-study-data soft deletion and delete-study-data transactional cleanup are covered, including linked bookmarks, vocabulary, and review cards.
 - `flutter build apk --debug --flavor development -t lib/main_development.dart` — passed with Readium under the configured **JDK 17** toolchain; output: `build/app/outputs/flutter-apk/app-development-debug.apk`.
@@ -54,7 +68,7 @@ Readium's Android integration uses `FlutterFragmentActivity`, Android API 24+ an
 - Android `ACTION_VIEW` — a cold launch with a device EPUB imported through the native intent bridge and persisted in app-private storage; Flutter deep-link routing is disabled for this document handoff.
 - `flutter build ios --debug --simulator --flavor development -t lib/main_development.dart` — passed with Readium pods.
 - `l10n.yaml` — removed the obsolete `synthetic-package` setting.
-- `lingua_page_database.g.dart` — now exposes all seven declared tables and schema version 5, including persisted `readingLocatorJson`, imported `tableOfContentsJson` and soft-deleted book state.
+- `lingua_page_database.g.dart` — now exposes all eight declared tables and schema version 6, including persisted `readingLocatorJson`, imported `tableOfContentsJson`, soft-deleted book state and review history.
 
 ---
 
@@ -139,16 +153,16 @@ Readium's Android integration uses `FlutterFragmentActivity`, Android API 24+ an
 
 ### 🔴 Baseline Tasks (Pre-Phase 1)
 
-- [x] **Rename the Dart package to `lingua_pages`** — imports and `pubspec.yaml` are updated. Android still uses the generic `com.hadi.me` application ID and Flutter Template labels, so the platform rename is incomplete.
+- [x] **Rename the Dart package and platform identity to `lingua_pages`** — Dart, Android and iOS identifiers now use the LinguaPages product identity.
 - [x] **Remove the obsolete template screens** — auth, architecture, widget-screen and template home components were removed; the remaining dashboard shell still needs LinguaPages-specific navigation.
 - [x] **Remove the obsolete template auth/user data sources** — deleted from `lib/data/`; unused Dio/Retrofit dependencies remain in `pubspec.yaml`.
 - [x] **Reduce the router to the current shell** — routes now include Splash, Dashboard, Home, Vocabulary, Review, Settings and the Reader route. Onboarding is not present yet.
-- [ ] **Replace the template README** with LinguaPages setup, flavors, architecture and environment documentation; the current README still describes the old user/auth template.
-- [ ] **Restore or intentionally replace deleted template tests** — three new focused test files exist, but the old suite was deleted and the current suite does not fully compile.
-- [ ] **Confirm Android minimum API level and finalize the application ID**
+- [x] **Replace the template README** with LinguaPages setup, flavors, architecture and environment documentation.
+- [x] **Restore or intentionally replace deleted template tests** — the active suite now compiles and covers the local foundation, document engines, repositories, use cases and presentation state.
+- [x] **Confirm Android minimum API level and finalize the application ID** — Android API 24+, `com.linguapages.app` with `.dev` and `.stg` flavor suffixes; iOS bundle identifiers use the same base ID.
 - [ ] **Choose dictionary dataset and verify redistribution rights**
-- [ ] **Define English–Spanish direction** (EN-native/ES-target, ES-native/EN-target, or both)
-- [ ] **Repair and update CI checks** — `.github/workflows/main.yaml` exists, but is still named `flutter_template` and currently cannot pass the repository's compile/test state.
+- [x] **Define English–Spanish direction** — v1.0 is English-native / Spanish-target; the replaceable repository contract can support another direction later.
+- [x] **Repair and update CI checks** — the workflow is named `lingua_pages`, runs the current Flutter package checks, and no longer carries the deleted template name.
 
 ### 🟡 Phase 0 — Technical Validation (Remaining)
 
@@ -180,9 +194,9 @@ Readium's Android integration uses `FlutterFragmentActivity`, Android API 24+ an
 - [x] **`RestoreBackupUseCase`** — restores metadata and study data with duplicate skipping
 
 #### Missing Database Tables
-- [x] **Generate and verify Drift tables for Highlights, Bookmarks, VocabItems, ReviewCards, ReadingSessions and Settings** — schema v5 also adds imported library TOC JSON alongside the schema v4 soft-delete flag
+- [x] **Generate and verify Drift tables for Highlights, Bookmarks, VocabItems, ReviewCards, ReviewHistoryEntries, ReadingSessions and Settings** — schema v6 adds review history alongside imported library TOC JSON and the schema v4 soft-delete flag
 - [x] **Make the schema v2 migration compile**
-- [ ] **Add explicit upgrade-path migration tests**
+- [x] **Add explicit upgrade-path migration tests** — version 1–4 legacy SQLite schemas are opened with the production Drift database, upgraded to schema version 5, and checked for preserved data/defaults
 
 #### Missing Repositories
 - [x] **Implement `HighlightRepository`** — Drift-backed
@@ -242,9 +256,9 @@ Readium's Android integration uses `FlutterFragmentActivity`, Android API 24+ an
 - [x] **Markdown export contract** — reader annotation panel copies portable Markdown
 - [x] **English–Spanish language-pack manager UI** — Settings exposes persisted local install/delete state for the bundled fixture
 - [x] **Dictionary lookup UI** (lemma, translation, POS, example)
-- [ ] **Lemmatization interface**
-- [ ] **On-device sentence/paragraph translation**
-- [ ] **Language pack download/checksum/delete**
+- [x] **Lemmatization interface** — deterministic English fixture lemmatizer behind a replaceable domain service
+- [x] **On-device sentence/paragraph translation** — token-preserving local translation service reports unknown words instead of dropping them
+- [ ] **Language pack download/checksum/delete** — bundled pack checksum verification and delete are implemented; remote download remains
 - [x] **Lookup bottom sheet** (Save, Highlight, Copy actions)
 - [x] **Response caching for lookups** — normalized in-memory cache supports hits, misses and failure retry
 
@@ -260,26 +274,28 @@ Readium's Android integration uses `FlutterFragmentActivity`, Android API 24+ an
 - [x] **Daily new-card limit** (default 15) — configurable in Settings and enforced by the Review screen
 - [x] **Free limit of 500 saved words** — non-premium saves are blocked at the boundary with localized feedback; premium remains extensible
 - [x] **Due count on home screen** — Library app bar badge opens the Review tab
-- [ ] **Local review notification**
-- [x] **Review streak and statistics** — basic due/reviewed/active-day/current-streak metrics derive from persisted card timestamps; full review history remains pending
+- [x] **Local review notification** — opt-in daily 9:00 reminder, canceled when disabled or when no cards are due; synchronized at startup, after saving vocabulary and after reviews
+- [x] **Review streak and statistics** — basic due/reviewed/active-day/current-streak metrics derive from persisted card timestamps
+- [x] **Review history** — every rating is persisted atomically with the scheduled card, exposed as recent activity in Review, and included in metadata backup/restore
 
-### 🔴 Phase 6 — Onboarding, Premium & Backup (Not Started)
+### 🟡 Phase 6 — Onboarding, Premium & Backup (Partial)
 
-- [ ] **Onboarding flow** — language selection, pack size explanation, download, first import, "tap a word" tutorial
+- [x] **Onboarding flow** — first-run English-native/Spanish-target explanation, offline pack preparation and “tap a word” tutorial; first import continues from the library screen
 - [ ] **Google Play Billing integration**
-- [ ] **Local entitlement cache** with periodic online verification
+- [x] **Local entitlement cache** — SharedPreferences-backed purchase/restoration state with expiry and clear operations; periodic online verification remains tied to Billing integration
 - [ ] **Restore purchases**
 - [ ] **Premium themes and fonts**
 - [ ] **Premium limits enforcement** (exports, language packs, vocabulary)
+- [x] **Vocabulary premium limit gate** — the free 500-word limit now consults an active cached entitlement when billing is wired
 - [x] **Backup export** (metadata, annotations, vocabulary, reviews, settings) — Settings exports the local metadata JSON snapshot
 - [x] **Backup restore** with merge and duplicate prevention — Settings imports a JSON snapshot and reports restored/duplicate counts
 - [ ] **Encrypted backup** (optional)
-- [ ] **Privacy screen**
+- [x] **Privacy screen** — explains local storage, user-controlled JSON backups and offline translation
 
-### 🔴 Phase 7 — Hardening & Android Launch (Not Started)
+### 🟡 Phase 7 — Hardening & Android Launch (Partial)
 
-- [ ] **Domain unit tests** (entities, use cases)
-- [ ] **BLoC/Cubit tests**
+- [x] **Domain unit tests** — `BookEntity`, `ReviewCardEntity`, library use cases and review use cases are covered; broader domain boundary coverage remains.
+- [x] **BLoC/Cubit tests** — `LibraryCubit` load/search/sort/delete/import and failure-recovery paths are covered; reader, vocabulary and review Cubits remain.
 - [ ] **Widget tests** (library, reader controls, lookup, review)
 - [ ] **Android integration tests** (import → read → lookup → save → review)
 - [ ] **Compatibility testing** against document corpus
@@ -296,14 +312,14 @@ Readium's Android integration uses `FlutterFragmentActivity`, Android API 24+ an
 
 | Phase | Estimated Completion |
 |---|---|
-| Baseline tasks | 🟡 ~50% (Dart/template cleanup is underway; README, platform identity, decisions and CI repair remain) |
+| Baseline tasks | 🟢 ~85% (README, platform identity, test suite, English–Spanish direction and CI naming are complete; dictionary licensing and corpus decisions remain) |
 | Phase 0 — Technical validation | 🟡 ~70% (native EPUB/PDF builds and Android `ACTION_VIEW` are validated; corpus, broader physical-device behavior and licensing validation remain) |
-| Phase 1 — Foundation | 🟡 ~75% (entities, schema v5, locator persistence, local repositories and use cases exist; explicit migration coverage and production integrations remain) |
+| Phase 1 — Foundation | 🟡 ~80% (entities, schema v6, locator persistence, local repositories, use cases and explicit upgrade-path coverage exist; production integrations remain) |
 | Phase 2 — Library & importing | 🟡 ~85% (picker and Android intent import, private storage, metadata/EPUB covers/TOC, grid/list UI, sorting, badges, progress summaries, deletion and localized import-error handling exist; PDF covers and richer library controls remain) |
 | Phase 3 — Reader core | 🟡 ~90% (native Readium EPUB/PDF reader, fallback adapters, native and fallback TOC/search jumps, paginated/continuous modes, debounced locator persistence, appearance/alignment controls, PDF fit/text modes, wake-lock, tap zones, fallback thumbnails and explicit zoom controls exist; adapter hardening and target-device validation remain) |
-| Phase 4 — Annotations & translation | 🟡 ~55% (bookmarks, four-color highlights, unified annotation management, editable notes, Markdown export, cached lookup UI and a local English→Spanish pack manager are connected; real pack downloads, lemmatization and sentence translation remain) |
-| Phase 5 — Vocabulary & review | 🟡 ~63% (lookup can save vocabulary with context, Vocabulary and Review tabs support search/filtering plus a Library due-count shortcut, automatic cards, hidden-word prompts, configurable daily limits, free-limit enforcement, basic statistics/streaks and review actions use local deterministic scheduling; notifications and full review history remain) |
-| Phase 6 — Onboarding, premium, backup | 🔴 ~20% (metadata backup/export/restore is available from Settings; onboarding, billing, entitlement, binary-file backup and encryption remain) |
-| Phase 7 — Hardening & launch | 🔴 ~5% (analysis clean and the automated suite covers metadata/TOC import persistence, typed import failures, locator serialization and delete cleanup with 2 environment-skipped PDF tests; integration, compatibility and performance coverage remain) |
+| Phase 4 — Annotations & translation | 🟡 ~72% (bookmarks, four-color highlights, unified annotation management, editable notes, Markdown export, cached lookup UI, lemmatization, asset-backed dictionary lookup and local sentence translation are connected; remote pack downloads remain) |
+| Phase 5 — Vocabulary & review | 🟡 ~75% (lookup can save vocabulary with context, Vocabulary and Review tabs support search/filtering plus a Library due-count shortcut, automatic cards, hidden-word prompts, configurable daily limits, free-limit enforcement, statistics/streaks, review actions, persisted review history and opt-in local reminders use local deterministic scheduling) |
+| Phase 6 — Onboarding, premium, backup | 🟡 ~40% (metadata backup/export/restore, first-run onboarding, privacy, local entitlement caching and vocabulary premium-limit wiring are available; Play Billing, online verification, broader premium limits, binary-file backup and encryption remain) |
+| Phase 7 — Hardening & launch | 🟡 ~15% (analysis clean; the automated suite now covers domain library contracts and LibraryCubit transitions/recovery alongside metadata/TOC import persistence, typed import failures, locator serialization, review history and delete cleanup with 2 environment-skipped PDF tests; widget, integration, compatibility and performance coverage remain pending device access) |
 
-> **Overall: ~64% of v1.0 scope is implemented.** The strongest areas are the architecture foundation, local persistence, validated library import flow and the end-to-end library-to-reader-to-vocabulary/review path. The largest product gaps are PDF cover rendering, chapter-aware progress, adapter/target-device validation, real language-pack downloads/checksums, sentence translation, review notifications/full history, onboarding, billing, binary/encrypted backups and release hardening across Phases 4–7.
+> **Overall: ~70% of v1.0 scope is implemented.** The strongest areas are the architecture foundation, local persistence, validated library import flow and the end-to-end library-to-reader-to-vocabulary/review path. The largest product gaps are PDF cover rendering, chapter-aware progress, remote language-pack downloads, adapter/target-device validation, Play Billing/online verification, binary/encrypted backups and release hardening across Phases 4–7.

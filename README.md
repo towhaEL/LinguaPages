@@ -1,385 +1,122 @@
-# Flutter Clean Architecture Template
+# LinguaPages
 
-## Application Flow
+LinguaPages is an offline-first Flutter reading and language-learning app for
+English → Spanish study. It imports DRM-free EPUB, PDF, TXT, Markdown, HTML
+and FB2 documents, stores the library and study data locally, and lets readers
+look up words, save vocabulary and review it with spaced repetition.
 
-`UserRepository` is resolved by DI (`get_it` + `injectable`) into a different chain per flavor — the cubit and use case never know which chain they got. Development skips the subscription check entirely; staging/production gate every call behind it. Both chains funnel through the same cache-first repository, and the cache is filled from either mock data (development) or the real API (staging/production).
+## Current scope
 
-<img src="https://raw.githubusercontent.com/hadiuzzaman524/flutter-clean-architecture/develop/assets/images/Feature%20Access%20by%20Flavor-selection.png" alt="Feature Access by Flavor" width="800" />
+The implemented local flow is:
 
-## What is Clean Architecture?
+`import → library → read → search/select → dictionary lookup → save vocabulary → review`
 
-[Clean Architecture](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html), conceptualized by Robert C. Martin, offers a structured approach to organizing applications by breaking them down into modules, each serving a distinct purpose. Its core principle revolves around dividing an application into three primary layers:
+The reader uses `flutter_readium` for native EPUB/PDF reading on Android and
+iOS. TXT, Markdown, HTML and FB2 use the local document engine; EPUB and PDF
+also retain fallback adapters for desktop and unsupported native contexts.
 
-- **Presentation Layer:** This layer's primary role is to present data to users and manage their input. It should remain devoid of any business logic and maintain simplicity as a fundamental principle.
-- **Domain Layer:** The hub of business logic within the application. It defines use cases and embodies the essence of the application's functionality. Importantly, it operates independently of other layers, facilitating isolated testing.
-- **Data Layer:** Responsible for data operations, this layer handles data retrieval and storage. It remains detached from the domain layer, focusing solely on data access and persistence concerns.
+The current dictionary is a small original fixture used for development and
+testing. It is intentionally limited to English → Spanish and contains no
+third-party dictionary data. A production dictionary dataset must be selected
+and license-reviewed before shipping additional vocabulary data.
 
-Clean Architecture's central tenet is preserving these well-defined layers to enhance application maintainability, scalability, and testability, while also enabling smoother code evolution.
+## Requirements
 
-<p float="left">
-  <img src="https://github.com/hadiuzzaman524/flutter-clean-architecture/assets/52348628/6b19d471-5ec9-4ae3-b285-ae57c7af9de8" width="600">
-</p>
+- Flutter 3.44.8 or newer (the checked-in lockfile is verified with Flutter
+  3.47.7).
+- Dart supplied by the selected Flutter SDK.
+- JDK 17 for the Android build. The Readium integration targets Android API 24
+  and newer.
+- Xcode with iOS deployment target 15.0 for iOS builds.
 
-The concentric circles within the image represent the different areas within the software. The closer to the center, the higher level the software becomes. The sole principle behind Clean Architecture is the **Dependency Rule**: code dependencies can only point inwards.
+## Run locally
 
-## Benefits of implementing Clean Architecture
-
-- **Modularity and Maintainability:** Encourages separation of concerns, making the codebase more modular and easier to maintain.
-- **Testability:** Separation of the domain layer allows for comprehensive unit testing of business logic.
-- **Flexibility and Scalability:** Easier to adapt and scale. Components within a layer can be replaced or upgraded without affecting the entire system.
-- **Code Reusability:** Promotes reuse of components, especially in the domain layer.
-- **Reduced Dependency Hell:** Discourages high-level layers from having direct dependencies on lower-level layers.
-
----
-
-## Clean Architecture implementation using Flutter
-
-While Clean Architecture is a broad approach, this project follows a customized structure optimized for Flutter:
-
-<p float="center">
-  <img src="https://github.com/hadiuzzaman524/flutter-clean-architecture/assets/52348628/f62ab872-e1e5-4e88-9438-cf055274f6e3" width="600">
-</p>
-
-### 1. Domain Layer
-The heart of the application, encapsulating business rules and use cases.
-
-**Entity**
-Fundamental concepts within the domain.
-```dart
-@freezed
-abstract class UserEntity with _$UserEntity {
-  const factory UserEntity({
-    required String name,
-    required String email,
-    required String address,
-    required String city,
-    required double latitude,
-    required double longitude,
-  }) = _UserEntity;
-}
-```
-
-**UseCase**
-Application-specific operations.
-```dart
-@singleton
-class GetUserListUseCase with BaseUseCase<List<UserEntity>> {
-  GetUserListUseCase(this._userRepository);
-
-  final UserRepository _userRepository;
-
-  @override
-  Future<List<UserEntity>> execute() => _userRepository.getUserList();
-}
-```
-
-**Repository Interface**
-Abstractions that define the contract for data access.
-```dart
-abstract class UserRepository {
-  Future<List<UserEntity>> getUserList();
-  Future<UserEntity> getUserById({required String userId});
-}
-```
-
-### 2. Data Layer
-Manages data-related operations, including storage and communication with external sources.
-
-**Data Source**
-Origins of data (e.g., APIs via Retrofit).
-```dart
-@RestApi()
-@singleton
-abstract class UserRemoteDataSource {
-  @factoryMethod
-  factory UserRemoteDataSource(
-    @Named(DioClientType.unauthenticated) Dio dio,
-  ) = _UserRemoteDataSource;
-
-  @GET('/users')
-  Future<List<UserResponseModel>> getUserList();
-}
-```
-
-**Repository Implementation**
-Implements the domain repository interface and handles data mapping.
-```dart
-@Singleton(as: UserRepository)
-class UserRepositoryImpl extends UserRepository {
-  UserRepositoryImpl(this._remoteDataSource);
-
-  final UserRemoteDataSource _remoteDataSource;
-
-  @override
-  Future<List<UserEntity>> getUserList() async {
-    final userList = await _remoteDataSource.getUserList();
-    return userList.toUserEntities();
-  }
-}
-```
-
-**Response Objects & Mapper**
-Data structures for API responses and extensions to map them to domain entities.
-```dart
-extension UserResponseMapper on List<UserResponseModel> {
-  List<UserEntity> toUserEntities() {
-    return map(
-      (userResponse) => UserEntity(
-        name: userResponse.name ?? '',
-        email: userResponse.email ?? '',
-        address: userResponse.address?.street ?? '',
-        city: userResponse.address?.city ?? '',
-        latitude: double.parse(userResponse.address?.geo?.lat ?? '0'),
-        longitude: double.parse(userResponse.address?.geo?.lng ?? '0'),
-      ),
-    ).toList();
-  }
-}
-```
-
-### 3. Presentation Layer
-Responsible for UI rendering and handling user interactions using the BLoC/Cubit pattern.
-
-**Communication (Cubit)**
-```dart
-@injectable
-class UserCubit extends Cubit<UserState> {
-  UserCubit(this._getUserListUseCase) : super(const UserState());
-
-  final GetUserListUseCase _getUserListUseCase;
-
-  Future<void> getUserList() async {
-    try {
-      emit(state.copyWith(status: const BaseStatus<UserState>.loading()));
-      final userList = await _getUserListUseCase.execute();
-      emit(state.copyWith(userList: userList, status: const BaseStatus.success()));
-    } on DioException catch (e) {
-      emit(state.copyWith(status: BaseStatus.failure(e.error as ResponseError)));
-    }
-  }
-}
-```
-
----
-
-## 4. How to run this project? 
-
-This project contains 3 flavors:
-- development
-- staging
-- production
-
-To run the desired flavor:
-```bash
-# Development
-$ flutter run --flavor development --target lib/main_development.dart
-
-# Staging
-$ flutter run --flavor staging --target lib/main_staging.dart
-
-# Production
-$ flutter run --flavor production --target lib/main_production.dart
-```
-
----
-
-## 5. Initial Setup
-
-To get started with the project, run the following commands:
-
-```bash
+```text
 flutter pub get
 dart run build_runner build --delete-conflicting-outputs
+flutter run --flavor development -t lib/main_development.dart
 ```
 
-Then, run the setup script to configure the environment:
+The app has development, staging and production entry points:
 
-```bash
-# Make the script executable
-chmod +x ./setup.sh
-
-# Run the setup
-./setup.sh
+```text
+flutter run --flavor development -t lib/main_development.dart
+flutter run --flavor staging -t lib/main_staging.dart
+flutter run --flavor production -t lib/main_production.dart
 ```
 
----
+The development flavor enables local mock services and disables premium
+gating. Production keeps AI Recap disabled and does not include cloud or AI
+credentials. The available build-time flag is:
 
-## 6. Testing
-
-Unit tests live under `test/`, mirroring the `lib/` layer structure so each
-layer is verified in isolation by mocking the layer beneath it — exactly what
-the Clean Architecture boundaries are designed to enable.
-
-```
-test/
-├── core/error/            # ResponseError mapping & hardening
-├── data/repository_impl/  # repositories (mocked DataSourceFactory + data sources)
-├── domain/use_cases/      # use cases (mocked repositories)
-└── presentation/          # cubits (mocked use cases)
+```text
+--dart-define=LINGUAPAGE_AI_RECAP=true
 ```
 
-The suite uses [`flutter_test`](https://docs.flutter.dev/testing) +
-[`mocktail`](https://pub.dev/packages/mocktail). No real network, storage, or DI
-container is touched — every collaborator is mocked.
+AI Recap remains disabled in production regardless of that flag.
 
-### Run the tests
+## Architecture
 
-```bash
-# All tests
+The project keeps the existing BLoC + auto_route template conventions while
+following clean-architecture boundaries:
+
+```text
+lib/
+├── core/       database-adjacent services, storage, flags and DI contracts
+├── domain/     entities, repository interfaces, services and use cases
+├── data/       Drift database, importers, document engines and repositories
+└── presentation/
+    ├── screen/ reader, library, vocabulary, review and settings screens
+    ├── route/  auto_route definitions and generated routes
+    └── widgets shared UI components
+```
+
+SQLite/Drift is the local source of truth. BLoCs and widgets call domain use
+cases or repository interfaces; they do not access plugins or database tables
+directly. Book files and extracted covers are kept in app-private storage,
+while metadata, progress, annotations, vocabulary, reviews and settings live
+in Drift.
+
+## Supported reader behavior
+
+- Native Readium pagination, selection, TOC and locator persistence for EPUB/PDF
+  on Android and iOS.
+- Fallback pagination and continuous scrolling for reflowable text formats.
+- PDF fit-to-page, fit-to-width, text mode, thumbnails and zoom in fallback mode.
+- Search, bookmarks, four-color highlights, notes and portable Markdown export.
+- Persisted theme, font, spacing, margin, alignment, wake-lock and reader-mode
+  preferences.
+- Android `ACTION_VIEW` intake for supported document MIME types.
+
+## Data and privacy model
+
+The v1.0 product is local-first. Imported files, covers, annotations,
+vocabulary, reviews and settings remain on the device unless the user exports
+a backup. Metadata JSON backup and restore are available from Settings. Cloud
+sync, authentication and AI Recap are not part of the v1.0 runtime path.
+
+Do not put API keys, billing credentials or cloud secrets in Dart source,
+assets or checked-in flavor files.
+
+## Verification
+
+```text
+dart run build_runner build --delete-conflicting-outputs
+flutter analyze
 flutter test
-
-# A single file
-flutter test test/presentation/user_cubit_test.dart
-
-# By name
-flutter test --plain-name "maps response models to domain entities"
-
-# With coverage (writes coverage/lcov.info)
-flutter test --coverage
+flutter build apk --debug --flavor development -t lib/main_development.dart
 ```
 
-To turn coverage into a browsable HTML report (requires `lcov`):
+The VM test suite includes database/repository, document-engine, import,
+locator, lookup, review and presentation-state coverage. Two PDF runtime tests
+are skipped in Flutter VM runs because pdfrx's native PDFium assets are not
+available there; PDF rendering still needs physical-device verification.
 
-```bash
-genhtml coverage/lcov.info -o coverage/html && open coverage/html/index.html
-```
+## Project status and next work
 
-### How to write a test
-
-**1. Mock the dependency below the unit under test:**
-
-```dart
-class MockUserRepository extends Mock implements UserRepository {}
-```
-
-**2. Use case / repository — stub and verify delegation & mapping:**
-
-```dart
-test('getUserList maps response models to domain entities', () async {
-  when(() => dataSource.getUserList()).thenAnswer((_) async => response);
-
-  final result = await repository.getUserList();
-
-  expect(result.first.name, 'John');
-  verify(() => factory.createUserDataSource()).called(1);
-});
-```
-
-**3. Cubit — assert the emitted state sequence (stream expectations):**
-
-```dart
-test('emits loading then success', () async {
-  when(() => useCase.execute()).thenAnswer((_) async => users);
-  final cubit = UserCubit(useCase, logger);
-
-  expectLater(
-    cubit.stream,
-    emitsInOrder([
-      predicate<UserState>((s) => s.status.isLoading),
-      predicate<UserState>((s) => s.status.isSuccess),
-    ]),
-  );
-
-  await cubit.getUserList();
-  await cubit.close();
-});
-```
-
-> When using argument matchers like `any()` with a custom type, register a
-> fallback once in `setUpAll`:
-> ```dart
-> registerFallbackValue(const LoginEntity(email: '', pin: ''));
-> ```
-
-> **Tip:** run the mock flavor (`development`) to exercise flows end-to-end
-> without a backend — the `DataSourceFactory` swaps in mock data sources.
-
----
-
-## 7. Git Branch & Commit Conventions
-
-### Branch Naming
-
-All branches must follow the format:
-
-```
-feat/<feature-name>
-fix/<bug-name>
-refactor/<refactor-name>
-chore/<task-name>
-```
-
-### Commit Messages
-
-All commits should follow the Conventional Commit format:
-
-```
-type: Short description (at least 3 characters)
-```
-
-Allowed types: `feat`, `fix`, `refactor`, `chore`, `docs`, `style`, `test`, `perf`, `ci`, `build`,
-`wip`,
-`revert`
-
-Example:
-
-```
-feat: add localization support
-fix: correct padding on lunch card
-```
-
----
-
-## 8. Localization (L10n)
-
-To add new text for localization, run the provided script:
-
-```bash
-./l10n_generator.sh
-```
-
-* Specify the type as `text` when prompted.
-* Access localized text in your code using:
-
-```dart
-context.l10n.text
-```
-
----
-
-## 9. Create a New Feature (Clean Architecture)
-
-```bash
-./create_feature.sh feature_name
-```
-
-This command automatically generates all required files for a new feature, following Clean
-Architecture principles, including the **domain**, **data**, and **presentation** layers.
-It also wires the new data source into the flavor-based Abstract Factory, so the
-`development` flavor gets the mock and `staging`/`production` get the Retrofit client,
-adds the route to `app_router.dart`, then runs `build_runner` and `flutter analyze`.
-
-Not every feature needs all three layers. Pass options to scaffold a subset:
-
-| Command | What you get |
-| --- | --- |
-| `./create_feature.sh order` | Full stack: entity, repository, use case, response model, remapper, mock + remote data sources, factory wiring, cubit, screen |
-| `./create_feature.sh order --no-data-source` | Domain + data + UI, but **no** data source and no factory changes — the repository impl returns in-memory sample data (marked with a TODO) so DI still resolves |
-| `./create_feature.sh profile --ui-only` | Presentation only: screen, portrait/landscape views, cubit + state, route |
-| `./create_feature.sh about --ui-only --no-cubit` | Static screen only, like `SettingsScreen` |
-| `./create_feature.sh order --layers=domain,data` | No UI |
-| `./create_feature.sh order --skip-build` | Skip `pub get` / `build_runner` / `analyze` (useful when scaffolding several features in a row) |
-
-Run `./create_feature.sh --help` for the full list.
-
-Every mode ships working sample data so the screen is alive as soon as it is generated:
-loading spinner → ~2s delay → list of items. The delay lives in a single `_delay`
-constant per generated file (`ManMockDataSource`, the in-memory `ManRepositoryImpl`, or
-the `--ui-only` cubit) — change or delete it when you plug in real work.
-
-> Picking `--layers=domain,presentation` leaves the repository without an
-> implementation, so `injector<GetOrderListUseCase>()` throws at runtime until you add
-> one. The script warns when you do this; use `--no-data-source` if you want a feature
-> that runs immediately without an API.
-
----
+See [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) for the product roadmap
+and [implementation_status.md](implementation_status.md) for the verified
+implementation snapshot. The largest remaining areas are production dictionary
+licensing and remote pack downloads, billing/entitlements, full review history,
+encrypted/binary backups, PDF cover rendering, compatibility testing and
+Android release hardening.

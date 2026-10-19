@@ -1,4 +1,4 @@
-package com.hadi.me
+package com.linguapages.app
 
 import android.content.Intent
 import android.net.Uri

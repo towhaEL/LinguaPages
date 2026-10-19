@@ -33,10 +33,21 @@ class $AssetsImagesGen {
   ];
 }
 
+class $AssetsTranslationGen {
+  const $AssetsTranslationGen();
+
+  /// File path: assets/translation/en-es.json
+  String get enEs => 'assets/translation/en-es.json';
+
+  /// List of all assets
+  List<String> get values => [enEs];
+}
+
 class Assets {
   const Assets._();
 
   static const $AssetsImagesGen images = $AssetsImagesGen();
+  static const $AssetsTranslationGen translation = $AssetsTranslationGen();
 }
 
 class AssetGenImage {

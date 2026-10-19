@@ -1,6 +1,6 @@
 {
   "@@locale": "en",
-  "welcome": "Welcome to Flutter!!",
+  "welcome": "Welcome to LinguaPages",
 
   "errorBadRequest": "Bad request. Please check your input and try again.",
   "errorNotFound": "Resource not found.",
@@ -128,6 +128,15 @@
   },
   "readerLookupFailed": "Lookup could not be completed",
   "readerNoTranslation": "No translation found",
+  "readerSentenceTranslation": "Sentence translation",
+  "readerUntranslatedWords": "Words kept in English: {words}",
+  "@readerUntranslatedWords": {
+    "placeholders": {
+      "words": {
+        "type": "String"
+      }
+    }
+  },
   "readerCopy": "Copy",
   "readerWordCopied": "Copied to clipboard",
   "readerSaveWord": "Save word",
@@ -260,6 +269,8 @@
   "settingsStudy": "Study",
   "settingsDailyNewCardLimit": "Daily new cards",
   "settingsDailyNewCardLimitValue": "{count} new cards per day",
+  "settingsReviewNotifications": "Review reminders",
+  "settingsReviewNotificationsSubtitle": "Remind me at 9:00 when cards are due",
   "settingsSaveFailed": "Settings could not be saved",
   "@settingsDailyNewCardLimitValue": {
     "placeholders": {
@@ -269,6 +280,24 @@
     }
   },
   "settingsAccount": "Account",
+  "settingsPrivacy": "Privacy",
+  "privacyTitle": "Privacy",
+  "privacyLocalDataTitle": "Your data stays on this device",
+  "privacyLocalDataBody": "Books, annotations, vocabulary, reviews and settings are stored locally. LinguaPages does not require an account or cloud sync for the current release.",
+  "privacyBackupTitle": "Backups are user-controlled",
+  "privacyBackupBody": "A backup is created only when you export one from Settings. It is a JSON file that you choose where to save and restore.",
+  "privacyTranslationTitle": "Offline translation",
+  "privacyTranslationBody": "The current English → Spanish dictionary is a bundled development fixture. No text is sent to a translation service.",
+  "onboardingTitle": "Start learning with LinguaPages",
+  "onboardingSubtitle": "A private reading space for English books and Spanish vocabulary.",
+  "onboardingPairTitle": "Your study pair",
+  "onboardingPairBody": "Version 1.0 is focused on English-native readers learning Spanish.",
+  "onboardingOfflineTitle": "Works offline",
+  "onboardingOfflineBody": "Install the English → Spanish language pack once, then look up words without an account or connection.",
+  "onboardingTapTitle": "Tap a word while reading",
+  "onboardingTapBody": "Select a word to look it up, highlight it, or save it for review later.",
+  "onboardingContinue": "Continue to your library",
+  "onboardingPackFailed": "The language pack could not be prepared. Try again.",
   "logoutSubtitle": "Sign out of your account",
   "vocabularyTitle": "Vocabulary",
   "vocabularySearchHint": "Search saved words",
@@ -296,6 +325,7 @@
   "reviewStatsReviewed": "Reviewed",
   "reviewStatsStreak": "Streak",
   "reviewStatsActiveDays": "Active days",
+  "reviewRecentHistory": "Recent activity",
   "reviewDueCount": "{count} cards due",
   "@reviewDueCount": {
     "placeholders": {
