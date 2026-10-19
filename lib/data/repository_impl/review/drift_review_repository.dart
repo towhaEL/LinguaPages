@@ -24,6 +24,14 @@ class DriftReviewRepository implements ReviewRepository {
   }
 
   @override
+  Future<List<ReviewCardEntity>> getAllCards() async {
+    final rows = await (_database.select(
+      _database.reviewCards,
+    )..orderBy([(card) => OrderingTerm.asc(card.createdAt)])).get();
+    return rows.map(_toEntity).toList();
+  }
+
+  @override
   Future<ReviewCardEntity> createForVocabItem(String vocabItemId) async {
     final now = DateTime.now();
     final card = ReviewCardEntity(

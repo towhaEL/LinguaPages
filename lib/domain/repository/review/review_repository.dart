@@ -4,6 +4,8 @@ import 'package:lingua_pages/domain/entity/review/review_card_entity.dart';
 abstract interface class ReviewRepository {
   Future<List<ReviewCardEntity>> getDueCards({DateTime? now});
 
+  Future<List<ReviewCardEntity>> getAllCards();
+
   Future<ReviewCardEntity> createForVocabItem(String vocabItemId);
 
   Future<ReviewCardEntity> recordReview({

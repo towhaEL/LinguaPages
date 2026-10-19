@@ -115,6 +115,15 @@ class PdfDocumentEngine implements DocumentEngine {
     return _renderPageAtWidth(pageIndex, _thumbnailWidth);
   }
 
+  @override
+  Future<String?> pageText(int pageIndex) async {
+    _ensureOpen();
+    if (pageIndex < 0 || pageIndex >= _pages.length) {
+      throw RangeError.index(pageIndex, 'pageIndex');
+    }
+    return _pages[pageIndex].text;
+  }
+
   Future<Uint8List?> _renderPageAtWidth(int pageIndex, double width) async {
     final document = _ensureOpen();
     if (pageIndex < 0 || pageIndex >= document.pages.length) {

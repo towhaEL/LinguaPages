@@ -32,6 +32,8 @@ void main() {
           readerMode: ReaderMode.continuous,
           readerTextAlignment: ReaderTextAlignment.justify,
           readerPdfFit: ReaderPdfFit.width,
+          readerPdfMode: ReaderPdfMode.text,
+          keepScreenAwake: true,
           fontSize: 20,
         ),
       );
@@ -45,6 +47,8 @@ void main() {
       expect(updated.readerMode, ReaderMode.continuous);
       expect(updated.readerTextAlignment, ReaderTextAlignment.justify);
       expect(updated.readerPdfFit, ReaderPdfFit.width);
+      expect(updated.readerPdfMode, ReaderPdfMode.text);
+      expect(updated.keepScreenAwake, isTrue);
       expect(updated.fontSize, 20);
       expect(updated.targetLanguage, 'es');
     });

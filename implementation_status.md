@@ -4,7 +4,7 @@
 
 **Last verified: 2026-10-19.** The project is in an active migration from the Flutter template to LinguaPages. The Dart package has been renamed and the old auth/user/architecture screens and data sources have been removed. The application now **builds and passes its current automated checks**. The working product now includes a first reader route and screen, but no end-to-end study flow exists yet.
 
-The practical status is approximately **Phase 0: 70%**, **Phase 1: 75%**, **Phase 2: 85%**, and **Phase 3: 85%**. The project has a working local foundation, validated import storage and library flow, Android "Open with" intake, shared text-format support, typed corrupt/unsupported import feedback, imported EPUB/Markdown/HTML/FB2 TOC metadata, early EPUB/PDF adapters, a native Readium EPUB/PDF reader on Android/iOS, a format-aware fallback engine, locator-backed TOC/outline navigation, in-document search, paginated/continuous reflowable reading, debounced locator-based progress persistence, persisted reader appearance/alignment settings, persisted PDF fit-to-page/fit-to-width controls, lazy PDF page thumbnails and explicit fallback-PDF zoom controls. PDF cover rendering, chapter-aware library progress and broader device-level interaction testing remain. Overall v1.0 implementation is approximately **50%**, with architectural scaffolding counted separately from product functionality.
+The practical status is approximately **Phase 0: 70%**, **Phase 1: 75%**, **Phase 2: 85%**, **Phase 3: 90%**, **Phase 4: 50%**, **Phase 5: 57%**, and **Phase 6: 20%**. The project has a working local foundation, validated import storage and library flow, Android "Open with" intake, shared text-format support, typed corrupt/unsupported import feedback, imported EPUB/Markdown/HTML/FB2 TOC metadata, early EPUB/PDF adapters, a native Readium EPUB/PDF reader on Android/iOS, a format-aware fallback engine, locator-backed TOC/outline navigation, in-document search, paginated/continuous reflowable reading, debounced locator-based progress persistence, persisted reader appearance/alignment settings, persisted PDF fit-to-page/fit-to-width and selectable-text controls, lazy PDF page thumbnails, explicit fallback-PDF zoom controls, screen wake-lock support, accessible fallback page tap zones, persisted bookmarks/highlights, a unified annotation list with editable notes and Markdown export, an offline dictionary-to-vocabulary lookup flow, Vocabulary and Review tabs with book/language/status filters and a Library due-count shortcut, a persisted Settings control for the daily new-card limit, a local English→Spanish language-pack manager, and metadata backup/restore controls. PDF cover rendering, chapter-aware library progress, real downloadable/checksum-backed language packs, sentence translation, binary/encrypted backups, and broader device-level interaction testing remain. Overall v1.0 implementation is approximately **62%**, with architectural scaffolding counted separately from product functionality.
 
 ### Native book handling decision
 
@@ -16,7 +16,7 @@ Readium's Android integration uses `FlutterFragmentActivity`, Android API 24+ an
 
 - `dart run build_runner build` — passed; generated Drift, injectable and route outputs.
 - `flutter analyze` — passed with **no issues**.
-- `flutter test` — passed: **29 tests**, with **2 PDF runtime tests skipped** because Flutter VM tests do not provide pdfrx's native PDFium assets.
+- `flutter test` — passed: **33 tests**, with **2 PDF runtime tests skipped** because Flutter VM tests do not provide pdfrx's native PDFium assets.
 - Metadata tests — EPUB title/author/language/cover extraction, PDF Info metadata extraction, cover storage wiring and repository persistence are covered by focused tests.
 - Import error tests — unsupported extensions, malformed EPUB packages, invalid signatures and empty files now produce typed failures; the library maps them to localized feedback.
 - Library view-mode test — grid/list state switching is covered; the library now supports both grid and list presentations.
@@ -31,6 +31,21 @@ Readium's Android integration uses `FlutterFragmentActivity`, Android API 24+ an
 - Reader fallback TOC navigation — EPUB, Markdown/HTML/FB2 and fallback PDF outline entries now carry locators and jump to the matching page or continuous-scroll position.
 - PDF thumbnails — fallback PDF thumbnails render on demand in a localized grid, cache while open, highlight the current page and jump to the selected page.
 - PDF zoom — fallback PDF pages support explicit zoom in, zoom out and reset controls alongside pinch-to-zoom; zoom resets when the page or fit mode changes.
+- PDF text mode — fallback PDF settings persist a visual page-image or selectable-text mode; native Readium PDF remains the platform renderer.
+- Screen wake-lock — the persisted reader setting enables `wakelock_plus` while reading and disables it when the reader is disposed.
+- Reader tap zones — fallback paginated reading exposes accessible transparent left/right page-turn zones while retaining the visible controls.
+- Bookmarks — reader bookmarks persist format-neutral locators, list and delete from a bottom sheet, and jump to fallback or native Readium positions.
+- Highlights — fallback selectable text and native Readium selection actions can create persisted highlights in yellow, green, blue or pink.
+- Annotation management — bookmarks and highlights share a reader panel with locator jumps, deletion, highlight color editing and optional notes.
+- Annotation export — the reader copies a stable Markdown export containing book title, highlight text/colors/notes/locators and bookmarks.
+- Lookup flow — selected text can use the offline English→Spanish dictionary fixture, copy the result, save a vocabulary item with book/locator context, or create a highlight.
+- Vocabulary/review flow — the dashboard exposes Vocabulary and Review tabs; saved words create review cards, vocabulary search/delete are available, and Again/Hard/Good/Easy actions update deterministic local scheduling.
+- Daily review limit — the persisted default of 15 new cards is enforced when due cards are loaded for review.
+- Vocabulary filters — the Vocabulary tab filters by book, source language and review status using all persisted review cards.
+- Home review shortcut — the Library app bar shows the current due-card count and opens the Review tab; the count refreshes when the app resumes.
+- Study settings — Settings persists a selectable daily new-card limit, and Review enforces it when loading new cards.
+- Language-pack manager — Settings exposes the replaceable language-pack repository with persisted local install/delete state for the bundled English→Spanish fixture.
+- Backup controls — Settings exports the metadata JSON snapshot through the native save dialog and restores/merges a selected backup with localized restored/duplicate counts; book binaries and encryption remain out of scope for this slice.
 - Delete-flow tests — keep-study-data soft deletion and delete-study-data transactional cleanup are covered, including linked bookmarks, vocabulary, and review cards.
 - `flutter build apk --debug --flavor development -t lib/main_development.dart` — passed with Readium under the configured **JDK 17** toolchain; output: `build/app/outputs/flutter-apk/app-development-debug.apk`.
 - Development device startup — the configured `flutter run --machine` command built, installed and reached `app.started` on CPH2819; the debug session was then stopped cleanly.
@@ -77,7 +92,7 @@ Readium's Android integration uses `FlutterFragmentActivity`, Android API 24+ an
 | `RecapRepository` | [recap_repository.dart](file:///Users/uswer/StudioProjects/linguaPages/lib/domain/repository/recap/recap_repository.dart) | ✅ Done |
 | Subscription/billing repository | — | ❌ The old template subscription repository was removed; real entitlement and billing work is still pending |
 | `DocumentImportService` | [document_import_service.dart](file:///Users/uswer/StudioProjects/linguaPages/lib/domain/service/document_import_service.dart) | ✅ Done |
-| Drift database definitions | [lingua_page_database.dart](file:///Users/uswer/StudioProjects/linguaPages/lib/data/data_source/library/local/lingua_page_database.dart) | ✅ Schema v4 with seven tables, persisted Readium locator, and soft-deleted book state; generated output is synchronized |
+| Drift database definitions | [lingua_page_database.dart](file:///Users/uswer/StudioProjects/linguaPages/lib/data/data_source/library/local/lingua_page_database.dart) | ✅ Schema v5 with seven tables, persisted Readium locator, imported TOC metadata, and soft-deleted book state; generated output is synchronized |
 | `DriftLibraryRepository` | [drift_library_repository.dart](file:///Users/uswer/StudioProjects/linguaPages/lib/data/repository_impl/library/drift_library_repository.dart) | ✅ Done — full CRUD, duplicate detection, sorting |
 | Repository unit test | [drift_library_repository_test.dart](file:///Users/uswer/StudioProjects/linguaPages/test/data/repository_impl/library/drift_library_repository_test.dart) | ✅ Passing |
 | `DuplicateDocumentException` | [duplicate_document_exception.dart](file:///Users/uswer/StudioProjects/linguaPages/lib/domain/exceptions/duplicate_document_exception.dart) | ✅ Done |
@@ -111,7 +126,7 @@ Readium's Android integration uses `FlutterFragmentActivity`, Android API 24+ an
 | EPUB adapter | [epub_document_engine.dart](file:///Users/uswer/StudioProjects/linguaPages/lib/data/document_engine/epub/epub_document_engine.dart), [readium_document_session.dart](file:///Users/uswer/StudioProjects/linguaPages/lib/data/reader/readium/readium_document_session.dart) | ✅ Native `flutter_readium` backend on Android/iOS with the local EPUB adapter retained as desktop/fallback |
 | PDF adapter | [pdf_document_engine.dart](file:///Users/uswer/StudioProjects/linguaPages/lib/data/document_engine/pdf/pdf_document_engine.dart), [readium_document_session.dart](file:///Users/uswer/StudioProjects/linguaPages/lib/data/reader/readium/readium_document_session.dart) | ✅ Native Readium PDF backend builds on Android/iOS; pdfrx/PDFium remains the desktop/fallback adapter and still needs target-device interaction coverage |
 | Engine factory | [document_engine_factory.dart](file:///Users/uswer/StudioProjects/linguaPages/lib/domain/service/document_engine_factory.dart), [local_document_engine_factory.dart](file:///Users/uswer/StudioProjects/linguaPages/lib/data/document_engine/local_document_engine_factory.dart) | ✅ DI-backed format selection for EPUB, PDF, TXT, Markdown, HTML and FB2 |
-| Reader screen | [reader_screen.dart](file:///Users/uswer/StudioProjects/linguaPages/lib/presentation/screen/reader/reader_screen.dart) | ✅ Uses Readium for EPUB/PDF on Android/iOS, restores/saves locators, supports native and fallback TOC/search jumps, paginated/continuous modes, debounced progress flushes, persisted appearance/alignment/PDF-fit settings, lazy fallback-PDF thumbnails, explicit fallback-PDF zoom controls, and custom page controls for fixed fallback formats |
+| Reader screen | [reader_screen.dart](file:///Users/uswer/StudioProjects/linguaPages/lib/presentation/screen/reader/reader_screen.dart) | ✅ Uses Readium for EPUB/PDF on Android/iOS, restores/saves locators, supports native and fallback TOC/search jumps, paginated/continuous modes, debounced progress flushes, persisted appearance/alignment/PDF-fit/text-mode settings, wake-lock, bookmarks, highlights, unified annotation management with editable notes, lazy fallback-PDF thumbnails, explicit fallback-PDF zoom controls, tap-zone navigation and custom page controls for fixed fallback formats |
 | Text engine tests | [plain_text_document_engine_test.dart](file:///Users/uswer/StudioProjects/linguaPages/test/data/document_engine/text/plain_text_document_engine_test.dart) | ✅ Passing |
 | EPUB adapter tests | [epub_document_engine_test.dart](file:///Users/uswer/StudioProjects/linguaPages/test/data/document_engine/epub/epub_document_engine_test.dart) | ✅ Passing with a generated EPUB fixture |
 | PDF adapter tests | [pdf_document_engine_test.dart](file:///Users/uswer/StudioProjects/linguaPages/test/data/document_engine/pdf/pdf_document_engine_test.dart) | ⚠️ Fixture and assertions are present, but runtime tests are skipped under Flutter VM because bundled PDFium assets are unavailable there |
@@ -125,7 +140,7 @@ Readium's Android integration uses `FlutterFragmentActivity`, Android API 24+ an
 - [x] **Rename the Dart package to `lingua_pages`** — imports and `pubspec.yaml` are updated. Android still uses the generic `com.hadi.me` application ID and Flutter Template labels, so the platform rename is incomplete.
 - [x] **Remove the obsolete template screens** — auth, architecture, widget-screen and template home components were removed; the remaining dashboard shell still needs LinguaPages-specific navigation.
 - [x] **Remove the obsolete template auth/user data sources** — deleted from `lib/data/`; unused Dio/Retrofit dependencies remain in `pubspec.yaml`.
-- [x] **Reduce the router to the current shell** — routes now include Splash, Dashboard, Home, Settings and the first Reader route. Vocabulary, review and onboarding routes are not present yet.
+- [x] **Reduce the router to the current shell** — routes now include Splash, Dashboard, Home, Vocabulary, Review, Settings and the Reader route. Onboarding is not present yet.
 - [ ] **Replace the template README** with LinguaPages setup, flavors, architecture and environment documentation; the current README still describes the old user/auth template.
 - [ ] **Restore or intentionally replace deleted template tests** — three new focused test files exist, but the old suite was deleted and the current suite does not fully compile.
 - [ ] **Confirm Android minimum API level and finalize the application ID**
@@ -202,46 +217,47 @@ Readium's Android integration uses `FlutterFragmentActivity`, Android API 24+ an
 - [x] **PDF fit-to-width and fit-to-page controls** — persisted and applied to fallback PDF rendering and native Readium PDF preferences
 - [x] **PDF thumbnails** — lazy fallback-PDF previews with current-page highlighting and direct page selection
 - [x] **PDF zoom controls** — explicit zoom in, zoom out and reset actions alongside pinch-to-zoom for fallback PDF pages
-- [ ] **PDF text mode**
+- [x] **PDF text mode** — fallback PDFs can switch between rendered page images and selectable extracted text; the choice is persisted
 - [x] **Font, size, line spacing and margin controls** — persisted reader settings apply to fallback pages and native Readium preferences
 - [x] **Text alignment control** — left, centered and justified layouts apply to fallback pages and native Readium EPUB preferences
 - [x] **Light / Sepia / Dark reading themes** — persisted and applied to fallback pages and native Readium EPUB preferences
 - [x] **Reading progress display** (page count and progress bar)
 - [x] **Debounced progress persistence** — page and Readium locator events coalesce for 650 ms and flush on lifecycle backgrounding or reader disposal
 - [x] **In-document search** — localized search sheet uses Readium text search on Android/iOS and `DocumentEngine.search` for fallback formats, with chapter/context results and page/locator jumps
-- [ ] **Screen wake-lock** (platform interface)
-- [ ] **Tap-zone controls**
-- [ ] **Format-specific settings**
+- [x] **Screen wake-lock** — `wakelock_plus` follows the persisted reader preference and is released on reader disposal
+- [x] **Tap-zone controls** — accessible left/right zones turn pages in fallback paginated mode
+- [ ] **Format-specific settings** — PDF fit/text settings are implemented; broader per-format options remain
 
-### 🔴 Phase 4 — Annotations & Translation (Not Started)
+### 🟡 Phase 4 — Annotations & Translation (Early)
 
-- [ ] **Highlight creation** (4 colors)
-- [ ] **Notes attached to highlights**
-- [ ] **Bookmark creation**
-- [ ] **Annotation list with jump-to-location**
-- [ ] **Edit and delete annotations**
-- [ ] **Format-neutral locators for all formats**
-- [ ] **Markdown export contract**
-- [ ] **English–Spanish language-pack manager UI**
-- [ ] **Dictionary lookup UI** (lemma, translation, POS, example)
+- [x] **Highlight creation** (4 colors) — native Readium selection actions and fallback selectable text are wired to Drift
+- [x] **Notes attached to highlights** — notes and colors can be edited from the annotation panel
+- [x] **Bookmark creation** — reader toolbar action persists a format-neutral locator
+- [x] **Bookmark list with jump-to-location** — reader bottom sheet supports navigation and deletion
+- [x] **Annotation list with jump-to-location** — unified bookmark/highlight list is available from the reader
+- [x] **Edit and delete annotations** — highlight notes/colors can be edited and both annotation types can be deleted
+- [x] **Format-neutral locators for all formats** — fallback locators plus optional native Readium payloads are persisted
+- [x] **Markdown export contract** — reader annotation panel copies portable Markdown
+- [x] **English–Spanish language-pack manager UI** — Settings exposes persisted local install/delete state for the bundled fixture
+- [x] **Dictionary lookup UI** (lemma, translation, POS, example)
 - [ ] **Lemmatization interface**
 - [ ] **On-device sentence/paragraph translation**
 - [ ] **Language pack download/checksum/delete**
-- [ ] **Lookup bottom sheet** (Save, Highlight, Copy actions)
+- [x] **Lookup bottom sheet** (Save, Highlight, Copy actions)
 - [ ] **Response caching for lookups**
 
-### 🔴 Phase 5 — Vocabulary & Review (Not Started)
+### 🟡 Phase 5 — Vocabulary & Review (Early)
 
-- [ ] **Save word with full context** (sentence, book, locator, lemma, timestamp)
-- [ ] **Vocabulary list screen**
-- [ ] **Search and filters** (by book, language, status)
-- [ ] **Automatic flashcard generation**
+- [x] **Save word with full context** (sentence, book, locator, lemma, timestamp) — lookup sheet persists the selected context
+- [x] **Vocabulary list screen**
+- [x] **Search and filters** (by book, language, status)
+- [x] **Automatic flashcard generation**
 - [ ] **Hidden-word context sentence cards**
-- [ ] **Review actions** (Again, Hard, Good, Easy)
-- [ ] **SM-2 scheduling algorithm** with extensive unit tests
-- [ ] **Daily new-card limit** (default 15)
+- [x] **Review actions** (Again, Hard, Good, Easy)
+- [x] **SM-2 scheduling algorithm** with deterministic repository tests; broader boundary coverage remains
+- [x] **Daily new-card limit** (default 15) — configurable in Settings and enforced by the Review screen
 - [ ] **Free limit of 500 saved words**
-- [ ] **Due count on home screen**
+- [x] **Due count on home screen** — Library app bar badge opens the Review tab
 - [ ] **Local review notification**
 - [ ] **Review streak and statistics**
 
@@ -253,8 +269,8 @@ Readium's Android integration uses `FlutterFragmentActivity`, Android API 24+ an
 - [ ] **Restore purchases**
 - [ ] **Premium themes and fonts**
 - [ ] **Premium limits enforcement** (exports, language packs, vocabulary)
-- [ ] **Backup export** (metadata, annotations, vocabulary, reviews, settings)
-- [ ] **Backup restore** with merge and duplicate prevention
+- [x] **Backup export** (metadata, annotations, vocabulary, reviews, settings) — Settings exports the local metadata JSON snapshot
+- [x] **Backup restore** with merge and duplicate prevention — Settings imports a JSON snapshot and reports restored/duplicate counts
 - [ ] **Encrypted backup** (optional)
 - [ ] **Privacy screen**
 
@@ -282,10 +298,10 @@ Readium's Android integration uses `FlutterFragmentActivity`, Android API 24+ an
 | Phase 0 — Technical validation | 🟡 ~70% (native EPUB/PDF builds and Android `ACTION_VIEW` are validated; corpus, broader physical-device behavior and licensing validation remain) |
 | Phase 1 — Foundation | 🟡 ~75% (entities, schema v5, locator persistence, local repositories and use cases exist; explicit migration coverage and production integrations remain) |
 | Phase 2 — Library & importing | 🟡 ~85% (picker and Android intent import, private storage, metadata/EPUB covers/TOC, grid/list UI, sorting, badges, progress summaries, deletion and localized import-error handling exist; PDF covers and richer library controls remain) |
-| Phase 3 — Reader core | 🟡 ~85% (native Readium EPUB/PDF reader, fallback adapters, native and fallback TOC/search jumps, paginated/continuous modes, debounced locator persistence, appearance/alignment controls, PDF fit controls, fallback thumbnails and explicit zoom controls exist; PDF text mode, tap-zone controls and target-device validation remain) |
-| Phase 4 — Annotations & translation | 🔴 ~5% (dictionary interface + mock only) |
-| Phase 5 — Vocabulary & review | 🔴 ~15% (local vocabulary/review persistence and scheduling exist; UI, limits, notifications and statistics remain) |
-| Phase 6 — Onboarding, premium, backup | 🔴 ~10% (metadata backup exists; no billing/onboarding or binary-file backup) |
-| Phase 7 — Hardening & launch | 🔴 ~5% (analysis clean and the automated suite covers metadata/TOC import persistence, typed import failures and delete cleanup with 2 environment-skipped PDF tests; integration, compatibility and performance coverage remain) |
+| Phase 3 — Reader core | 🟡 ~90% (native Readium EPUB/PDF reader, fallback adapters, native and fallback TOC/search jumps, paginated/continuous modes, debounced locator persistence, appearance/alignment controls, PDF fit/text modes, wake-lock, tap zones, fallback thumbnails and explicit zoom controls exist; adapter hardening and target-device validation remain) |
+| Phase 4 — Annotations & translation | 🟡 ~50% (bookmarks, four-color highlights, unified annotation management, editable notes, Markdown export, lookup UI and a local English→Spanish pack manager are connected; real pack downloads, lemmatization, sentence translation and caching remain) |
+| Phase 5 — Vocabulary & review | 🟡 ~57% (lookup can save vocabulary with context, Vocabulary and Review tabs support search/filtering plus a Library due-count shortcut, automatic cards, configurable daily new-card limiting and review actions use local deterministic scheduling; free limits, notifications and statistics remain) |
+| Phase 6 — Onboarding, premium, backup | 🔴 ~20% (metadata backup/export/restore is available from Settings; onboarding, billing, entitlement, binary-file backup and encryption remain) |
+| Phase 7 — Hardening & launch | 🔴 ~5% (analysis clean and the automated suite covers metadata/TOC import persistence, typed import failures, locator serialization and delete cleanup with 2 environment-skipped PDF tests; integration, compatibility and performance coverage remain) |
 
-> **Overall: ~50% of v1.0 scope is implemented.** The strongest areas are the architecture foundation, local persistence, validated library import flow and the first end-to-end library-to-reader path. The largest product gaps are PDF text mode, PDF cover rendering, chapter-aware progress, target-device PDF validation, and UI-heavy features across Phases 4–6.
+> **Overall: ~62% of v1.0 scope is implemented.** The strongest areas are the architecture foundation, local persistence, validated library import flow and the end-to-end library-to-reader-to-vocabulary/review path. The largest product gaps are PDF cover rendering, chapter-aware progress, adapter/target-device validation, real language-pack downloads/checksums, sentence translation, vocabulary free-limit/statistics, onboarding, billing, binary/encrypted backups and release hardening across Phases 4–7.

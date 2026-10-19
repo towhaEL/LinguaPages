@@ -77,6 +77,71 @@
   "readerSearchResult": "Resultado de búsqueda",
   "readerSearchNoResults": "No se encontraron coincidencias",
   "readerSearchFailed": "No se pudo completar la búsqueda",
+  "readerBookmark": "Añadir marcador",
+  "readerBookmarks": "Marcadores",
+  "readerBookmarkAdded": "Marcador guardado",
+  "readerBookmarkFailed": "No se pudo guardar el marcador",
+  "readerBookmarkEmpty": "Aún no hay marcadores",
+  "readerBookmarkDelete": "Eliminar marcador",
+  "readerBookmarkPage": "Página {page}",
+  "@readerBookmarkPage": {
+    "placeholders": {
+      "page": {
+        "type": "int"
+      }
+    }
+  },
+  "readerBookmarkProgress": "Posición {progress}",
+  "@readerBookmarkProgress": {
+    "placeholders": {
+      "progress": {
+        "type": "int"
+      }
+    }
+  },
+  "readerBookmarkPosition": "Posición actual",
+  "readerHighlight": "Resaltar",
+  "readerHighlightColor": "Color del resaltado",
+  "readerHighlightSaved": "Resaltado guardado",
+  "readerHighlightFailed": "No se pudo guardar el resaltado",
+  "readerHighlightYellow": "Amarillo",
+  "readerHighlightGreen": "Verde",
+  "readerHighlightBlue": "Azul",
+  "readerHighlightPink": "Rosa",
+  "readerAnnotations": "Anotaciones",
+  "readerAnnotationEmpty": "Aún no hay anotaciones",
+  "readerAnnotationFailed": "No se pudieron cargar las anotaciones",
+  "readerEditHighlight": "Editar resaltado",
+  "readerNote": "Nota",
+  "readerNoteHint": "Añade una nota opcional",
+  "readerDeleteAnnotation": "Eliminar anotación",
+  "readerExportAnnotations": "Copiar exportación Markdown",
+  "readerExportCopied": "Anotaciones copiadas como Markdown",
+  "readerLookup": "Buscar",
+  "readerLookupFor": "Buscar “{word}”",
+  "@readerLookupFor": {
+    "placeholders": {
+      "word": {
+        "type": "String"
+      }
+    }
+  },
+  "readerLookupFailed": "No se pudo completar la búsqueda",
+  "readerNoTranslation": "No se encontró traducción",
+  "readerCopy": "Copiar",
+  "readerWordCopied": "Copiado al portapapeles",
+  "readerSaveWord": "Guardar palabra",
+  "readerWordSaved": "Palabra guardada",
+  "readerWordSaveFailed": "No se pudo guardar la palabra",
+  "readerVocabularyLimitReached": "Se alcanzó el límite gratuito de vocabulario ({limit} palabras)",
+  "@readerVocabularyLimitReached": {
+    "placeholders": {
+      "limit": {
+        "type": "int"
+      }
+    }
+  },
+  "save": "Guardar",
   "readerSettings": "Configuración del lector",
   "readerTheme": "Tema de lectura",
   "readerThemeLight": "Claro",
@@ -95,6 +160,10 @@
   "readerPdfFit": "Ajuste de página PDF",
   "readerPdfFitPage": "Ajustar a la página",
   "readerPdfFitWidth": "Ajustar al ancho",
+  "readerPdfMode": "Modo de visualización PDF",
+  "readerPdfModeVisual": "Imagen de página",
+  "readerPdfModeText": "Texto seleccionable",
+  "readerKeepScreenAwake": "Mantener la pantalla activa",
   "readerThumbnails": "Miniaturas de página",
   "readerZoomIn": "Acercar",
   "readerZoomOut": "Alejar",
@@ -146,6 +215,8 @@
   "premiumUnlockHint": "Premium desbloquea la lista completa",
 
   "navHome": "Biblioteca",
+  "navVocabulary": "Vocabulario",
+  "navReview": "Repaso",
   "navWidgets": "Widgets",
   "navArchitecture": "Arquitectura",
   "navSettings": "Ajustes",
@@ -154,8 +225,86 @@
   "settingsAppearance": "Apariencia",
   "settingsTheme": "Tema",
   "settingsLanguage": "Idioma",
+  "settingsLanguagePacks": "Paquetes de idioma sin conexión",
+  "settingsLanguagePackEnglishSpanish": "Inglés → Español",
+  "settingsLanguagePackVersion": "Versión {version}",
+  "settingsLanguagePackInstall": "Instalar",
+  "settingsLanguagePackDelete": "Eliminar",
+  "settingsLanguagePackEmpty": "No hay paquetes de idioma disponibles",
+  "settingsLanguagePackFailed": "No se pudieron actualizar los paquetes de idioma",
+  "@settingsLanguagePackVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsBackupTitle": "Copia de seguridad y restauración",
+  "settingsBackupCreate": "Exportar copia",
+  "settingsBackupCreateSubtitle": "Guarda anotaciones, vocabulario, repasos y ajustes",
+  "settingsBackupRestore": "Restaurar copia",
+  "settingsBackupRestoreSubtitle": "Combina una copia JSON de LinguaPages",
+  "settingsBackupCreated": "Copia exportada",
+  "settingsBackupRestored": "Se restauraron {restored} elementos; se omitieron {skipped} duplicados",
+  "settingsBackupFailed": "No se pudo completar la copia de seguridad",
+  "@settingsBackupRestored": {
+    "placeholders": {
+      "restored": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsStudy": "Estudio",
+  "settingsDailyNewCardLimit": "Palabras nuevas diarias",
+  "settingsDailyNewCardLimitValue": "{count} palabras nuevas al día",
+  "settingsSaveFailed": "No se pudieron guardar los ajustes",
+  "@settingsDailyNewCardLimitValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "settingsAccount": "Cuenta",
   "logoutSubtitle": "Cierra la sesión de tu cuenta",
+  "vocabularyTitle": "Vocabulario",
+  "vocabularySearchHint": "Buscar palabras guardadas",
+  "vocabularyFilterBook": "Libro",
+  "vocabularyFilterAllBooks": "Todos los libros",
+  "vocabularyFilterLanguage": "Idioma",
+  "vocabularyFilterAllLanguages": "Todos los idiomas",
+  "vocabularyFilterStatus": "Estado",
+  "vocabularyFilterAllStatuses": "Todos los estados",
+  "vocabularyFilterNew": "Nueva",
+  "vocabularyFilterDue": "Pendiente",
+  "vocabularyFilterLearned": "Aprendida",
+  "vocabularyEmpty": "Aún no hay palabras guardadas",
+  "vocabularyLoadFailed": "No se pudo cargar el vocabulario",
+  "vocabularyDeleteTitle": "¿Eliminar esta palabra?",
+  "vocabularyDeleteFailed": "No se pudo eliminar la palabra",
+  "reviewTitle": "Repaso",
+  "reviewEmpty": "No tienes tarjetas pendientes",
+  "reviewLoadFailed": "No se pudieron cargar las tarjetas",
+  "reviewSaveFailed": "No se pudo guardar el repaso",
+  "reviewShowAnswer": "Mostrar respuesta",
+  "reviewRate": "¿Qué tan bien la recordaste?",
+  "reviewDueCount": "{count} tarjetas pendientes",
+  "@reviewDueCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "reviewAgain": "Otra vez",
+  "reviewHard": "Difícil",
+  "reviewGood": "Bien",
+  "reviewEasy": "Fácil",
+  "delete": "Eliminar",
+  "refresh": "Actualizar",
 
   "themeSystem": "Sistema",
   "themeLight": "Modo claro",

@@ -27,7 +27,7 @@ class _CustomBottomNavigationBarState extends State<CustomBottomNavigationBar> {
   @override
   Widget build(BuildContext context) {
     final theme = context.colors;
-    
+
     return Container(
       decoration: BoxDecoration(
         color: theme.surface,
@@ -64,10 +64,30 @@ class _CustomBottomNavigationBarState extends State<CustomBottomNavigationBar> {
               Gap(AppConstant.horizontalGap8),
               Expanded(
                 child: BottomNavItem(
-                  title: context.l10n.navSettings,
+                  title: context.l10n.navVocabulary,
                   group: group,
                   onTap: () => widget.onTap(1),
                   isSelected: widget.currentIndex == 1,
+                  icon: Icons.style_rounded,
+                ),
+              ),
+              Gap(AppConstant.horizontalGap8),
+              Expanded(
+                child: BottomNavItem(
+                  title: context.l10n.navReview,
+                  group: group,
+                  onTap: () => widget.onTap(2),
+                  isSelected: widget.currentIndex == 2,
+                  icon: Icons.replay_rounded,
+                ),
+              ),
+              Gap(AppConstant.horizontalGap8),
+              Expanded(
+                child: BottomNavItem(
+                  title: context.l10n.navSettings,
+                  group: group,
+                  onTap: () => widget.onTap(3),
+                  isSelected: widget.currentIndex == 3,
                   icon: Icons.settings_rounded,
                 ),
               ),

@@ -23,6 +23,8 @@ abstract interface class DocumentEngine {
   Future<Uint8List?> renderPageThumbnail(int pageIndex) =>
       renderPage(pageIndex);
 
+  Future<String?> pageText(int pageIndex);
+
   Future<List<DocumentSearchResult>> search(String query);
 
   Future<DocumentTextSelection> resolveSelection({

@@ -1,20 +1,34 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math' as math;
 
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_readium/flutter_readium.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:lingua_pages/core/document/document_locator.dart';
 import 'package:lingua_pages/core/injector/injector.dart';
 import 'package:lingua_pages/data/reader/readium/readium_document_session.dart';
 import 'package:lingua_pages/domain/entity/document/document_models.dart';
 import 'package:lingua_pages/domain/entity/library/book_entity.dart';
+import 'package:lingua_pages/domain/entity/reader/bookmark_entity.dart';
+import 'package:lingua_pages/domain/entity/reader/highlight_entity.dart';
 import 'package:lingua_pages/domain/entity/settings/settings_entity.dart';
+import 'package:lingua_pages/domain/entity/vocabulary/vocab_item_entity.dart';
+import 'package:lingua_pages/domain/exceptions/vocabulary_limit_exception.dart';
+import 'package:lingua_pages/domain/repository/reader/bookmark_repository.dart';
+import 'package:lingua_pages/domain/repository/reader/highlight_repository.dart';
+import 'package:lingua_pages/domain/repository/review/review_repository.dart';
+import 'package:lingua_pages/domain/repository/translation/dictionary_repository.dart';
 import 'package:lingua_pages/domain/repository/settings/settings_repository.dart';
 import 'package:lingua_pages/domain/service/document_engine.dart';
 import 'package:lingua_pages/domain/service/document_engine_factory.dart';
+import 'package:lingua_pages/domain/service/annotation_markdown_exporter.dart';
 import 'package:lingua_pages/domain/use_cases/reader/save_reading_progress_use_case.dart';
+import 'package:lingua_pages/domain/use_cases/vocabulary/lookup_word_use_case.dart';
+import 'package:lingua_pages/domain/use_cases/vocabulary/save_vocabulary_use_case.dart';
 import 'package:lingua_pages/l10n/l10n.dart';
 import 'package:lingua_pages/presentation/theme/base/theme_extension.dart';
 
@@ -36,6 +50,11 @@ class _ReaderScreenState extends State<ReaderScreen>
   DocumentEngine? _engine;
   late final ReadiumDocumentSession _readiumSession;
   late final SaveReadingProgressUseCase _saveReadingProgress;
+  late final BookmarkRepository _bookmarkRepository;
+  late final HighlightRepository _highlightRepository;
+  late final ReviewRepository _reviewRepository;
+  late final LookupWordUseCase _lookupWord;
+  late final SaveVocabularyUseCase _saveVocabulary;
   late final SettingsRepository _settingsRepository;
 
   SettingsEntity _settings = const SettingsEntity();
@@ -46,11 +65,15 @@ class _ReaderScreenState extends State<ReaderScreen>
   List<Link> _readiumTableOfContents = const [];
   final _continuousPageKey = GlobalKey<_ContinuousReflowablePageState>();
   Uint8List? _pageBytes;
+  String? _pageText;
   List<Uint8List>? _continuousPages;
   int _pageIndex = 0;
   bool _isOpening = true;
   bool _isRendering = false;
   String? _errorMessage;
+  Locator? _currentReadiumLocator;
+  var _continuousProgress = 0.0;
+  var _isShowingHighlightActions = false;
   Timer? _progressTimer;
   double? _pendingProgress;
   String? _pendingReadingLocatorJson;
@@ -64,6 +87,11 @@ class _ReaderScreenState extends State<ReaderScreen>
     WidgetsBinding.instance.addObserver(this);
     _usesReadium = _shouldUseReadium(widget.book.format);
     _saveReadingProgress = injector<SaveReadingProgressUseCase>();
+    _bookmarkRepository = injector<BookmarkRepository>();
+    _highlightRepository = injector<HighlightRepository>();
+    _reviewRepository = injector<ReviewRepository>();
+    _lookupWord = injector<LookupWordUseCase>();
+    _saveVocabulary = injector<SaveVocabularyUseCase>();
     _settingsRepository = injector<SettingsRepository>();
     _loadReaderSettings();
     if (_usesReadium) {
@@ -84,6 +112,7 @@ class _ReaderScreenState extends State<ReaderScreen>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    unawaited(WakelockPlus.disable());
     _progressTimer?.cancel();
     unawaited(_flushPendingProgress());
     unawaited(_readiumStatusSubscription?.cancel());
@@ -125,6 +154,24 @@ class _ReaderScreenState extends State<ReaderScreen>
               onPressed: _showSearch,
               icon: const Icon(Icons.search_rounded),
               tooltip: context.l10n.readerSearch,
+            ),
+          if (!_isOpening && (_publication != null || _info != null))
+            IconButton(
+              onPressed: _createBookmark,
+              icon: const Icon(Icons.bookmark_add_outlined),
+              tooltip: context.l10n.readerBookmark,
+            ),
+          if (!_isOpening && (_publication != null || _info != null))
+            IconButton(
+              onPressed: _showBookmarks,
+              icon: const Icon(Icons.bookmarks_outlined),
+              tooltip: context.l10n.readerBookmarks,
+            ),
+          if (!_isOpening && (_publication != null || _info != null))
+            IconButton(
+              onPressed: _showAnnotations,
+              icon: const Icon(Icons.collections_bookmark_outlined),
+              tooltip: context.l10n.readerAnnotations,
             ),
           if (!_isOpening && (_publication != null || _info != null))
             IconButton(
@@ -178,6 +225,11 @@ class _ReaderScreenState extends State<ReaderScreen>
         publication: publication,
         initialLocator: _savedLocator,
         loadingWidget: _buildLoading(context),
+        selectionActions: [
+          SelectionAction(id: 'highlight', title: context.l10n.readerHighlight),
+          SelectionAction(id: 'lookup', title: context.l10n.readerLookup),
+        ],
+        onSelectionAction: _handleReadiumSelectionAction,
       );
     }
 
@@ -203,6 +255,23 @@ class _ReaderScreenState extends State<ReaderScreen>
       );
     }
 
+    if (info.layout == DocumentLayout.fixed &&
+        info.format == DocumentFormat.pdf &&
+        _settings.readerPdfMode == ReaderPdfMode.text) {
+      final pageText = _pageText;
+      if (pageText == null) return _buildLoading(context);
+      return _PdfTextPage(
+        text: pageText,
+        fontSize: _settings.fontSize,
+        lineSpacing: _settings.lineSpacing,
+        margin: _settings.margin,
+        textAlignment: _settings.readerTextAlignment,
+        backgroundColor: _readerPalette(_settings.readerTheme).background,
+        textColor: _readerPalette(_settings.readerTheme).text,
+        onSelectionChanged: _handleFallbackSelection,
+      );
+    }
+
     if (_pageBytes == null) return _buildLoading(context);
 
     final page = info.layout == DocumentLayout.fixed
@@ -220,10 +289,27 @@ class _ReaderScreenState extends State<ReaderScreen>
             textAlignment: _settings.readerTextAlignment,
             backgroundColor: _readerPalette(_settings.readerTheme).background,
             textColor: _readerPalette(_settings.readerTheme).text,
+            onSelectionChanged: _handleFallbackSelection,
           );
     return Stack(
       children: [
         Positioned.fill(child: page),
+        if (!_usesReadium && _settings.readerMode == ReaderMode.paginated)
+          Positioned.fill(
+            child: _ReaderTapZones(
+              previousLabel: context.l10n.readerPreviousPage,
+              nextLabel: context.l10n.readerNextPage,
+              onPrevious: _pageIndex == 0 || _isRendering
+                  ? null
+                  : () => _renderPage(_pageIndex - 1),
+              onNext:
+                  info.pageCount == null ||
+                      _pageIndex >= info.pageCount! - 1 ||
+                      _isRendering
+                  ? null
+                  : () => _renderPage(_pageIndex + 1),
+            ),
+          ),
         if (_isRendering)
           const Positioned(
             top: 12,
@@ -292,6 +378,7 @@ class _ReaderScreenState extends State<ReaderScreen>
         _errorMessage = null;
         _info = null;
         _pageBytes = null;
+        _pageText = null;
         _continuousPages = null;
         _tableOfContents = const [];
         _localTableOfContents = const [];
@@ -311,6 +398,7 @@ class _ReaderScreenState extends State<ReaderScreen>
         _localTableOfContents = contents;
         _tableOfContents = contents.map((entry) => entry.title).toList();
         _pageIndex = initialPage;
+        _continuousProgress = widget.book.progress;
         _continuousPages = null;
       });
       if (info.layout == DocumentLayout.reflowable &&
@@ -335,11 +423,18 @@ class _ReaderScreenState extends State<ReaderScreen>
 
     setState(() => _isRendering = true);
     try {
-      final bytes = await _engine!.renderPage(pageIndex);
+      final isPdfTextMode =
+          info.format == DocumentFormat.pdf &&
+          _settings.readerPdfMode == ReaderPdfMode.text;
+      final bytes = isPdfTextMode ? null : await _engine!.renderPage(pageIndex);
+      final pageText = isPdfTextMode
+          ? await _engine!.pageText(pageIndex)
+          : null;
       if (!mounted) return;
       setState(() {
         _pageIndex = pageIndex;
         _pageBytes = bytes;
+        _pageText = pageText;
       });
       if (saveProgress) {
         _queueProgress(
@@ -385,6 +480,7 @@ class _ReaderScreenState extends State<ReaderScreen>
       if (!mounted) return;
       setState(() {
         _publication = publication;
+        _currentReadiumLocator = _savedLocator;
         _readiumTableOfContents = contents;
         _tableOfContents = contents
             .map((link) => link.title?.trim())
@@ -410,6 +506,7 @@ class _ReaderScreenState extends State<ReaderScreen>
   }
 
   Future<void> _handleReadiumLocator(Locator locator) async {
+    _currentReadiumLocator = locator;
     final totalProgression = locator.locations?.totalProgression;
     final progress = (totalProgression ?? widget.book.progress).clamp(0.0, 1.0);
     _queueProgress(
@@ -549,11 +646,485 @@ class _ReaderScreenState extends State<ReaderScreen>
     );
   }
 
+  Future<void> _createBookmark() async {
+    final locator = _currentDocumentLocator;
+    if (locator == null) return;
+
+    final bookmark = BookmarkEntity(
+      id: 'bookmark-${DateTime.now().microsecondsSinceEpoch}',
+      bookId: widget.book.id,
+      title: _bookmarkTitle(locator),
+      locator: locator,
+      createdAt: DateTime.now(),
+    );
+    try {
+      await _bookmarkRepository.create(bookmark);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(content: Text(context.l10n.readerBookmarkAdded)),
+        );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(content: Text(context.l10n.readerBookmarkFailed)),
+        );
+    }
+  }
+
+  Future<void> _showBookmarks() async {
+    try {
+      final bookmarks = await _bookmarkRepository.getByBookId(widget.book.id);
+      if (!mounted) return;
+      await showModalBottomSheet<void>(
+        context: context,
+        showDragHandle: true,
+        isScrollControlled: true,
+        builder: (context) => _ReaderBookmarksSheet(
+          bookmarks: bookmarks,
+          onSelected: (bookmark) {
+            Navigator.of(context).pop();
+            unawaited(_goToBookmark(bookmark));
+          },
+          onDeleted: (bookmark) => _bookmarkRepository.delete(bookmark.id),
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.readerBookmarkFailed)),
+      );
+    }
+  }
+
+  Future<void> _showAnnotations() async {
+    try {
+      final results = await Future.wait<Object>([
+        _bookmarkRepository.getByBookId(widget.book.id),
+        _highlightRepository.getByBookId(widget.book.id),
+      ]);
+      if (!mounted) return;
+      final annotations = [
+        ...(results[0] as List<BookmarkEntity>).map(_ReaderAnnotation.bookmark),
+        ...(results[1] as List<HighlightEntity>).map(
+          _ReaderAnnotation.highlight,
+        ),
+      ]..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      await showModalBottomSheet<void>(
+        context: context,
+        showDragHandle: true,
+        isScrollControlled: true,
+        builder: (context) => _ReaderAnnotationsSheet(
+          annotations: annotations,
+          onSelected: (annotation) {
+            Navigator.of(context).pop();
+            unawaited(_goToDocumentLocator(annotation.locator));
+          },
+          onDeleted: _deleteAnnotation,
+          onEdited: _editHighlight,
+          onExport: () async {
+            final messenger = ScaffoldMessenger.of(context);
+            final copiedMessage = context.l10n.readerExportCopied;
+            final markdown = const AnnotationMarkdownExporter().export(
+              bookTitle: widget.book.title,
+              highlights: results[1] as List<HighlightEntity>,
+              bookmarks: results[0] as List<BookmarkEntity>,
+            );
+            await Clipboard.setData(ClipboardData(text: markdown));
+            if (!mounted) return;
+            messenger.showSnackBar(SnackBar(content: Text(copiedMessage)));
+          },
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.readerAnnotationFailed)),
+      );
+    }
+  }
+
+  Future<void> _deleteAnnotation(_ReaderAnnotation annotation) {
+    final bookmark = annotation.bookmark;
+    if (bookmark != null) return _bookmarkRepository.delete(bookmark.id);
+    return _highlightRepository.delete(annotation.highlight!.id);
+  }
+
+  Future<HighlightEntity?> _editHighlight(HighlightEntity highlight) async {
+    final controller = TextEditingController(text: highlight.note ?? '');
+    var color = highlight.color;
+    try {
+      final result = await showDialog<HighlightEntity>(
+        context: context,
+        builder: (context) => StatefulBuilder(
+          builder: (context, setState) => AlertDialog(
+            title: Text(context.l10n.readerEditHighlight),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    highlight.selectedText,
+                    maxLines: 4,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: controller,
+                    minLines: 2,
+                    maxLines: 5,
+                    decoration: InputDecoration(
+                      labelText: context.l10n.readerNote,
+                      hintText: context.l10n.readerNoteHint,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(context.l10n.readerHighlightColor),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    children: HighlightColor.values
+                        .map(
+                          (value) => ChoiceChip(
+                            label: Text(_highlightColorLabel(context, value)),
+                            selected: color == value,
+                            onSelected: (_) => setState(() => color = value),
+                          ),
+                        )
+                        .toList(growable: false),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text(context.l10n.cancel),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.of(context).pop(
+                  highlight.copyWith(
+                    color: color,
+                    note: controller.text.trim(),
+                    clearNote: controller.text.trim().isEmpty,
+                    updatedAt: DateTime.now(),
+                  ),
+                ),
+                child: Text(context.l10n.save),
+              ),
+            ],
+          ),
+        ),
+      );
+      if (result == null) return null;
+      await _highlightRepository.update(result);
+      return result;
+    } finally {
+      controller.dispose();
+    }
+  }
+
+  DocumentLocator? get _currentDocumentLocator {
+    if (_usesReadium) {
+      final locator = _currentReadiumLocator ?? _savedLocator;
+      if (locator == null) return null;
+      final locatorJson = jsonEncode(locator.toJson());
+      if (widget.book.format == DocumentFormat.pdf) {
+        return PdfLocator(
+          page: locator.locations?.position ?? 1,
+          locatorJson: locatorJson,
+        );
+      }
+      return EpubLocator(
+        cfi: locator.locations?.partialCfi ?? locator.href,
+        locatorJson: locatorJson,
+      );
+    }
+
+    final info = _info;
+    if (info == null) return null;
+    if (info.format == DocumentFormat.pdf) {
+      return PdfLocator(page: _pageIndex + 1);
+    }
+
+    final pageIndex = _settings.readerMode == ReaderMode.continuous
+        ? ((_continuousProgress * ((info.pageCount ?? 1) - 1)).round())
+        : _pageIndex;
+    return TextLocator(offset: pageIndex * 2400);
+  }
+
+  String _bookmarkTitle(DocumentLocator locator) {
+    return switch (locator) {
+      PdfLocator(:final page) => context.l10n.readerBookmarkPage(page),
+      TextLocator(:final offset) => context.l10n.readerBookmarkProgress(
+        ((offset / 2400) + 1).round(),
+      ),
+      EpubLocator() => context.l10n.readerBookmarkPosition,
+    };
+  }
+
+  Future<void> _goToBookmark(BookmarkEntity bookmark) {
+    return _goToDocumentLocator(bookmark.locator);
+  }
+
+  Future<void> _goToDocumentLocator(DocumentLocator locator) async {
+    final nativeLocatorJson = switch (locator) {
+      EpubLocator(:final locatorJson) => locatorJson,
+      PdfLocator(:final locatorJson) => locatorJson,
+      TextLocator() => null,
+    };
+    if (_usesReadium && nativeLocatorJson != null) {
+      final nativeLocator = Locator.fromJsonString(nativeLocatorJson);
+      if (nativeLocator != null) {
+        try {
+          await _readiumSession.goToLocator(nativeLocator);
+        } catch (_) {
+          // A stale native destination should not interrupt the reader.
+        }
+      }
+      return;
+    }
+
+    final info = _info;
+    final engine = _engine;
+    if (info == null || engine == null) return;
+    final pageIndex = switch (locator) {
+      PdfLocator(:final page) => page - 1,
+      TextLocator(:final offset) => offset ~/ 2400,
+      EpubLocator() => 0,
+    };
+    if (info.layout == DocumentLayout.reflowable &&
+        _settings.readerMode == ReaderMode.continuous) {
+      _continuousPageKey.currentState?.jumpToPage(
+        pageIndex,
+        pageCount: info.pageCount ?? 1,
+      );
+      return;
+    }
+    await _renderPage(pageIndex);
+  }
+
+  Future<void> _handleReadiumSelectionAction(SelectionActionEvent event) async {
+    final selectedText = event.selectedText?.trim();
+    if (selectedText == null || selectedText.isEmpty) return;
+    final locator = _documentLocatorFromReadium(event.locator);
+    if (event.actionId == 'highlight') {
+      await _saveHighlight(
+        selectedText: selectedText,
+        locator: locator,
+        color: HighlightColor.yellow,
+      );
+    } else if (event.actionId == 'lookup') {
+      await _showLookupSheet(selectedText, locator);
+    }
+  }
+
+  void _handleFallbackSelection(
+    TextSelection selection,
+    SelectionChangedCause? cause,
+  ) {
+    if (selection.isCollapsed || _isShowingHighlightActions) return;
+    final info = _info;
+    final pageText =
+        _pageText ??
+        (_pageBytes == null
+            ? null
+            : utf8.decode(_pageBytes!, allowMalformed: true));
+    if (info == null || pageText == null || pageText.isEmpty) return;
+
+    final start = math.min(selection.baseOffset, selection.extentOffset);
+    final end = math.max(selection.baseOffset, selection.extentOffset);
+    if (start < 0 || end > pageText.length || start == end) return;
+    final selectedText = pageText.substring(start, end).trim();
+    if (selectedText.isEmpty) return;
+    final locator = info.format == DocumentFormat.pdf
+        ? PdfLocator(page: _pageIndex + 1, textOffset: start)
+        : TextLocator(offset: _pageIndex * 2400 + start);
+    unawaited(_showSelectionActionSheet(selectedText, locator));
+  }
+
+  Future<void> _showSelectionActionSheet(
+    String selectedText,
+    DocumentLocator locator,
+  ) async {
+    _isShowingHighlightActions = true;
+    try {
+      final action = await showModalBottomSheet<_SelectionAction>(
+        context: context,
+        showDragHandle: true,
+        builder: (context) => const _SelectionActionSheet(),
+      );
+      if (action == _SelectionAction.highlight) {
+        await _showHighlightColorSheet(selectedText, locator);
+      } else if (action == _SelectionAction.lookup) {
+        await _showLookupSheet(selectedText, locator);
+      }
+    } finally {
+      _isShowingHighlightActions = false;
+    }
+  }
+
+  Future<void> _showHighlightColorSheet(
+    String selectedText,
+    DocumentLocator locator,
+  ) async {
+    _isShowingHighlightActions = true;
+    try {
+      final color = await showModalBottomSheet<HighlightColor>(
+        context: context,
+        showDragHandle: true,
+        builder: (context) => _HighlightColorSheet(),
+      );
+      if (color != null) {
+        await _saveHighlight(
+          selectedText: selectedText,
+          locator: locator,
+          color: color,
+        );
+      }
+    } finally {
+      _isShowingHighlightActions = false;
+    }
+  }
+
+  Future<void> _showLookupSheet(
+    String selectedText,
+    DocumentLocator locator,
+  ) async {
+    final word = _lookupWordFromSelection(selectedText);
+    if (word.isEmpty) return;
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (context) => _ReaderLookupSheet(
+        word: word,
+        lookup: () => _lookupWord.execute(
+          word: word,
+          sourceLanguage: _settings.sourceLanguage,
+          targetLanguage: _settings.targetLanguage,
+        ),
+        onSave: (entry) => _saveVocabularyItem(
+          word: word,
+          selectedText: selectedText,
+          locator: locator,
+          entry: entry,
+        ),
+        onHighlight: () => _saveHighlight(
+          selectedText: selectedText,
+          locator: locator,
+          color: HighlightColor.yellow,
+        ),
+      ),
+    );
+  }
+
+  String _lookupWordFromSelection(String selectedText) {
+    final firstWord = selectedText.trim().split(RegExp(r'\s+')).first;
+    return firstWord.replaceAll(
+      RegExp(r'^[^\p{L}]+|[^\p{L}]+$', unicode: true),
+      '',
+    );
+  }
+
+  Future<void> _saveVocabularyItem({
+    required String word,
+    required String selectedText,
+    required DocumentLocator locator,
+    required DictionaryEntry entry,
+  }) async {
+    try {
+      final item = await _saveVocabulary.execute(
+        VocabItemEntity(
+          id: 'vocab-${DateTime.now().microsecondsSinceEpoch}',
+          word: word,
+          lemma: entry.lemma,
+          sourceSentence: selectedText,
+          translation: entry.translation,
+          bookId: widget.book.id,
+          locator: locator,
+          sourceLanguage: _settings.sourceLanguage,
+          targetLanguage: _settings.targetLanguage,
+          createdAt: DateTime.now(),
+        ),
+      );
+      await _reviewRepository.createForVocabItem(item.id);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(context.l10n.readerWordSaved)));
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(
+              error is VocabularyLimitException
+                  ? context.l10n.readerVocabularyLimitReached(error.limit)
+                  : context.l10n.readerWordSaveFailed,
+            ),
+          ),
+        );
+    }
+  }
+
+  Future<void> _saveHighlight({
+    required String selectedText,
+    required DocumentLocator locator,
+    required HighlightColor color,
+  }) async {
+    final highlight = HighlightEntity(
+      id: 'highlight-${DateTime.now().microsecondsSinceEpoch}',
+      bookId: widget.book.id,
+      selectedText: selectedText,
+      locator: locator,
+      color: color,
+      createdAt: DateTime.now(),
+    );
+    try {
+      await _highlightRepository.create(highlight);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(content: Text(context.l10n.readerHighlightSaved)),
+        );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(content: Text(context.l10n.readerHighlightFailed)),
+        );
+    }
+  }
+
+  DocumentLocator _documentLocatorFromReadium(Locator locator) {
+    final locatorJson = jsonEncode(locator.toJson());
+    if (widget.book.format == DocumentFormat.pdf) {
+      return PdfLocator(
+        page: locator.locations?.position ?? 1,
+        locatorJson: locatorJson,
+      );
+    }
+    return EpubLocator(
+      cfi: locator.locations?.partialCfi ?? locator.href,
+      locatorJson: locatorJson,
+    );
+  }
+
   Future<void> _loadReaderSettings() async {
     try {
       final settings = await _settingsRepository.getSettings();
       if (!mounted) return;
       setState(() => _settings = settings);
+      _applyWakeLock(settings.keepScreenAwake);
       if (_usesReadium && _publication != null) {
         await _readiumSession.applySettings(
           settings: settings,
@@ -567,7 +1138,9 @@ class _ReaderScreenState extends State<ReaderScreen>
 
   void _handleReaderSettingsChanged(SettingsEntity settings) {
     final modeChanged = _settings.readerMode != settings.readerMode;
+    final pdfModeChanged = _settings.readerPdfMode != settings.readerPdfMode;
     setState(() => _settings = settings);
+    _applyWakeLock(settings.keepScreenAwake);
     unawaited(_persistReaderSettings(settings));
     if (_usesReadium && _publication != null) {
       unawaited(
@@ -577,10 +1150,19 @@ class _ReaderScreenState extends State<ReaderScreen>
         ),
       );
     }
-    if (!_usesReadium && modeChanged) unawaited(_openDocument());
+    if (!_usesReadium && modeChanged) {
+      unawaited(_openDocument());
+    } else if (!_usesReadium && pdfModeChanged) {
+      unawaited(_renderPage(_pageIndex));
+    }
+  }
+
+  void _applyWakeLock(bool enabled) {
+    unawaited(enabled ? WakelockPlus.enable() : WakelockPlus.disable());
   }
 
   void _handleContinuousProgress(double progress) {
+    _continuousProgress = progress;
     _queueProgress(progress: progress);
   }
 
@@ -600,6 +1182,8 @@ class _ReaderScreenState extends State<ReaderScreen>
       builder: (context) => _ReaderSettingsSheet(
         settings: _settings,
         isPdf: widget.book.format == DocumentFormat.pdf,
+        isFallbackPdf:
+            !_usesReadium && widget.book.format == DocumentFormat.pdf,
         onChanged: _handleReaderSettingsChanged,
       ),
     );
@@ -1060,6 +1644,93 @@ class _ContinuousReflowablePageState extends State<_ContinuousReflowablePage> {
   }
 }
 
+class _PdfTextPage extends StatelessWidget {
+  const _PdfTextPage({
+    required this.text,
+    required this.fontSize,
+    required this.lineSpacing,
+    required this.margin,
+    required this.textAlignment,
+    required this.backgroundColor,
+    required this.textColor,
+    required this.onSelectionChanged,
+  });
+
+  final String text;
+  final double fontSize;
+  final double lineSpacing;
+  final double margin;
+  final ReaderTextAlignment textAlignment;
+  final Color backgroundColor;
+  final Color textColor;
+  final SelectionChangedCallback onSelectionChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return ColoredBox(
+      color: backgroundColor,
+      child: SingleChildScrollView(
+        padding: EdgeInsets.fromLTRB(margin, margin + 12, margin, margin * 2.5),
+        child: SelectableText(
+          text.isEmpty ? 'No extractable text on this page.' : text,
+          onSelectionChanged: onSelectionChanged,
+          textAlign: _readerTextAlign(textAlignment),
+          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+            color: textColor,
+            fontSize: fontSize,
+            height: lineSpacing,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ReaderTapZones extends StatelessWidget {
+  const _ReaderTapZones({
+    required this.previousLabel,
+    required this.nextLabel,
+    required this.onPrevious,
+    required this.onNext,
+  });
+
+  final String previousLabel;
+  final String nextLabel;
+  final VoidCallback? onPrevious;
+  final VoidCallback? onNext;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: Semantics(
+            button: true,
+            label: previousLabel,
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: onPrevious,
+              child: const SizedBox.expand(),
+            ),
+          ),
+        ),
+        const Spacer(flex: 2),
+        Expanded(
+          child: Semantics(
+            button: true,
+            label: nextLabel,
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: onNext,
+              child: const SizedBox.expand(),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _ReflowablePage extends StatelessWidget {
   const _ReflowablePage({
     required this.bytes,
@@ -1069,6 +1740,7 @@ class _ReflowablePage extends StatelessWidget {
     required this.textAlignment,
     required this.backgroundColor,
     required this.textColor,
+    required this.onSelectionChanged,
   });
 
   final Uint8List bytes;
@@ -1078,6 +1750,7 @@ class _ReflowablePage extends StatelessWidget {
   final ReaderTextAlignment textAlignment;
   final Color backgroundColor;
   final Color textColor;
+  final SelectionChangedCallback onSelectionChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -1087,6 +1760,7 @@ class _ReflowablePage extends StatelessWidget {
         padding: EdgeInsets.fromLTRB(margin, margin + 12, margin, margin * 2.5),
         child: SelectableText(
           utf8.decode(bytes, allowMalformed: true),
+          onSelectionChanged: onSelectionChanged,
           textAlign: _readerTextAlign(textAlignment),
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
             color: textColor,
@@ -1168,11 +1842,13 @@ class _ReaderSettingsSheet extends StatefulWidget {
   const _ReaderSettingsSheet({
     required this.settings,
     required this.isPdf,
+    required this.isFallbackPdf,
     required this.onChanged,
   });
 
   final SettingsEntity settings;
   final bool isPdf;
+  final bool isFallbackPdf;
   final ValueChanged<SettingsEntity> onChanged;
 
   @override
@@ -1210,6 +1886,12 @@ class _ReaderSettingsSheetState extends State<_ReaderSettingsSheet> {
     ReaderPdfFit.page => context.l10n.readerPdfFitPage,
     ReaderPdfFit.width => context.l10n.readerPdfFitWidth,
   };
+
+  String _pdfModeLabel(BuildContext context, ReaderPdfMode mode) =>
+      switch (mode) {
+        ReaderPdfMode.visual => context.l10n.readerPdfModeVisual,
+        ReaderPdfMode.text => context.l10n.readerPdfModeText,
+      };
 
   @override
   Widget build(BuildContext context) {
@@ -1270,6 +1952,35 @@ class _ReaderSettingsSheetState extends State<_ReaderSettingsSheet> {
                       .toList(growable: false),
                 ),
               ],
+              if (widget.isFallbackPdf) ...[
+                const SizedBox(height: 20),
+                Text(
+                  context.l10n.readerPdfMode,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: ReaderPdfMode.values
+                      .map(
+                        (mode) => ChoiceChip(
+                          label: Text(_pdfModeLabel(context, mode)),
+                          selected: _settings.readerPdfMode == mode,
+                          onSelected: (_) =>
+                              _update(_settings.copyWith(readerPdfMode: mode)),
+                        ),
+                      )
+                      .toList(growable: false),
+                ),
+              ],
+              SwitchListTile.adaptive(
+                contentPadding: EdgeInsets.zero,
+                value: _settings.keepScreenAwake,
+                onChanged: (value) =>
+                    _update(_settings.copyWith(keepScreenAwake: value)),
+                title: Text(context.l10n.readerKeepScreenAwake),
+              ),
               const SizedBox(height: 20),
               Text(
                 context.l10n.readerMode,
@@ -1400,6 +2111,487 @@ class _ReaderSearchHit {
   final String title;
   final String? snippet;
   final Future<void> Function() onSelected;
+}
+
+class _ReaderBookmarksSheet extends StatefulWidget {
+  const _ReaderBookmarksSheet({
+    required this.bookmarks,
+    required this.onSelected,
+    required this.onDeleted,
+  });
+
+  final List<BookmarkEntity> bookmarks;
+  final ValueChanged<BookmarkEntity> onSelected;
+  final Future<void> Function(BookmarkEntity bookmark) onDeleted;
+
+  @override
+  State<_ReaderBookmarksSheet> createState() => _ReaderBookmarksSheetState();
+}
+
+enum _SelectionAction { highlight, lookup }
+
+class _SelectionActionSheet extends StatelessWidget {
+  const _SelectionActionSheet();
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            leading: const Icon(Icons.highlight_outlined),
+            title: Text(context.l10n.readerHighlight),
+            onTap: () => Navigator.of(context).pop(_SelectionAction.highlight),
+          ),
+          ListTile(
+            leading: const Icon(Icons.translate_rounded),
+            title: Text(context.l10n.readerLookup),
+            onTap: () => Navigator.of(context).pop(_SelectionAction.lookup),
+          ),
+          const SizedBox(height: 8),
+        ],
+      ),
+    );
+  }
+}
+
+class _ReaderLookupSheet extends StatefulWidget {
+  const _ReaderLookupSheet({
+    required this.word,
+    required this.lookup,
+    required this.onSave,
+    required this.onHighlight,
+  });
+
+  final String word;
+  final Future<DictionaryEntry?> Function() lookup;
+  final Future<void> Function(DictionaryEntry entry) onSave;
+  final Future<void> Function() onHighlight;
+
+  @override
+  State<_ReaderLookupSheet> createState() => _ReaderLookupSheetState();
+}
+
+class _ReaderLookupSheetState extends State<_ReaderLookupSheet> {
+  late final Future<DictionaryEntry?> _entryFuture = widget.lookup();
+
+  Future<void> _copy(DictionaryEntry entry) async {
+    await Clipboard.setData(
+      ClipboardData(text: '${entry.lemma}: ${entry.translation}'),
+    );
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(context.l10n.readerWordCopied)));
+  }
+
+  Future<void> _save(DictionaryEntry entry) async {
+    await widget.onSave(entry);
+    if (mounted) Navigator.of(context).pop();
+  }
+
+  Future<void> _highlight() async {
+    await widget.onHighlight();
+    if (mounted) Navigator.of(context).pop();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: SizedBox(
+        height: MediaQuery.sizeOf(context).height * .48,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
+          child: FutureBuilder<DictionaryEntry?>(
+            future: _entryFuture,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState != ConnectionState.done) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      context.l10n.readerLookupFor(widget.word),
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    const Expanded(
+                      child: Center(child: CircularProgressIndicator()),
+                    ),
+                  ],
+                );
+              }
+              if (snapshot.hasError) {
+                return Center(child: Text(context.l10n.readerLookupFailed));
+              }
+              final entry = snapshot.data;
+              if (entry == null) {
+                return Center(child: Text(context.l10n.readerNoTranslation));
+              }
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    context.l10n.readerLookupFor(widget.word),
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: 18),
+                  Text(
+                    entry.translation,
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                  if (entry.partOfSpeech != null) ...[
+                    const SizedBox(height: 4),
+                    Text(entry.partOfSpeech!),
+                  ],
+                  if (entry.example != null) ...[
+                    const SizedBox(height: 16),
+                    Text(
+                      entry.example!,
+                      style: Theme.of(context).textTheme.bodyLarge,
+                    ),
+                  ],
+                  const Spacer(),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      OutlinedButton.icon(
+                        onPressed: () => _copy(entry),
+                        icon: const Icon(Icons.copy_outlined),
+                        label: Text(context.l10n.readerCopy),
+                      ),
+                      OutlinedButton.icon(
+                        onPressed: _highlight,
+                        icon: const Icon(Icons.highlight_outlined),
+                        label: Text(context.l10n.readerHighlight),
+                      ),
+                      FilledButton.icon(
+                        onPressed: () => _save(entry),
+                        icon: const Icon(Icons.bookmark_add_outlined),
+                        label: Text(context.l10n.readerSaveWord),
+                      ),
+                    ],
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _HighlightColorSheet extends StatelessWidget {
+  const _HighlightColorSheet();
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              context.l10n.readerHighlightColor,
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: HighlightColor.values
+                  .map(
+                    (color) => ChoiceChip(
+                      label: Text(_highlightColorLabel(context, color)),
+                      avatar: CircleAvatar(
+                        backgroundColor: _highlightColor(color),
+                      ),
+                      selected: false,
+                      onSelected: (_) => Navigator.of(context).pop(color),
+                    ),
+                  )
+                  .toList(growable: false),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ReaderAnnotation {
+  const _ReaderAnnotation.bookmark(BookmarkEntity value)
+    : bookmark = value,
+      highlight = null;
+
+  const _ReaderAnnotation.highlight(HighlightEntity value)
+    : bookmark = null,
+      highlight = value;
+
+  final BookmarkEntity? bookmark;
+  final HighlightEntity? highlight;
+
+  String get id => bookmark?.id ?? highlight!.id;
+  DateTime get createdAt => bookmark?.createdAt ?? highlight!.createdAt;
+  DocumentLocator get locator => bookmark?.locator ?? highlight!.locator;
+  String get title => bookmark?.title ?? highlight!.selectedText;
+  bool get isHighlight => highlight != null;
+}
+
+class _ReaderAnnotationsSheet extends StatefulWidget {
+  const _ReaderAnnotationsSheet({
+    required this.annotations,
+    required this.onSelected,
+    required this.onDeleted,
+    required this.onEdited,
+    required this.onExport,
+  });
+
+  final List<_ReaderAnnotation> annotations;
+  final ValueChanged<_ReaderAnnotation> onSelected;
+  final Future<void> Function(_ReaderAnnotation annotation) onDeleted;
+  final Future<HighlightEntity?> Function(HighlightEntity highlight) onEdited;
+  final Future<void> Function() onExport;
+
+  @override
+  State<_ReaderAnnotationsSheet> createState() =>
+      _ReaderAnnotationsSheetState();
+}
+
+class _ReaderAnnotationsSheetState extends State<_ReaderAnnotationsSheet> {
+  late final List<_ReaderAnnotation> _annotations = [...widget.annotations];
+  String? _busyId;
+
+  Future<void> _delete(_ReaderAnnotation annotation) async {
+    setState(() => _busyId = annotation.id);
+    try {
+      await widget.onDeleted(annotation);
+      if (!mounted) return;
+      setState(() {
+        _annotations.removeWhere((item) => item.id == annotation.id);
+        _busyId = null;
+      });
+    } catch (_) {
+      if (mounted) setState(() => _busyId = null);
+    }
+  }
+
+  Future<void> _edit(_ReaderAnnotation annotation) async {
+    final highlight = annotation.highlight;
+    if (highlight == null) return;
+    setState(() => _busyId = annotation.id);
+    try {
+      final updated = await widget.onEdited(highlight);
+      if (!mounted) return;
+      if (updated != null) {
+        final index = _annotations.indexWhere(
+          (item) => item.id == annotation.id,
+        );
+        if (index >= 0) {
+          setState(() {
+            _annotations[index] = _ReaderAnnotation.highlight(updated);
+            _busyId = null;
+          });
+        }
+      } else {
+        setState(() => _busyId = null);
+      }
+    } catch (_) {
+      if (mounted) setState(() => _busyId = null);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: SizedBox(
+        height: MediaQuery.sizeOf(context).height * .72,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 4, 12, 12),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      context.l10n.readerAnnotations,
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: widget.onExport,
+                    icon: const Icon(Icons.copy_all_outlined),
+                    tooltip: context.l10n.readerExportAnnotations,
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: _annotations.isEmpty
+                  ? Center(child: Text(context.l10n.readerAnnotationEmpty))
+                  : ListView.separated(
+                      itemCount: _annotations.length,
+                      separatorBuilder: (_, _) => const Divider(height: 1),
+                      itemBuilder: (context, index) {
+                        final annotation = _annotations[index];
+                        final isBusy = _busyId == annotation.id;
+                        return ListTile(
+                          leading: Icon(
+                            annotation.isHighlight
+                                ? Icons.highlight_outlined
+                                : Icons.bookmark_outline_rounded,
+                          ),
+                          title: Text(
+                            annotation.title,
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          subtitle: Text(
+                            annotation.highlight?.note ??
+                                (annotation.isHighlight
+                                    ? context.l10n.readerHighlight
+                                    : context.l10n.readerBookmark),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          onTap: isBusy
+                              ? null
+                              : () => widget.onSelected(annotation),
+                          trailing: isBusy
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    if (annotation.isHighlight)
+                                      IconButton(
+                                        onPressed: () => _edit(annotation),
+                                        icon: const Icon(Icons.edit_outlined),
+                                        tooltip:
+                                            context.l10n.readerEditHighlight,
+                                      ),
+                                    IconButton(
+                                      onPressed: () => _delete(annotation),
+                                      icon: const Icon(
+                                        Icons.delete_outline_rounded,
+                                      ),
+                                      tooltip:
+                                          context.l10n.readerDeleteAnnotation,
+                                    ),
+                                  ],
+                                ),
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+String _highlightColorLabel(BuildContext context, HighlightColor color) =>
+    switch (color) {
+      HighlightColor.yellow => context.l10n.readerHighlightYellow,
+      HighlightColor.green => context.l10n.readerHighlightGreen,
+      HighlightColor.blue => context.l10n.readerHighlightBlue,
+      HighlightColor.pink => context.l10n.readerHighlightPink,
+    };
+
+Color _highlightColor(HighlightColor color) => switch (color) {
+  HighlightColor.yellow => const Color(0xFFFFD54F),
+  HighlightColor.green => const Color(0xFF81C784),
+  HighlightColor.blue => const Color(0xFF64B5F6),
+  HighlightColor.pink => const Color(0xFFF48FB1),
+};
+
+class _ReaderBookmarksSheetState extends State<_ReaderBookmarksSheet> {
+  late final List<BookmarkEntity> _bookmarks = [...widget.bookmarks];
+  String? _deletingId;
+
+  Future<void> _delete(BookmarkEntity bookmark) async {
+    setState(() => _deletingId = bookmark.id);
+    try {
+      await widget.onDeleted(bookmark);
+      if (!mounted) return;
+      setState(() {
+        _bookmarks.removeWhere((item) => item.id == bookmark.id);
+        _deletingId = null;
+      });
+    } catch (_) {
+      if (mounted) setState(() => _deletingId = null);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: SizedBox(
+        height: MediaQuery.sizeOf(context).height * .62,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
+              child: Text(
+                context.l10n.readerBookmarks,
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+            ),
+            Expanded(
+              child: _bookmarks.isEmpty
+                  ? Center(child: Text(context.l10n.readerBookmarkEmpty))
+                  : ListView.separated(
+                      itemCount: _bookmarks.length,
+                      separatorBuilder: (_, _) => const Divider(height: 1),
+                      itemBuilder: (context, index) {
+                        final bookmark = _bookmarks[index];
+                        final isDeleting = _deletingId == bookmark.id;
+                        return ListTile(
+                          leading: const Icon(Icons.bookmark_outline_rounded),
+                          title: Text(bookmark.title),
+                          subtitle: Text(
+                            MaterialLocalizations.of(
+                              context,
+                            ).formatShortDate(bookmark.createdAt),
+                          ),
+                          onTap: isDeleting
+                              ? null
+                              : () => widget.onSelected(bookmark),
+                          trailing: IconButton(
+                            onPressed: isDeleting
+                                ? null
+                                : () => _delete(bookmark),
+                            icon: isDeleting
+                                ? const SizedBox(
+                                    width: 18,
+                                    height: 18,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const Icon(Icons.delete_outline_rounded),
+                            tooltip: context.l10n.readerBookmarkDelete,
+                          ),
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _ReaderSearchSheet extends StatefulWidget {

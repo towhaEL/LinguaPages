@@ -27,6 +27,7 @@ class HighlightEntity {
     DocumentLocator? locator,
     HighlightColor? color,
     String? note,
+    bool clearNote = false,
     DateTime? updatedAt,
   }) {
     return HighlightEntity(
@@ -35,7 +36,7 @@ class HighlightEntity {
       selectedText: selectedText ?? this.selectedText,
       locator: locator ?? this.locator,
       color: color ?? this.color,
-      note: note ?? this.note,
+      note: clearNote ? null : note ?? this.note,
       createdAt: createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

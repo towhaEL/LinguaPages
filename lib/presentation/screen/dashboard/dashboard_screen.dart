@@ -14,6 +14,8 @@ class DashboardScreen extends StatelessWidget {
     return AutoTabsRouter(
       routes: const [
         HomeRoute(),
+        VocabularyRoute(),
+        ReviewRoute(),
         SettingsRoute(),
       ],
       builder: (context, child) {

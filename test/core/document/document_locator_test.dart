@@ -22,6 +22,26 @@ void main() {
       expect(restored.textOffset, 48);
     });
 
+    test('preserves an optional native Readium locator payload', () {
+      const epubLocator = EpubLocator(
+        cfi: 'chapter.xhtml',
+        locatorJson: '{"href":"chapter.xhtml","type":"text/html"}',
+      );
+      const pdfLocator = PdfLocator(
+        page: 3,
+        locatorJson: '{"href":"3","type":"application/pdf"}',
+      );
+
+      final restoredEpub = DocumentLocator.fromJson(epubLocator.toJson());
+      final restoredPdf = DocumentLocator.fromJson(pdfLocator.toJson());
+
+      expect(
+        (restoredEpub as EpubLocator).locatorJson,
+        epubLocator.locatorJson,
+      );
+      expect((restoredPdf as PdfLocator).locatorJson, pdfLocator.locatorJson);
+    });
+
     test('rejects an unknown locator type', () {
       expect(
         () => DocumentLocator.fromJson({'type': 'unknown'}),

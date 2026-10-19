@@ -103,6 +103,17 @@ class PlainTextDocumentEngine implements DocumentEngine {
       renderPage(pageIndex);
 
   @override
+  Future<String?> pageText(int pageIndex) async {
+    _ensureOpen();
+    if (pageIndex < 0 || pageIndex >= _pageCount) {
+      throw RangeError.index(pageIndex, 'pageIndex');
+    }
+    final start = pageIndex * pageCharacterCount;
+    final end = (start + pageCharacterCount).clamp(0, text.length);
+    return text.substring(start, end);
+  }
+
+  @override
   Future<List<DocumentSearchResult>> search(String query) async {
     _ensureOpen();
     final normalizedQuery = query.trim();

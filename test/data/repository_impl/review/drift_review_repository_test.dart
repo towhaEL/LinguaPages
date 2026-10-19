@@ -34,6 +34,7 @@ void main() {
 
       expect(card.state, ReviewCardState.newCard);
       expect((await repository.getDueCards()).single.id, card.id);
+      expect((await repository.getAllCards()).single.id, card.id);
 
       final reviewed = await repository.recordReview(
         cardId: card.id,

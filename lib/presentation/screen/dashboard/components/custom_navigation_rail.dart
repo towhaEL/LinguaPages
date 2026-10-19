@@ -26,14 +26,12 @@ class _CustomNavigationRailState extends State<CustomNavigationRail> {
   @override
   Widget build(BuildContext context) {
     final theme = context.colors;
-    
+
     return Container(
       width: 80,
       decoration: BoxDecoration(
         color: theme.surface,
-        border: Border(
-          right: BorderSide(color: theme.border.withAlpha(128)),
-        ),
+        border: Border(right: BorderSide(color: theme.border.withAlpha(128))),
         boxShadow: [
           BoxShadow(
             color: theme.shadow.withAlpha(13),
@@ -54,7 +52,10 @@ class _CustomNavigationRailState extends State<CustomNavigationRail> {
                 color: theme.primary,
                 borderRadius: BorderRadius.circular(AppConstant.borderRadius12),
               ),
-              child: const Icon(Icons.auto_stories_rounded, color: Colors.white),
+              child: const Icon(
+                Icons.auto_stories_rounded,
+                color: Colors.white,
+              ),
             ),
             Gap(AppConstant.verticalGap20 * 2),
             Expanded(
@@ -69,10 +70,26 @@ class _CustomNavigationRailState extends State<CustomNavigationRail> {
                   ),
                   Gap(AppConstant.verticalGap12),
                   NavigationRailItem(
-                    title: context.l10n.navSettings,
+                    title: context.l10n.navVocabulary,
                     group: group,
                     onTap: () => widget.onTap(1),
                     isSelected: widget.currentIndex == 1,
+                    icon: Icons.style_rounded,
+                  ),
+                  Gap(AppConstant.verticalGap12),
+                  NavigationRailItem(
+                    title: context.l10n.navReview,
+                    group: group,
+                    onTap: () => widget.onTap(2),
+                    isSelected: widget.currentIndex == 2,
+                    icon: Icons.replay_rounded,
+                  ),
+                  Gap(AppConstant.verticalGap12),
+                  NavigationRailItem(
+                    title: context.l10n.navSettings,
+                    group: group,
+                    onTap: () => widget.onTap(3),
+                    isSelected: widget.currentIndex == 3,
                     icon: Icons.settings_rounded,
                   ),
                 ],

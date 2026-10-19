@@ -41,6 +41,8 @@ import '../../data/repository_impl/review/drift_review_repository.dart'
     as _i931;
 import '../../data/repository_impl/settings/drift_settings_repository.dart'
     as _i143;
+import '../../data/repository_impl/translation/local_language_pack_repository.dart'
+    as _i880;
 import '../../data/repository_impl/vocabulary/drift_vocabulary_repository.dart'
     as _i814;
 import '../../domain/repository/backup/backup_repository.dart' as _i862;
@@ -54,6 +56,8 @@ import '../../domain/repository/review/review_repository.dart' as _i621;
 import '../../domain/repository/settings/settings_repository.dart' as _i55;
 import '../../domain/repository/translation/dictionary_repository.dart'
     as _i899;
+import '../../domain/repository/translation/language_pack_repository.dart'
+    as _i782;
 import '../../domain/repository/vocabulary/vocabulary_repository.dart' as _i9;
 import '../../domain/service/document_engine_factory.dart' as _i304;
 import '../../domain/service/document_import_service.dart' as _i536;
@@ -108,6 +112,9 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i749.HighlightRepository>(
       () => _i487.DriftHighlightRepository(gh<_i211.LinguaPageDatabase>()),
     );
+    gh.lazySingleton<_i782.LanguagePackRepository>(
+      () => _i880.LocalLanguagePackRepository(gh<_i460.SharedPreferences>()),
+    );
     gh.lazySingleton<_i9.VocabularyRepository>(
       () => _i814.DriftVocabularyRepository(gh<_i211.LinguaPageDatabase>()),
     );
@@ -116,9 +123,6 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i536.IncomingDocumentService>(
       () => _i222.PlatformIncomingDocumentService(),
-    );
-    gh.singleton<_i78.SaveVocabularyUseCase>(
-      () => _i78.SaveVocabularyUseCase(gh<_i9.VocabularyRepository>()),
     );
     gh.lazySingleton<_i824.DocumentStorageService>(
       () => _i848.AppFileStorageService(),
@@ -161,6 +165,12 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i47.DocumentMetadataExtractor>(
       () => _i570.LocalDocumentMetadataExtractor(),
+    );
+    gh.singleton<_i78.SaveVocabularyUseCase>(
+      () => _i78.SaveVocabularyUseCase(
+        gh<_i9.VocabularyRepository>(),
+        gh<_i101.AppFeatureFlags>(),
+      ),
     );
     gh.singleton<_i590.CreateBackupUseCase>(
       () => _i590.CreateBackupUseCase(gh<_i862.BackupRepository>()),

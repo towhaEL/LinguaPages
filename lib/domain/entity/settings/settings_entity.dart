@@ -8,6 +8,7 @@ class SettingsEntity {
     this.margin = 16,
     this.readerTextAlignment = ReaderTextAlignment.left,
     this.readerPdfFit = ReaderPdfFit.page,
+    this.readerPdfMode = ReaderPdfMode.visual,
     this.keepScreenAwake = false,
     this.sourceLanguage = 'en',
     this.targetLanguage = 'es',
@@ -21,6 +22,7 @@ class SettingsEntity {
   final double margin;
   final ReaderTextAlignment readerTextAlignment;
   final ReaderPdfFit readerPdfFit;
+  final ReaderPdfMode readerPdfMode;
   final bool keepScreenAwake;
   final String sourceLanguage;
   final String targetLanguage;
@@ -34,6 +36,7 @@ class SettingsEntity {
     double? margin,
     ReaderTextAlignment? readerTextAlignment,
     ReaderPdfFit? readerPdfFit,
+    ReaderPdfMode? readerPdfMode,
     bool? keepScreenAwake,
     String? sourceLanguage,
     String? targetLanguage,
@@ -47,6 +50,7 @@ class SettingsEntity {
       margin: margin ?? this.margin,
       readerTextAlignment: readerTextAlignment ?? this.readerTextAlignment,
       readerPdfFit: readerPdfFit ?? this.readerPdfFit,
+      readerPdfMode: readerPdfMode ?? this.readerPdfMode,
       keepScreenAwake: keepScreenAwake ?? this.keepScreenAwake,
       sourceLanguage: sourceLanguage ?? this.sourceLanguage,
       targetLanguage: targetLanguage ?? this.targetLanguage,
@@ -62,3 +66,5 @@ enum ReaderMode { paginated, continuous }
 enum ReaderTextAlignment { left, center, justify }
 
 enum ReaderPdfFit { page, width }
+
+enum ReaderPdfMode { visual, text }

@@ -1,0 +1,220 @@
+import 'package:auto_route/annotations.dart';
+import 'package:flutter/material.dart';
+import 'package:lingua_pages/core/injector/injector.dart';
+import 'package:lingua_pages/domain/entity/review/review_card_entity.dart';
+import 'package:lingua_pages/domain/entity/settings/settings_entity.dart';
+import 'package:lingua_pages/domain/entity/vocabulary/vocab_item_entity.dart';
+import 'package:lingua_pages/domain/repository/settings/settings_repository.dart';
+import 'package:lingua_pages/domain/repository/vocabulary/vocabulary_repository.dart';
+import 'package:lingua_pages/domain/use_cases/review/review_card_use_case.dart';
+import 'package:lingua_pages/l10n/l10n.dart';
+
+@RoutePage()
+class ReviewScreen extends StatelessWidget {
+  const ReviewScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) => const _ReviewView();
+}
+
+class _ReviewView extends StatefulWidget {
+  const _ReviewView();
+
+  @override
+  State<_ReviewView> createState() => _ReviewViewState();
+}
+
+class _ReviewViewState extends State<_ReviewView> {
+  late final ReviewCardUseCase _reviewUseCase = injector<ReviewCardUseCase>();
+  late final VocabularyRepository _vocabularyRepository =
+      injector<VocabularyRepository>();
+  late final SettingsRepository _settingsRepository =
+      injector<SettingsRepository>();
+
+  List<ReviewCardEntity> _cards = const [];
+  Map<String, VocabItemEntity> _vocabulary = const {};
+  var _isLoading = true;
+  var _isAnswerVisible = false;
+  String? _errorMessage;
+
+  ReviewCardEntity? get _card => _cards.isEmpty ? null : _cards.first;
+  VocabItemEntity? get _item =>
+      _card == null ? null : _vocabulary[_card!.vocabItemId];
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+      _isAnswerVisible = false;
+    });
+    try {
+      final results = await Future.wait<Object>([
+        _reviewUseCase.getDueCards(),
+        _vocabularyRepository.getAll(),
+        _settingsRepository.getSettings(),
+      ]);
+      if (!mounted) return;
+      final dueCards = results[0] as List<ReviewCardEntity>;
+      final settings = results[2] as SettingsEntity;
+      final cards = _applyDailyNewCardLimit(
+        dueCards,
+        settings.dailyNewCardLimit,
+      );
+      setState(() {
+        _cards = cards;
+        _vocabulary = {
+          for (final item in results[1] as List<VocabItemEntity>) item.id: item,
+        };
+        _isLoading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _cards = const [];
+        _isLoading = false;
+        _errorMessage = context.l10n.reviewLoadFailed;
+      });
+    }
+  }
+
+  List<ReviewCardEntity> _applyDailyNewCardLimit(
+    List<ReviewCardEntity> cards,
+    int limit,
+  ) {
+    var newCards = 0;
+    return [
+      for (final card in cards)
+        if (card.state != ReviewCardState.newCard || newCards++ < limit) card,
+    ];
+  }
+
+  Future<void> _review(ReviewRating rating) async {
+    final card = _card;
+    if (card == null || !_isAnswerVisible) return;
+    try {
+      await _reviewUseCase.recordReview(cardId: card.id, rating: rating);
+      await _load();
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _errorMessage = context.l10n.reviewSaveFailed);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final item = _item;
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(context.l10n.reviewTitle),
+        actions: [
+          IconButton(
+            onPressed: _isLoading ? null : _load,
+            icon: const Icon(Icons.refresh_rounded),
+            tooltip: context.l10n.refresh,
+          ),
+        ],
+      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _errorMessage != null
+          ? Center(child: Text(_errorMessage!))
+          : item == null
+          ? Center(child: Text(context.l10n.reviewEmpty))
+          : _buildCard(context, item),
+    );
+  }
+
+  Widget _buildCard(BuildContext context, VocabItemEntity item) {
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 96),
+      children: [
+        Text(
+          context.l10n.reviewDueCount(_cards.length),
+          style: Theme.of(context).textTheme.labelLarge,
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 20),
+        Card(
+          elevation: 2,
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              children: [
+                Text(
+                  item.word,
+                  style: Theme.of(context).textTheme.headlineMedium,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                if (_isAnswerVisible) ...[
+                  Text(
+                    item.translation,
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  if (item.sourceSentence.isNotEmpty) ...[
+                    const SizedBox(height: 16),
+                    Text(
+                      item.sourceSentence,
+                      style: Theme.of(context).textTheme.bodyLarge,
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ] else
+                  OutlinedButton.icon(
+                    onPressed: () => setState(() => _isAnswerVisible = true),
+                    icon: const Icon(Icons.visibility_outlined),
+                    label: Text(context.l10n.reviewShowAnswer),
+                  ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 24),
+        if (_isAnswerVisible) ...[
+          Text(
+            context.l10n.reviewRate,
+            style: Theme.of(context).textTheme.titleMedium,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            alignment: WrapAlignment.center,
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _ratingButton(context, ReviewRating.again, Colors.red),
+              _ratingButton(context, ReviewRating.hard, Colors.orange),
+              _ratingButton(context, ReviewRating.good, Colors.green),
+              _ratingButton(context, ReviewRating.easy, Colors.blue),
+            ],
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _ratingButton(BuildContext context, ReviewRating rating, Color color) {
+    return FilledButton(
+      style: FilledButton.styleFrom(backgroundColor: color),
+      onPressed: () => _review(rating),
+      child: Text(_ratingLabel(context, rating)),
+    );
+  }
+
+  String _ratingLabel(BuildContext context, ReviewRating rating) =>
+      switch (rating) {
+        ReviewRating.again => context.l10n.reviewAgain,
+        ReviewRating.hard => context.l10n.reviewHard,
+        ReviewRating.good => context.l10n.reviewGood,
+        ReviewRating.easy => context.l10n.reviewEasy,
+      };
+}

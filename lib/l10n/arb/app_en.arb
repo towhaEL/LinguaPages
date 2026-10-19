@@ -77,6 +77,71 @@
   "readerSearchResult": "Search result",
   "readerSearchNoResults": "No matches found",
   "readerSearchFailed": "Search could not be completed",
+  "readerBookmark": "Add bookmark",
+  "readerBookmarks": "Bookmarks",
+  "readerBookmarkAdded": "Bookmark saved",
+  "readerBookmarkFailed": "Bookmark could not be saved",
+  "readerBookmarkEmpty": "No bookmarks yet",
+  "readerBookmarkDelete": "Delete bookmark",
+  "readerBookmarkPage": "Page {page}",
+  "@readerBookmarkPage": {
+    "placeholders": {
+      "page": {
+        "type": "int"
+      }
+    }
+  },
+  "readerBookmarkProgress": "Position {progress}",
+  "@readerBookmarkProgress": {
+    "placeholders": {
+      "progress": {
+        "type": "int"
+      }
+    }
+  },
+  "readerBookmarkPosition": "Current position",
+  "readerHighlight": "Highlight",
+  "readerHighlightColor": "Highlight color",
+  "readerHighlightSaved": "Highlight saved",
+  "readerHighlightFailed": "Highlight could not be saved",
+  "readerHighlightYellow": "Yellow",
+  "readerHighlightGreen": "Green",
+  "readerHighlightBlue": "Blue",
+  "readerHighlightPink": "Pink",
+  "readerAnnotations": "Annotations",
+  "readerAnnotationEmpty": "No annotations yet",
+  "readerAnnotationFailed": "Annotations could not be loaded",
+  "readerEditHighlight": "Edit highlight",
+  "readerNote": "Note",
+  "readerNoteHint": "Add an optional note",
+  "readerDeleteAnnotation": "Delete annotation",
+  "readerExportAnnotations": "Copy Markdown export",
+  "readerExportCopied": "Annotations copied as Markdown",
+  "readerLookup": "Look up",
+  "readerLookupFor": "Look up “{word}”",
+  "@readerLookupFor": {
+    "placeholders": {
+      "word": {
+        "type": "String"
+      }
+    }
+  },
+  "readerLookupFailed": "Lookup could not be completed",
+  "readerNoTranslation": "No translation found",
+  "readerCopy": "Copy",
+  "readerWordCopied": "Copied to clipboard",
+  "readerSaveWord": "Save word",
+  "readerWordSaved": "Word saved",
+  "readerWordSaveFailed": "Word could not be saved",
+  "readerVocabularyLimitReached": "Free vocabulary limit reached ({limit} words)",
+  "@readerVocabularyLimitReached": {
+    "placeholders": {
+      "limit": {
+        "type": "int"
+      }
+    }
+  },
+  "save": "Save",
   "readerSettings": "Reader settings",
   "readerTheme": "Reading theme",
   "readerThemeLight": "Light",
@@ -95,6 +160,10 @@
   "readerPdfFit": "PDF page fit",
   "readerPdfFitPage": "Fit to page",
   "readerPdfFitWidth": "Fit to width",
+  "readerPdfMode": "PDF display mode",
+  "readerPdfModeVisual": "Page image",
+  "readerPdfModeText": "Selectable text",
+  "readerKeepScreenAwake": "Keep screen awake",
   "readerThumbnails": "Page thumbnails",
   "readerZoomIn": "Zoom in",
   "readerZoomOut": "Zoom out",
@@ -146,6 +215,8 @@
   "premiumUnlockHint": "Premium unlocks the full list",
 
   "navHome": "Library",
+  "navVocabulary": "Vocabulary",
+  "navReview": "Review",
   "navWidgets": "Widgets",
   "navArchitecture": "Architecture",
   "navSettings": "Settings",
@@ -154,8 +225,86 @@
   "settingsAppearance": "Appearance",
   "settingsTheme": "Theme",
   "settingsLanguage": "Language",
+  "settingsLanguagePacks": "Offline language packs",
+  "settingsLanguagePackEnglishSpanish": "English → Spanish",
+  "settingsLanguagePackVersion": "Version {version}",
+  "settingsLanguagePackInstall": "Install",
+  "settingsLanguagePackDelete": "Delete",
+  "settingsLanguagePackEmpty": "No language packs are available",
+  "settingsLanguagePackFailed": "Language packs could not be updated",
+  "@settingsLanguagePackVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsBackupTitle": "Backup and restore",
+  "settingsBackupCreate": "Export backup",
+  "settingsBackupCreateSubtitle": "Save annotations, vocabulary, reviews and settings",
+  "settingsBackupRestore": "Restore backup",
+  "settingsBackupRestoreSubtitle": "Merge a LinguaPages JSON backup",
+  "settingsBackupCreated": "Backup exported",
+  "settingsBackupRestored": "Restored {restored} items; skipped {skipped} duplicates",
+  "settingsBackupFailed": "Backup could not be completed",
+  "@settingsBackupRestored": {
+    "placeholders": {
+      "restored": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsStudy": "Study",
+  "settingsDailyNewCardLimit": "Daily new cards",
+  "settingsDailyNewCardLimitValue": "{count} new cards per day",
+  "settingsSaveFailed": "Settings could not be saved",
+  "@settingsDailyNewCardLimitValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "settingsAccount": "Account",
   "logoutSubtitle": "Sign out of your account",
+  "vocabularyTitle": "Vocabulary",
+  "vocabularySearchHint": "Search saved words",
+  "vocabularyFilterBook": "Book",
+  "vocabularyFilterAllBooks": "All books",
+  "vocabularyFilterLanguage": "Language",
+  "vocabularyFilterAllLanguages": "All languages",
+  "vocabularyFilterStatus": "Status",
+  "vocabularyFilterAllStatuses": "All statuses",
+  "vocabularyFilterNew": "New",
+  "vocabularyFilterDue": "Due",
+  "vocabularyFilterLearned": "Learned",
+  "vocabularyEmpty": "No saved words yet",
+  "vocabularyLoadFailed": "Vocabulary could not be loaded",
+  "vocabularyDeleteTitle": "Delete this word?",
+  "vocabularyDeleteFailed": "Word could not be deleted",
+  "reviewTitle": "Review",
+  "reviewEmpty": "You are all caught up",
+  "reviewLoadFailed": "Review cards could not be loaded",
+  "reviewSaveFailed": "Review could not be saved",
+  "reviewShowAnswer": "Show answer",
+  "reviewRate": "How well did you remember it?",
+  "reviewDueCount": "{count} cards due",
+  "@reviewDueCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "reviewAgain": "Again",
+  "reviewHard": "Hard",
+  "reviewGood": "Good",
+  "reviewEasy": "Easy",
+  "delete": "Delete",
+  "refresh": "Refresh",
 
   "themeSystem": "System",
   "themeLight": "Light Mode",
