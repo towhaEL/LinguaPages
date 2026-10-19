@@ -290,7 +290,12 @@
   "reviewLoadFailed": "No se pudieron cargar las tarjetas",
   "reviewSaveFailed": "No se pudo guardar el repaso",
   "reviewShowAnswer": "Mostrar respuesta",
+  "reviewContextPrompt": "¿Qué significa la palabra oculta?",
   "reviewRate": "¿Qué tan bien la recordaste?",
+  "reviewStatsDue": "Pendientes",
+  "reviewStatsReviewed": "Repasadas",
+  "reviewStatsStreak": "Racha",
+  "reviewStatsActiveDays": "Días activos",
   "reviewDueCount": "{count} tarjetas pendientes",
   "@reviewDueCount": {
     "placeholders": {

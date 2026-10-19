@@ -6,6 +6,7 @@ import 'package:lingua_pages/domain/entity/settings/settings_entity.dart';
 import 'package:lingua_pages/domain/entity/vocabulary/vocab_item_entity.dart';
 import 'package:lingua_pages/domain/repository/settings/settings_repository.dart';
 import 'package:lingua_pages/domain/repository/vocabulary/vocabulary_repository.dart';
+import 'package:lingua_pages/domain/service/review_statistics.dart';
 import 'package:lingua_pages/domain/use_cases/review/review_card_use_case.dart';
 import 'package:lingua_pages/l10n/l10n.dart';
 
@@ -32,6 +33,13 @@ class _ReviewViewState extends State<_ReviewView> {
       injector<SettingsRepository>();
 
   List<ReviewCardEntity> _cards = const [];
+  ReviewStatistics _statistics = const ReviewStatistics(
+    totalCards: 0,
+    reviewedCards: 0,
+    dueCards: 0,
+    activeDays: 0,
+    currentStreak: 0,
+  );
   Map<String, VocabItemEntity> _vocabulary = const {};
   var _isLoading = true;
   var _isAnswerVisible = false;
@@ -56,20 +64,23 @@ class _ReviewViewState extends State<_ReviewView> {
     try {
       final results = await Future.wait<Object>([
         _reviewUseCase.getDueCards(),
+        _reviewUseCase.getAllCards(),
         _vocabularyRepository.getAll(),
         _settingsRepository.getSettings(),
       ]);
       if (!mounted) return;
       final dueCards = results[0] as List<ReviewCardEntity>;
-      final settings = results[2] as SettingsEntity;
+      final allCards = results[1] as List<ReviewCardEntity>;
+      final settings = results[3] as SettingsEntity;
       final cards = _applyDailyNewCardLimit(
         dueCards,
         settings.dailyNewCardLimit,
       );
       setState(() {
         _cards = cards;
+        _statistics = ReviewStatistics.fromCards(allCards);
         _vocabulary = {
-          for (final item in results[1] as List<VocabItemEntity>) item.id: item,
+          for (final item in results[2] as List<VocabItemEntity>) item.id: item,
         };
         _isLoading = false;
       });
@@ -125,7 +136,7 @@ class _ReviewViewState extends State<_ReviewView> {
           : _errorMessage != null
           ? Center(child: Text(_errorMessage!))
           : item == null
-          ? Center(child: Text(context.l10n.reviewEmpty))
+          ? _buildEmptyState(context)
           : _buildCard(context, item),
     );
   }
@@ -134,6 +145,8 @@ class _ReviewViewState extends State<_ReviewView> {
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 24, 20, 96),
       children: [
+        _buildStatistics(context),
+        const SizedBox(height: 20),
         Text(
           context.l10n.reviewDueCount(_cards.length),
           style: Theme.of(context).textTheme.labelLarge,
@@ -146,11 +159,25 @@ class _ReviewViewState extends State<_ReviewView> {
             padding: const EdgeInsets.all(24),
             child: Column(
               children: [
-                Text(
-                  item.word,
-                  style: Theme.of(context).textTheme.headlineMedium,
-                  textAlign: TextAlign.center,
-                ),
+                if (_isAnswerVisible || item.sourceSentence.isEmpty)
+                  Text(
+                    item.word,
+                    style: Theme.of(context).textTheme.headlineMedium,
+                    textAlign: TextAlign.center,
+                  )
+                else ...[
+                  Text(
+                    context.l10n.reviewContextPrompt,
+                    style: Theme.of(context).textTheme.titleMedium,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    _hiddenSentence(item.sourceSentence, item.word),
+                    style: Theme.of(context).textTheme.headlineSmall,
+                    textAlign: TextAlign.center,
+                  ),
+                ],
                 const SizedBox(height: 24),
                 if (_isAnswerVisible) ...[
                   Text(
@@ -200,6 +227,65 @@ class _ReviewViewState extends State<_ReviewView> {
         ],
       ],
     );
+  }
+
+  Widget _buildEmptyState(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 96),
+      children: [
+        _buildStatistics(context),
+        const SizedBox(height: 36),
+        Center(child: Text(context.l10n.reviewEmpty)),
+      ],
+    );
+  }
+
+  Widget _buildStatistics(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _stat(context.l10n.reviewStatsDue, _statistics.dueCards, textTheme),
+            _stat(
+              context.l10n.reviewStatsReviewed,
+              _statistics.reviewedCards,
+              textTheme,
+            ),
+            _stat(
+              context.l10n.reviewStatsStreak,
+              _statistics.currentStreak,
+              textTheme,
+            ),
+            _stat(
+              context.l10n.reviewStatsActiveDays,
+              _statistics.activeDays,
+              textTheme,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _stat(String label, int value, TextTheme textTheme) {
+    return Column(
+      children: [
+        Text('$value', style: textTheme.titleLarge),
+        const SizedBox(height: 2),
+        Text(label, style: textTheme.labelSmall),
+      ],
+    );
+  }
+
+  String _hiddenSentence(String sentence, String word) {
+    final escaped = RegExp.escape(word.trim());
+    if (escaped.isEmpty) return sentence;
+    return sentence
+        .replaceAll(RegExp(escaped, caseSensitive: false), '_____ ')
+        .replaceAll('  ', ' ');
   }
 
   Widget _ratingButton(BuildContext context, ReviewRating rating, Color color) {

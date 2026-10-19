@@ -290,7 +290,12 @@
   "reviewLoadFailed": "Review cards could not be loaded",
   "reviewSaveFailed": "Review could not be saved",
   "reviewShowAnswer": "Show answer",
+  "reviewContextPrompt": "What does the hidden word mean?",
   "reviewRate": "How well did you remember it?",
+  "reviewStatsDue": "Due",
+  "reviewStatsReviewed": "Reviewed",
+  "reviewStatsStreak": "Streak",
+  "reviewStatsActiveDays": "Active days",
   "reviewDueCount": "{count} cards due",
   "@reviewDueCount": {
     "placeholders": {

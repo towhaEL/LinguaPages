@@ -12,6 +12,10 @@ class ReviewCardUseCase {
     return _reviewRepository.getDueCards();
   }
 
+  Future<List<ReviewCardEntity>> getAllCards() {
+    return _reviewRepository.getAllCards();
+  }
+
   Future<ReviewCardEntity> recordReview({
     required String cardId,
     required ReviewRating rating,
