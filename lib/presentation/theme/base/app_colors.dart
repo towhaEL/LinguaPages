@@ -11,6 +11,7 @@ class AppColors extends ThemeExtension<AppColors> {
     required this.onBackground,
     required this.surface,
     required this.onSurface,
+    required this.onSurfaceMuted,
     required this.error,
     required this.onError,
     required this.success,
@@ -31,6 +32,9 @@ class AppColors extends ThemeExtension<AppColors> {
   final Color onBackground;
   final Color surface;
   final Color onSurface;
+
+  /// Secondary text on [background] and [surface]; keeps ≥4.5:1 contrast.
+  final Color onSurfaceMuted;
   final Color error;
   final Color onError;
 
@@ -48,31 +52,6 @@ class AppColors extends ThemeExtension<AppColors> {
   /// A surface one step above [surface] for layered cards / sheets.
   final Color surfaceElevated;
 
-  ColorScheme getColorScheme(Brightness brightness) => ColorScheme(
-    brightness: brightness,
-    surface: surface,
-    error: error,
-    onPrimary: onPrimary,
-    onSurface: onSurface,
-    primary: primary,
-    secondary: secondary,
-    onError: onError,
-    onSecondary: onSecondary,
-  );
-
-  // Convert to Material ColorScheme for ThemeData
-  ColorScheme toColorScheme(Brightness brightness) => ColorScheme(
-    brightness: brightness,
-    primary: primary,
-    onPrimary: onPrimary,
-    secondary: secondary,
-    onSecondary: onSecondary,
-    surface: surface,
-    onSurface: onSurface,
-    error: error,
-    onError: onError,
-  );
-
   @override
   AppColors copyWith({
     Color? primary,
@@ -83,6 +62,7 @@ class AppColors extends ThemeExtension<AppColors> {
     Color? onBackground,
     Color? surface,
     Color? onSurface,
+    Color? onSurfaceMuted,
     Color? error,
     Color? onError,
     Color? success,
@@ -103,6 +83,7 @@ class AppColors extends ThemeExtension<AppColors> {
       onBackground: onBackground ?? this.onBackground,
       surface: surface ?? this.surface,
       onSurface: onSurface ?? this.onSurface,
+      onSurfaceMuted: onSurfaceMuted ?? this.onSurfaceMuted,
       error: error ?? this.error,
       onError: onError ?? this.onError,
       success: success ?? this.success,
@@ -131,6 +112,7 @@ class AppColors extends ThemeExtension<AppColors> {
       onBackground: Color.lerp(onBackground, other.onBackground, t)!,
       surface: Color.lerp(surface, other.surface, t)!,
       onSurface: Color.lerp(onSurface, other.onSurface, t)!,
+      onSurfaceMuted: Color.lerp(onSurfaceMuted, other.onSurfaceMuted, t)!,
       error: Color.lerp(error, other.error, t)!,
       onError: Color.lerp(onError, other.onError, t)!,
       success: Color.lerp(success, other.success, t)!,

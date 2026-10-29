@@ -32,6 +32,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       backgroundColor: backgroundColor ?? context.colors.background,
       surfaceTintColor: Colors.transparent,
       automaticallyImplyLeading: false,
+      toolbarHeight: preferredSize.height,
+      titleSpacing: 20,
       centerTitle: centerTitle,
       title: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -43,10 +45,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
               if (showBackIcon)
                 IconButton(
                   padding: EdgeInsets.zero,
-                  icon: Icon(
-                    Icons.arrow_back_ios_rounded,
-                    color: context.colors.onPrimary,
-                  ),
+                  icon: Icon(Icons.arrow_back, color: context.colors.onSurface),
                   onPressed: onBackIconTap ?? () => context.pop(),
                 ),
               if (leading != null && !showBackIcon)
@@ -57,7 +56,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
             ],
           ),
           if (title != null)
-            AppText.displaySmall(title!, color: context.colors.primary),
+            Text(title!, style: Theme.of(context).appBarTheme.titleTextStyle),
           const Spacer(),
           Row(
             mainAxisSize: MainAxisSize.min,
@@ -74,5 +73,5 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+  Size get preferredSize => const Size.fromHeight(64);
 }

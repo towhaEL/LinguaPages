@@ -311,6 +311,32 @@ Already-built code for the dropped scope. Remove it completely; see [IMPLEMENTAT
 
 ---
 
+### ✅ Plan Phase 2 — Design Foundation (Done 2026-10-29)
+
+Visual world **Paperback Bands**, chosen on the Impeccable decision page and recorded in [DESIGN.md](DESIGN.md). The direction contract is in `.impeccable/surfaces/`.
+
+- [x] Dark-only app chrome: the light and system themes and the theme cubit were removed. `DarkColorTheme` defines the colour roles and every Material component theme.
+- [x] Format band tokens (`BandColors`): EPUB orange, PDF green, TXT blue, MD violet, HTML teal, FB2 mustard. Ink on every band is at least 5.6:1; muted text is 7.6:1.
+- [x] Figtree bundled in `assets/fonts/figtree` (OFL licence registered). `google_fonts` was removed, so fonts are never fetched at runtime.
+- [x] Widget kit: `BookCover` (banded 2:3 cover, cream label when there is no cover image), `BandProgressBar`, `StateView`.
+- [x] Library rebuilt:
+  - continue-reading card first;
+  - banded grid and list views;
+  - inline search that opens on demand;
+  - the grid adapts to the text size;
+  - the library refreshes after reading.
+- [x] Navigation uses the Material `NavigationBar` and `NavigationRail`. Settings and the shared app bar use the new tokens.
+- [x] Verified on a physical Android phone at 1.0 and 1.3 font scale. Impeccable finish review: **ship**.
+
+Bugs found while testing (not fixed in this phase):
+- FB2 import uses the first section heading as the title ("Loomings") and joins author names with no space ("HermanMelville").
+- Text pagination can split a word across pages.
+- The Markdown fallback renders raw `#` syntax.
+- Relaunching after an "Open with" import reopens that book.
+- The library's grid/list view choice is not persisted.
+- The landscape `NavigationRail` has not been checked on a device.
+- Onboarding, splash (template copy), reader chrome and privacy still use the old layouts on the new tokens. They are redesigned in plan Phase 5.
+
 ## Progress Gauge
 
 | Phase | Estimated Completion |

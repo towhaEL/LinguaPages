@@ -1,0 +1,76 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Overpass:wght@400;600;700;800&family=Overpass+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:390px;height:844px;overflow:hidden;background:#0F1723;color:#E9EDF2;font-family:Overpass,sans-serif}
+.mono{font-family:'Overpass Mono',monospace;font-variant-numeric:tabular-nums}
+.status{height:44px;display:flex;justify-content:space-between;align-items:center;padding:0 22px;font-size:14px;font-weight:600}
+.bar{display:flex;align-items:center;justify-content:space-between;padding:6px 16px 14px 20px}
+.bar h1{font-size:28px;font-weight:800;letter-spacing:-.01em}
+.icon{width:48px;height:48px;border-radius:12px;display:grid;place-items:center;background:#172235;font-size:24px;color:#E9EDF2}
+.lit{margin:0 16px;background:#F0B43C;color:#0F1723;border-radius:6px;padding:16px;display:flex;gap:14px}
+.cover{width:74px;height:110px;flex:none;border-radius:3px;background:#1E3B5C;box-shadow:inset 0 0 0 1px rgba(0,0,0,.25);display:flex;flex-direction:column;justify-content:flex-end;padding:7px;color:#E9EDF2;font-size:10px;font-weight:700;line-height:1.15}
+.lit .k{font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;opacity:.75}
+.lit h2{font-size:21px;line-height:1.15;font-weight:800;margin:4px 0 2px}
+.lit .a{font-size:14px;font-weight:600;opacity:.8}
+.rail{position:relative;height:6px;background:rgba(15,23,35,.22);margin-top:14px;border-radius:1px}
+.rail i{position:absolute;left:0;top:0;bottom:0;width:42%;background:#0F1723}
+.rail b{position:absolute;top:-3px;width:1px;height:12px;background:rgba(15,23,35,.55)}
+.meta{display:flex;justify-content:space-between;font-size:12px;margin-top:8px;font-weight:600}
+.resume{margin-top:12px;display:inline-flex;align-items:center;gap:6px;background:#0F1723;color:#F0B43C;font-weight:800;font-size:14px;padding:10px 16px;border-radius:4px}
+.sec{display:flex;justify-content:space-between;align-items:baseline;padding:24px 20px 10px}
+.sec h3{font-size:13px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#A9B4C4}
+.sec span{font-size:13px;color:#A9B4C4}
+.row{display:flex;gap:14px;align-items:center;margin:0 16px;padding:12px 0;border-top:1px solid #1F2C42}
+.sp{width:44px;height:64px;border-radius:2px;flex:none;position:relative;background:#172235}
+.sp::after{content:"";position:absolute;left:0;right:0;bottom:10px;height:3px;background:var(--c)}
+.t{flex:1;min-width:0}
+.t b{display:block;font-size:16px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.t small{display:block;font-size:13px;color:#A9B4C4;margin-top:2px}
+.mark{text-align:right;font-size:12px;line-height:1.35}
+.mark .f{display:inline-block;padding:1px 6px;border-radius:2px;color:#0F1723;font-weight:600;background:var(--c)}
+.mark .p{display:block;color:#A9B4C4;margin-top:4px}
+.stamp{display:inline-block;margin-top:4px;border:1.5px solid #8FD3C5;color:#8FD3C5;font-size:10px;font-weight:800;letter-spacing:.12em;padding:0 5px;border-radius:2px}
+.stamp.miss{border-color:#F08A7B;color:#F08A7B}
+.nav{position:absolute;left:0;right:0;bottom:0;height:84px;background:#131D2C;border-top:1px solid #1F2C42;display:flex;justify-content:space-around;padding-top:10px}
+.nav div{text-align:center;font-size:12px;font-weight:700;color:#A9B4C4}
+.nav .on{color:#E9EDF2}
+.nav .on em{background:#F0B43C;color:#0F1723}
+.nav em{display:block;font-style:normal;width:64px;height:32px;border-radius:16px;margin:0 auto 4px;display:grid;place-items:center;font-size:18px}
+</style></head><body>
+<div class="status"><span class="mono">21:48</span><span>▴ ▮</span></div>
+<div class="bar"><h1>Library</h1><div class="icon">+</div></div>
+
+<div class="lit">
+  <div class="cover">Middle&shy;march</div>
+  <div style="flex:1;min-width:0">
+    <div class="k">Reading now</div>
+    <h2>Middlemarch</h2>
+    <div class="a">George Eliot</div>
+    <div class="rail"><i></i><b style="left:9%"></b><b style="left:21%"></b><b style="left:33%"></b><b style="left:47%"></b><b style="left:60%"></b><b style="left:74%"></b><b style="left:88%"></b></div>
+    <div class="meta mono"><span>Book IV · Ch. 38</span><span>42%</span></div>
+    <div class="resume">Resume reading →</div>
+  </div>
+</div>
+
+<div class="sec"><h3>On the shelf</h3><span class="mono">24 books</span></div>
+
+<div class="row" style="--c:#C8604F"><div class="sp"></div>
+  <div class="t"><b>On the Origin of Species</b><small>Charles Darwin</small></div>
+  <div class="mark mono"><span class="f">PDF</span><span class="p">p. 112 / 502</span></div></div>
+<div class="row" style="--c:#4C9A8E"><div class="sp"></div>
+  <div class="t"><b>Meditations</b><small>Marcus Aurelius</small></div>
+  <div class="mark mono"><span class="f">EPUB</span><span class="stamp">FINISHED</span></div></div>
+<div class="row" style="--c:#9AA5B8"><div class="sp"></div>
+  <div class="t"><b>Field notes, spring term</b><small>Unknown author</small></div>
+  <div class="mark mono"><span class="f">TXT</span><span class="stamp" style="border-color:#F0B43C;color:#F0B43C">NEW</span></div></div>
+<div class="row" style="--c:#8C7BD6"><div class="sp"></div>
+  <div class="t"><b>Distributed Systems Notes</b><small>Unknown author</small></div>
+  <div class="mark mono"><span class="f">MD</span><span class="p">68%</span></div></div>
+<div class="row" style="--c:#C99A55"><div class="sp"></div>
+  <div class="t"><b>Moby-Dick; or, The Whale</b><small>Herman Melville</small></div>
+  <div class="mark mono"><span class="f">FB2</span><span class="stamp miss">FILE MISSING</span></div></div>
+
+<div class="nav"><div class="on"><em>▤</em>Library</div><div><em>⚙</em>Settings</div></div>
+</body></html>

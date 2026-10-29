@@ -15,10 +15,38 @@
   "errorTooManyRequests": "Too many requests. Please wait and try again later.",
   "errorInternalServerError": "Internal server error. Please try again later.",
   "errorBadGateway": "Bad gateway. Please try again later.",
-  "appName": "LinguaPage",
+  "appName": "LinguaPages",
   "libraryTitle": "Your Library",
+  "libraryContinueReading": "Continue reading",
+  "libraryResume": "Resume",
+  "libraryShelf": "Your shelf",
+  "libraryBookCount": "{count, plural, =1{1 book} other{{count} books}}",
+  "@libraryBookCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "libraryProgressPercent": "{percent}%",
+  "@libraryProgressPercent": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "libraryLastRead": "{days, plural, =0{Read today} =1{Read yesterday} other{Read {days} days ago}}",
+  "@libraryLastRead": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "librarySearchClose": "Close search",
+  "libraryBookActions": "Book actions",
   "librarySearchHint": "Search your library",
-  "libraryUnknownAuthor": "Unknown author",
   "libraryEmptyTitle": "Your library is ready",
   "libraryEmptyBody": "Import a DRM-free book or document to start reading.",
   "libraryNoResultsTitle": "No books found",
@@ -195,7 +223,7 @@
       }
     }
   },
-  "settingsAccount": "Account",
+  "settingsAccount": "About",
   "settingsPrivacy": "Privacy",
   "privacyTitle": "Privacy",
   "privacyLocalDataTitle": "Your data stays on this device",

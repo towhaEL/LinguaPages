@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:lingua_pages/presentation/theme/base/base_color_theme.dart';
 import 'package:lingua_pages/presentation/theme/base/base_text_theme.dart';
 import 'package:lingua_pages/presentation/theme/base/base_theme_info.dart';
@@ -8,11 +7,11 @@ import 'package:lingua_pages/presentation/theme/text/landscape_text_style.dart';
 import 'package:lingua_pages/presentation/theme/text/portrait_text_style.dart';
 
 class EnDarkMode extends BaseThemeInfo {
-  factory EnDarkMode() => _lightMode;
+  factory EnDarkMode() => _instance;
 
   EnDarkMode._initial();
 
-  static final EnDarkMode _lightMode = EnDarkMode._initial();
+  static final EnDarkMode _instance = EnDarkMode._initial();
 
   @override
   ThemeData getAppTheme({required Orientation orientation}) {
@@ -20,8 +19,8 @@ class EnDarkMode extends BaseThemeInfo {
     final baseTextTheme = getBaseTextTheme(orientation: orientation);
 
     return theme.copyWith(
-      textTheme: GoogleFonts.plusJakartaSansTextTheme(
-        baseTextTheme.appTextStyle.getTextTheme(),
+      textTheme: baseTextTheme.appTextStyle.getTextTheme().apply(
+        fontFamily: DarkColorTheme.fontFamily,
       ),
       extensions: [
         ...theme.extensions.values.cast<ThemeExtension>(),

@@ -2,7 +2,9 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:bloc/bloc.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:lingua_pages/presentation/app/app.dart';
 
 import '../injector/injector.dart';
@@ -24,6 +26,12 @@ abstract class Env {
     FlutterError.onError = (details) {
       log(details.exceptionAsString(), stackTrace: details.stack);
     };
+    LicenseRegistry.addLicense(() async* {
+      final license = await rootBundle.loadString(
+        'assets/fonts/figtree/OFL.txt',
+      );
+      yield LicenseEntryWithLineBreaks(['Figtree'], license);
+    });
     await configureDependencies(name);
 
     Bloc.observer = const AppBlocObserver();

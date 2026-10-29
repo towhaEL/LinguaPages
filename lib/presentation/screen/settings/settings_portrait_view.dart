@@ -31,9 +31,7 @@ class SettingsPortraitView extends StatelessWidget {
           AppConstant.horizontalGap16,
           AppConstant.horizontalGap16,
           AppConstant.horizontalGap16,
-          // Clear the extended-body bottom navigation bar so the last row
-          // stays fully visible above it.
-          MediaQuery.of(context).padding.bottom + 90,
+          AppConstant.verticalGap24,
         ),
         children: [
           _SettingsSection(
@@ -170,27 +168,21 @@ class _BackupManagerState extends State<_BackupManager> {
           leading: const Icon(Icons.upload_file_outlined),
           title: Text(l10n.settingsBackupCreate),
           subtitle: Text(l10n.settingsBackupCreateSubtitle),
+          enabled: !_busy,
+          onTap: _export,
           trailing: _busy
-              ? const SizedBox(
-                  height: 20,
-                  width: 20,
+              ? const SizedBox.square(
+                  dimension: 20,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : IconButton(
-                  tooltip: l10n.settingsBackupCreate,
-                  onPressed: _export,
-                  icon: const Icon(Icons.save_alt_outlined),
-                ),
+              : null,
         ),
         ListTile(
           leading: const Icon(Icons.download_outlined),
           title: Text(l10n.settingsBackupRestore),
           subtitle: Text(l10n.settingsBackupRestoreSubtitle),
-          trailing: IconButton(
-            tooltip: l10n.settingsBackupRestore,
-            onPressed: _busy ? null : _restore,
-            icon: const Icon(Icons.folder_open_outlined),
-          ),
+          enabled: !_busy,
+          onTap: _restore,
         ),
       ],
     );
@@ -218,15 +210,15 @@ class _SettingsSection extends StatelessWidget {
           ),
           child: AppText.titleSmall(
             title,
-            color: theme.onSurface.withAlpha(150),
+            color: theme.onSurfaceMuted,
             fontWeight: FontWeight.w700,
           ),
         ),
         Container(
           decoration: BoxDecoration(
             color: theme.surface,
-            borderRadius: BorderRadius.circular(AppConstant.borderRadius12),
-            border: Border.all(color: theme.border.withAlpha(128)),
+            // Cards are told apart by tone, not borders (DESIGN.md).
+            borderRadius: BorderRadius.circular(16),
           ),
           child: Column(children: children),
         ),
@@ -266,7 +258,7 @@ class _SettingsTile extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Icon(icon, color: theme.primary, size: 22),
+            Icon(icon, color: theme.onSurfaceMuted, size: 22),
             Gap(AppConstant.horizontalGap16),
             Expanded(
               child: Column(
@@ -275,10 +267,7 @@ class _SettingsTile extends StatelessWidget {
                   AppText.bodyLarge(title, fontWeight: FontWeight.w600),
                   if (subtitle != null) ...[
                     Gap(AppConstant.verticalGap4),
-                    AppText.bodySmall(
-                      subtitle!,
-                      color: theme.onSurface.withAlpha(150),
-                    ),
+                    AppText.bodySmall(subtitle!, color: theme.onSurfaceMuted),
                   ],
                 ],
               ),
