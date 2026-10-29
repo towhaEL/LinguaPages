@@ -23,7 +23,7 @@ It is no longer a language-learning app. Spanish, translation, vocabulary lists 
 
 ## Positioning
 
-- **Fully offline and private.** Books and reading data stay on the device. There is no account and no cloud.
+- **Offline and private.** Books and reading data stay on the device. There is no account and no cloud. The one network call is a dictionary lookup, which sends only the selected word.
 - **Bring your own books.** It reads any DRM-free file in any supported format and has no store or catalog.
 - **Reading comes first, with study tools inside the book.** It is a serious e-reader, and lookups and annotations happen in the book rather than in a separate tool.
 - **Simple, no gamification.** There are no streaks, leaderboards or nagging.
@@ -39,15 +39,17 @@ It is no longer a language-learning app. Spanish, translation, vocabulary lists 
 ## Capabilities and Constraints
 
 - SQLite/Drift is the local source of truth. Book files and covers are stored in app-private storage.
-- Dictionary lookup stays as a single-language word-definition lookup. **Open:** which language(s) it covers and which licensed dictionary dataset it uses. The current dictionary is only a small development fixture.
-- A premium tier stays. **Open:** exactly what it unlocks (premium themes and usage limits are the planned candidates).
+- **Dictionary:** English definitions from the free Free Dictionary API (`https://api.dictionaryapi.dev/api/v2/entries/en/<word>`). The content is Wiktionary data under CC BY-SA 3.0, so every definition shows its license and source link. A lookup needs a network connection the first time; afterwards the result is cached on the device. The API has no SLA, so failures and missing words must be handled gracefully.
+- **Premium** unlocks only appearance: extra reading themes, extra fonts and style presets. Reading, annotations, export, backup and the dictionary stay free.
+- **App language:** English only.
 - **Removed from the product:** AI Recap, the English→Spanish language pair, sentence translation, vocabulary lists, spaced-repetition review and review reminders. The codebase still contains these features, and removing them is separate work.
 - Cloud sync and authentication are not part of v1.0.
 
 ## Brand Commitments
 
 - Calm and trustworthy. Never manipulate, never nag, never gamify.
-- Privacy is a promise to the user: product copy must not imply cloud storage or accounts that do not exist.
+- Privacy is a promise to the user: product copy must not imply cloud storage or accounts that do not exist, and it must state plainly that dictionary lookups go online.
+- Visual direction set by the owner: dark, premium, simple. UI improvement work uses the Impeccable skill.
 
 ## Evidence on Hand
 
@@ -57,7 +59,7 @@ It is no longer a language-learning app. Spanish, translation, vocabulary lists 
 ## Product Principles
 
 1. The book stays in front. Every tool works on top of the text rather than taking the reader somewhere else.
-2. The user's files and data belong to the user. Everything works offline, and their data can always be exported.
+2. The user's files and data belong to the user. Everything except a first-time dictionary lookup works offline, and their data can always be exported.
 3. Support every format equally well. No format should feel second-class.
 4. Calm over engagement. Measure success by reading done, not time spent in the app.
 5. Annotations are durable work. Never lose them, and always let the user take them with them.

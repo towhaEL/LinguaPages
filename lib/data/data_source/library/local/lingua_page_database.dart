@@ -79,66 +79,7 @@ class ReadingSessions extends Table {
 }
 
 // ---------------------------------------------------------------------------
-// Vocabulary — Saved words
-// ---------------------------------------------------------------------------
-
-class VocabItems extends Table {
-  TextColumn get id => text()();
-  TextColumn get word => text()();
-  TextColumn get lemma => text()();
-  TextColumn get sourceSentence => text().withDefault(const Constant(''))();
-  TextColumn get translation => text()();
-  TextColumn get bookId => text().nullable().references(LibraryBooks, #id)();
-  TextColumn get locatorJson => text().nullable()(); // DocumentLocator
-  TextColumn get sourceLanguage => text()();
-  TextColumn get targetLanguage => text()();
-  TextColumn get notes => text().nullable()();
-  DateTimeColumn get createdAt => dateTime()();
-
-  @override
-  Set<Column<Object>> get primaryKey => {id};
-}
-
-// ---------------------------------------------------------------------------
-// Review — Spaced-repetition cards
-// ---------------------------------------------------------------------------
-
-class ReviewCards extends Table {
-  TextColumn get id => text()();
-  TextColumn get vocabItemId => text().references(VocabItems, #id)();
-  IntColumn get interval => integer().withDefault(const Constant(0))();
-  RealColumn get easeFactor => real().withDefault(const Constant(2.5))();
-  IntColumn get repetitions => integer().withDefault(const Constant(0))();
-  DateTimeColumn get nextReviewDate => dateTime()();
-  DateTimeColumn get lastReviewedAt => dateTime().nullable()();
-  TextColumn get state =>
-      text().withDefault(const Constant('newCard'))(); // ReviewCardState.name
-  DateTimeColumn get createdAt => dateTime()();
-
-  @override
-  Set<Column<Object>> get primaryKey => {id};
-}
-
-// ---------------------------------------------------------------------------
-// Review — Historical attempts
-// ---------------------------------------------------------------------------
-
-class ReviewHistoryEntries extends Table {
-  TextColumn get id => text()();
-  TextColumn get reviewCardId => text().references(ReviewCards, #id)();
-  TextColumn get vocabItemId => text().references(VocabItems, #id)();
-  TextColumn get rating => text()(); // ReviewRating.name
-  IntColumn get interval => integer()();
-  RealColumn get easeFactor => real()();
-  IntColumn get repetitions => integer()();
-  DateTimeColumn get reviewedAt => dateTime()();
-
-  @override
-  Set<Column<Object>> get primaryKey => {id};
-}
-
-// ---------------------------------------------------------------------------
-// Settings — Reader preferences and study config
+// Settings — Reader preferences
 // ---------------------------------------------------------------------------
 
 class AppSettings extends Table {
@@ -159,9 +100,6 @@ class AppSettings extends Table {
     Highlights,
     Bookmarks,
     ReadingSessions,
-    VocabItems,
-    ReviewCards,
-    ReviewHistoryEntries,
     AppSettings,
   ],
 )
@@ -171,7 +109,7 @@ class LinguaPageDatabase extends _$LinguaPageDatabase {
   LinguaPageDatabase.defaults() : super(driftDatabase(name: 'lingua_page'));
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -181,9 +119,6 @@ class LinguaPageDatabase extends _$LinguaPageDatabase {
         await m.createTable(highlights);
         await m.createTable(bookmarks);
         await m.createTable(readingSessions);
-        await m.createTable(vocabItems);
-        await m.createTable(reviewCards);
-        await m.createTable(reviewHistoryEntries);
         await m.createTable(appSettings);
       }
       if (from < 3) {
@@ -195,8 +130,11 @@ class LinguaPageDatabase extends _$LinguaPageDatabase {
       if (from < 5) {
         await m.addColumn(libraryBooks, libraryBooks.tableOfContentsJson);
       }
-      if (from < 6) {
-        await m.createTable(reviewHistoryEntries);
+      if (from < 7) {
+        // Language-learning tables were removed from the product in v7.
+        await customStatement('DROP TABLE IF EXISTS review_history_entries');
+        await customStatement('DROP TABLE IF EXISTS review_cards');
+        await customStatement('DROP TABLE IF EXISTS vocab_items');
       }
     },
   );

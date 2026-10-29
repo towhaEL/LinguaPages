@@ -16,22 +16,15 @@ import 'package:lingua_pages/domain/entity/library/book_entity.dart';
 import 'package:lingua_pages/domain/entity/reader/bookmark_entity.dart';
 import 'package:lingua_pages/domain/entity/reader/highlight_entity.dart';
 import 'package:lingua_pages/domain/entity/settings/settings_entity.dart';
-import 'package:lingua_pages/domain/entity/vocabulary/vocab_item_entity.dart';
-import 'package:lingua_pages/domain/exceptions/vocabulary_limit_exception.dart';
 import 'package:lingua_pages/domain/repository/reader/bookmark_repository.dart';
 import 'package:lingua_pages/domain/repository/reader/highlight_repository.dart';
-import 'package:lingua_pages/domain/repository/review/review_repository.dart';
-import 'package:lingua_pages/domain/repository/translation/dictionary_repository.dart';
+import 'package:lingua_pages/domain/repository/dictionary/dictionary_repository.dart';
 import 'package:lingua_pages/domain/repository/settings/settings_repository.dart';
 import 'package:lingua_pages/domain/service/document_engine.dart';
 import 'package:lingua_pages/domain/service/document_engine_factory.dart';
 import 'package:lingua_pages/domain/service/annotation_markdown_exporter.dart';
-import 'package:lingua_pages/domain/service/review_notification_scheduler.dart';
 import 'package:lingua_pages/domain/use_cases/reader/save_reading_progress_use_case.dart';
-import 'package:lingua_pages/domain/use_cases/vocabulary/lookup_word_use_case.dart';
-import 'package:lingua_pages/domain/use_cases/vocabulary/save_vocabulary_use_case.dart';
-import 'package:lingua_pages/domain/use_cases/vocabulary/translate_sentence_use_case.dart';
-import 'package:lingua_pages/domain/service/sentence_translation_service.dart';
+import 'package:lingua_pages/domain/use_cases/dictionary/lookup_word_use_case.dart';
 import 'package:lingua_pages/l10n/l10n.dart';
 import 'package:lingua_pages/presentation/theme/base/theme_extension.dart';
 
@@ -55,11 +48,7 @@ class _ReaderScreenState extends State<ReaderScreen>
   late final SaveReadingProgressUseCase _saveReadingProgress;
   late final BookmarkRepository _bookmarkRepository;
   late final HighlightRepository _highlightRepository;
-  late final ReviewRepository _reviewRepository;
   late final LookupWordUseCase _lookupWord;
-  late final SaveVocabularyUseCase _saveVocabulary;
-  late final TranslateSentenceUseCase _translateSentence;
-  late final ReviewNotificationScheduler _reviewNotifications;
   late final SettingsRepository _settingsRepository;
 
   SettingsEntity _settings = const SettingsEntity();
@@ -94,11 +83,7 @@ class _ReaderScreenState extends State<ReaderScreen>
     _saveReadingProgress = injector<SaveReadingProgressUseCase>();
     _bookmarkRepository = injector<BookmarkRepository>();
     _highlightRepository = injector<HighlightRepository>();
-    _reviewRepository = injector<ReviewRepository>();
     _lookupWord = injector<LookupWordUseCase>();
-    _saveVocabulary = injector<SaveVocabularyUseCase>();
-    _translateSentence = injector<TranslateSentenceUseCase>();
-    _reviewNotifications = injector<ReviewNotificationScheduler>();
     _settingsRepository = injector<SettingsRepository>();
     _loadReaderSettings();
     if (_usesReadium) {
@@ -1011,22 +996,7 @@ class _ReaderScreenState extends State<ReaderScreen>
       isScrollControlled: true,
       builder: (context) => _ReaderLookupSheet(
         word: word,
-        lookup: () => _lookupWord.execute(
-          word: word,
-          sourceLanguage: _settings.sourceLanguage,
-          targetLanguage: _settings.targetLanguage,
-        ),
-        translate: () => _translateSentence.execute(
-          sentence: selectedText,
-          sourceLanguage: _settings.sourceLanguage,
-          targetLanguage: _settings.targetLanguage,
-        ),
-        onSave: (entry) => _saveVocabularyItem(
-          word: word,
-          selectedText: selectedText,
-          locator: locator,
-          entry: entry,
-        ),
+        lookup: () => _lookupWord.execute(word),
         onHighlight: () => _saveHighlight(
           selectedText: selectedText,
           locator: locator,
@@ -1042,49 +1012,6 @@ class _ReaderScreenState extends State<ReaderScreen>
       RegExp(r'^[^\p{L}]+|[^\p{L}]+$', unicode: true),
       '',
     );
-  }
-
-  Future<void> _saveVocabularyItem({
-    required String word,
-    required String selectedText,
-    required DocumentLocator locator,
-    required DictionaryEntry entry,
-  }) async {
-    try {
-      final item = await _saveVocabulary.execute(
-        VocabItemEntity(
-          id: 'vocab-${DateTime.now().microsecondsSinceEpoch}',
-          word: word,
-          lemma: entry.lemma,
-          sourceSentence: selectedText,
-          translation: entry.translation,
-          bookId: widget.book.id,
-          locator: locator,
-          sourceLanguage: _settings.sourceLanguage,
-          targetLanguage: _settings.targetLanguage,
-          createdAt: DateTime.now(),
-        ),
-      );
-      await _reviewRepository.createForVocabItem(item.id);
-      await _reviewNotifications.sync();
-      if (!mounted) return;
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(content: Text(context.l10n.readerWordSaved)));
-    } catch (error) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(
-            content: Text(
-              error is VocabularyLimitException
-                  ? context.l10n.readerVocabularyLimitReached(error.limit)
-                  : context.l10n.readerWordSaveFailed,
-            ),
-          ),
-        );
-    }
   }
 
   Future<void> _saveHighlight({
@@ -2158,7 +2085,7 @@ class _SelectionActionSheet extends StatelessWidget {
             onTap: () => Navigator.of(context).pop(_SelectionAction.highlight),
           ),
           ListTile(
-            leading: const Icon(Icons.translate_rounded),
+            leading: const Icon(Icons.menu_book_outlined),
             title: Text(context.l10n.readerLookup),
             onTap: () => Navigator.of(context).pop(_SelectionAction.lookup),
           ),
@@ -2173,15 +2100,11 @@ class _ReaderLookupSheet extends StatefulWidget {
   const _ReaderLookupSheet({
     required this.word,
     required this.lookup,
-    required this.translate,
-    required this.onSave,
     required this.onHighlight,
   });
 
   final String word;
   final Future<DictionaryEntry?> Function() lookup;
-  final Future<SentenceTranslationResult> Function() translate;
-  final Future<void> Function(DictionaryEntry entry) onSave;
   final Future<void> Function() onHighlight;
 
   @override
@@ -2190,22 +2113,15 @@ class _ReaderLookupSheet extends StatefulWidget {
 
 class _ReaderLookupSheetState extends State<_ReaderLookupSheet> {
   late final Future<DictionaryEntry?> _entryFuture = widget.lookup();
-  late final Future<SentenceTranslationResult> _translationFuture = widget
-      .translate();
 
   Future<void> _copy(DictionaryEntry entry) async {
     await Clipboard.setData(
-      ClipboardData(text: '${entry.lemma}: ${entry.translation}'),
+      ClipboardData(text: '${entry.word}: ${entry.definition}'),
     );
     if (!mounted) return;
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(context.l10n.readerWordCopied)));
-  }
-
-  Future<void> _save(DictionaryEntry entry) async {
-    await widget.onSave(entry);
-    if (mounted) Navigator.of(context).pop();
   }
 
   Future<void> _highlight() async {
@@ -2249,10 +2165,8 @@ class _ReaderLookupSheetState extends State<_ReaderLookupSheet> {
                       context.l10n.readerLookupFor(widget.word),
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
-                    const SizedBox(height: 12),
-                    _SentenceTranslationCard(future: _translationFuture),
                     const SizedBox(height: 18),
-                    Text(context.l10n.readerNoTranslation),
+                    Text(context.l10n.readerNoDefinition),
                   ],
                 );
               }
@@ -2263,17 +2177,18 @@ class _ReaderLookupSheetState extends State<_ReaderLookupSheet> {
                     context.l10n.readerLookupFor(widget.word),
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
-                  const SizedBox(height: 12),
-                  _SentenceTranslationCard(future: _translationFuture),
-                  const SizedBox(height: 18),
-                  Text(
-                    entry.translation,
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
                   if (entry.partOfSpeech != null) ...[
-                    const SizedBox(height: 4),
-                    Text(entry.partOfSpeech!),
+                    const SizedBox(height: 12),
+                    Text(
+                      entry.partOfSpeech!,
+                      style: Theme.of(context).textTheme.labelLarge,
+                    ),
                   ],
+                  const SizedBox(height: 8),
+                  Text(
+                    entry.definition,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
                   if (entry.example != null) ...[
                     const SizedBox(height: 16),
                     Text(
@@ -2291,15 +2206,10 @@ class _ReaderLookupSheetState extends State<_ReaderLookupSheet> {
                         icon: const Icon(Icons.copy_outlined),
                         label: Text(context.l10n.readerCopy),
                       ),
-                      OutlinedButton.icon(
+                      FilledButton.icon(
                         onPressed: _highlight,
                         icon: const Icon(Icons.highlight_outlined),
                         label: Text(context.l10n.readerHighlight),
-                      ),
-                      FilledButton.icon(
-                        onPressed: () => _save(entry),
-                        icon: const Icon(Icons.bookmark_add_outlined),
-                        label: Text(context.l10n.readerSaveWord),
                       ),
                     ],
                   ),
@@ -2309,66 +2219,6 @@ class _ReaderLookupSheetState extends State<_ReaderLookupSheet> {
           ),
         ),
       ),
-    );
-  }
-}
-
-class _SentenceTranslationCard extends StatelessWidget {
-  const _SentenceTranslationCard({required this.future});
-
-  final Future<SentenceTranslationResult> future;
-
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<SentenceTranslationResult>(
-      future: future,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState != ConnectionState.done) {
-          return const SizedBox(
-            height: 28,
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: SizedBox(
-                height: 18,
-                width: 18,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-            ),
-          );
-        }
-        if (snapshot.hasError || !snapshot.hasData) return const SizedBox();
-
-        final result = snapshot.data!;
-        return Card(
-          margin: EdgeInsets.zero,
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  context.l10n.readerSentenceTranslation,
-                  style: Theme.of(context).textTheme.labelLarge,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  result.translation,
-                  style: Theme.of(context).textTheme.bodyLarge,
-                ),
-                if (result.untranslatedWords.isNotEmpty) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    context.l10n.readerUntranslatedWords(
-                      result.untranslatedWords.join(', '),
-                    ),
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                ],
-              ],
-            ),
-          ),
-        );
-      },
     );
   }
 }

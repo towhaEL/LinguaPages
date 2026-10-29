@@ -4,7 +4,6 @@ import 'dart:developer';
 import 'package:bloc/bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:lingua_pages/presentation/app/app.dart';
-import 'package:lingua_pages/domain/service/review_notification_scheduler.dart';
 
 import '../injector/injector.dart';
 
@@ -26,14 +25,6 @@ abstract class Env {
       log(details.exceptionAsString(), stackTrace: details.stack);
     };
     await configureDependencies(name);
-
-    try {
-      final reviewNotifications = injector<ReviewNotificationScheduler>();
-      await reviewNotifications.initialize();
-      await reviewNotifications.sync();
-    } on Object catch (error, stackTrace) {
-      log('Review notification setup failed: $error', stackTrace: stackTrace);
-    }
 
     Bloc.observer = const AppBlocObserver();
 

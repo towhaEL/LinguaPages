@@ -2,6 +2,8 @@
 
 ## Current Status Summary
 
+> **Plan update (2026-10-29):** [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) was rewritten as an eight-phase plan for the remaining work. The phase numbers below are the earlier numbering; their removal items map to plan Phase 1, the dictionary to Phase 3 (Free Dictionary API) and premium to Phase 4 (themes, fonts and styles only). The app is English-only, so the Spanish UI localization is also removed.
+>
 > **Requirements change (2026-10-29):** LinguaPages is now an offline, private ebook reader with no language-learning features (see [PRODUCT.md](PRODUCT.md) and [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md)). Everything below marked **🗑 Remove** was built for the dropped scope (English→Spanish study, translation, language packs, vocabulary, SRS review, reminders, AI Recap) and is tracked under the new Phase 5 — Language-learning removal. Percentages were re-based on the new scope; the verification history from 2026-10-20 is kept as recorded.
 
 **Last verified: 2026-10-20.** The project is in an active migration from the Flutter template to LinguaPages. The Dart package has been renamed and the old auth/user/architecture screens and data sources have been removed. The Dart/Flutter VM package checks pass, and the Android development debug build is verified with Flutter 3.47.7. The working product includes a first reader route and an end-to-end local library → reader → annotation flow. The vocabulary → review flow also works but is now out of scope and must be removed. Removal, the dictionary language and licensing, billing and release hardening remain.
@@ -261,20 +263,23 @@ Readium's Android integration uses `FlutterFragmentActivity`, Android API 24+ an
 - [ ] **Single-language definition lookup** — replace the English→Spanish lemma/translation entry with definition, part of speech and example
 - [ ] **Lookup bottom sheet** — reduce to Highlight and Copy actions (drop Save to vocabulary)
 
-### 🔴 Phase 5 — Language-Learning Removal (Not started)
+### ✅ Phase 5 — Language-Learning Removal (Done 2026-10-29, plan Phase 1)
 
-Already-built code for the dropped scope. Remove it completely; see [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md#phase-5--language-learning-removal).
+Already-built code for the dropped scope. Remove it completely; see [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md#phase-1--cleanup-and-english-only).
 
-- [ ] **Vocabulary** — screen, Cubit, use cases, repository, entity, filters and tests; Vocabulary dashboard tab
-- [ ] **Review** — screen, Cubit, `ReviewCardUseCase`, SM-2 repository, hidden-word cards, statistics/streaks, review history and tests; Review dashboard tab
-- [ ] **Library due-count shortcut** and **daily new-card limit** setting
-- [ ] **Review reminders** — notification scheduler and, if unused elsewhere, `flutter_local_notifications`/`flutter_timezone`/`timezone`
-- [ ] **Translation** — language-pack manager and repository, bundled English→Spanish pack and checksum, lemmatizer, sentence translation service
-- [ ] **AI Recap** — recap entity, repositories and the `aiRecapEnabled`, `mockTranslationEnabled` and `cloudSyncEnabled` flags
-- [ ] **Drift migration** — drop vocabulary, review-card and review-history tables; upgrade test proves books, highlights, bookmarks and settings survive
-- [ ] **Backup** — stop exporting vocabulary/reviews; restoring an older backup ignores those sections
-- [ ] **Copy** — onboarding, privacy and delete-book dialog (“keep study data” → “keep annotations”); delete unused ARB keys
-- [ ] **Premium** — remove the 500-word vocabulary limit gate
+- [x] **Vocabulary** — screen, Cubit, use cases, repository, entity, filters and tests; Vocabulary dashboard tab
+- [x] **Review** — screen, Cubit, `ReviewCardUseCase`, SM-2 repository, hidden-word cards, statistics/streaks, review history and tests; Review dashboard tab
+- [x] **Library due-count shortcut** and **daily new-card limit** setting
+- [x] **Review reminders** — notification scheduler and, if unused elsewhere, `flutter_local_notifications`/`flutter_timezone`/`timezone`
+- [x] **Translation** — language-pack manager and repository, bundled English→Spanish pack and checksum, lemmatizer, sentence translation service
+- [x] **AI Recap** — recap entity, repositories and the `aiRecapEnabled`, `mockTranslationEnabled` and `cloudSyncEnabled` flags
+- [x] **Drift migration** — drop vocabulary, review-card and review-history tables; upgrade test proves books, highlights, bookmarks and settings survive
+- [x] **Backup** — stop exporting vocabulary/reviews; restoring an older backup ignores those sections
+- [x] **Copy** — onboarding, privacy and delete-book dialog (“keep study data” → “keep annotations”); delete unused ARB keys
+- [x] **Premium** — remove the 500-word vocabulary limit gate
+- [x] **English-only UI** — `app_es.arb`, the locale cubit and language picker removed; 176 unused ARB keys pruned
+- [x] **Native cleanup** — notification permissions/receivers and the iOS notification delegate removed
+- [x] **Verified** — `build_runner`, `flutter analyze` (no issues), `flutter test` (63 passed, 2 PDF skipped) and the development debug APK build pass; v1–v6 databases upgrade to schema v7
 
 ### 🟡 Phase 6 — Onboarding, Premium & Backup (Partial)
 
@@ -316,7 +321,7 @@ Already-built code for the dropped scope. Remove it completely; see [IMPLEMENTAT
 | Phase 2 — Library & importing | 🟡 ~85% (picker and Android intent import, private storage, metadata/EPUB covers/TOC, grid/list UI, sorting, badges, progress summaries, deletion and localized import-error handling exist; PDF covers and richer library controls remain) |
 | Phase 3 — Reader core | 🟡 ~90% (native Readium EPUB/PDF reader, fallback adapters, native and fallback TOC/search jumps, paginated/continuous modes, debounced locator persistence, appearance/alignment controls, PDF fit/text modes, wake-lock, tap zones, fallback thumbnails and explicit zoom controls exist; adapter hardening and target-device validation remain) |
 | Phase 4 — Annotations & dictionary | 🟡 ~80% (bookmarks, four-color highlights, unified annotation management, editable notes, Markdown export and lookup caching are done; single-language definition lookup remains) |
-| Phase 5 — Language-learning removal | 🔴 0% (vocabulary, review, reminders, translation, language packs and AI Recap code still ship) |
+| Phase 5 — Language-learning removal | 🟢 100% (removed 2026-10-29; schema v7 drops the study tables) |
 | Phase 6 — Onboarding, premium, backup | 🟡 ~30% (metadata backup/restore, privacy and local entitlement caching exist; onboarding rewrite, premium entitlement decision, Play Billing, binary-file backup and encryption remain) |
 | Phase 7 — Hardening & launch | 🟡 ~15% (analysis clean; the automated suite covers domain library contracts and LibraryCubit transitions/recovery alongside metadata/TOC import persistence, typed import failures, locator serialization and delete cleanup with 2 environment-skipped PDF tests; widget, integration, compatibility and performance coverage remain pending device access) |
 

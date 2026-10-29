@@ -1,7 +1,5 @@
 {
   "@@locale": "en",
-  "welcome": "Welcome to LinguaPages",
-
   "errorBadRequest": "Bad request. Please check your input and try again.",
   "errorNotFound": "Resource not found.",
   "errorUnauthorized": "Unauthorized access. Please check your credentials.",
@@ -17,7 +15,6 @@
   "errorTooManyRequests": "Too many requests. Please wait and try again later.",
   "errorInternalServerError": "Internal server error. Please try again later.",
   "errorBadGateway": "Bad gateway. Please try again later.",
-
   "appName": "LinguaPage",
   "libraryTitle": "Your Library",
   "librarySearchHint": "Search your library",
@@ -40,14 +37,14 @@
   "libraryProgressFinished": "Finished",
   "libraryDelete": "Remove book",
   "libraryDeleteTitle": "Remove this book?",
-  "libraryDeleteBody": "Choose whether to keep annotations and vocabulary for {title}.",
+  "libraryDeleteBody": "Choose whether to keep highlights, notes and bookmarks for {title}.",
   "@libraryDeleteBody": {
     "placeholders": {
       "title": {}
     }
   },
-  "libraryDeleteKeepData": "Keep study data",
-  "libraryDeleteAllData": "Delete study data",
+  "libraryDeleteKeepData": "Keep annotations",
+  "libraryDeleteAllData": "Delete annotations",
   "libraryDeletedMessage": "Removed {title} from your library",
   "@libraryDeletedMessage": {
     "placeholders": {
@@ -127,29 +124,9 @@
     }
   },
   "readerLookupFailed": "Lookup could not be completed",
-  "readerNoTranslation": "No translation found",
-  "readerSentenceTranslation": "Sentence translation",
-  "readerUntranslatedWords": "Words kept in English: {words}",
-  "@readerUntranslatedWords": {
-    "placeholders": {
-      "words": {
-        "type": "String"
-      }
-    }
-  },
+  "readerNoDefinition": "No definition found",
   "readerCopy": "Copy",
   "readerWordCopied": "Copied to clipboard",
-  "readerSaveWord": "Save word",
-  "readerWordSaved": "Word saved",
-  "readerWordSaveFailed": "Word could not be saved",
-  "readerVocabularyLimitReached": "Free vocabulary limit reached ({limit} words)",
-  "@readerVocabularyLimitReached": {
-    "placeholders": {
-      "limit": {
-        "type": "int"
-      }
-    }
-  },
   "save": "Save",
   "readerSettings": "Reader settings",
   "readerTheme": "Reading theme",
@@ -188,69 +165,21 @@
       "count": {}
     }
   },
-  "subscribe": "Subscribe",
   "cancel": "Cancel",
   "retry": "Retry",
-  "pro": "PRO",
-
   "email": "Email",
-  "pin": "Pin (4-6 digit)",
-  "login": "Login",
-  "logout": "Logout",
   "emailRequired": "Email is required",
   "invalidEmail": "Please enter a valid email address",
-  "pinRequired": "Pin Required",
-  "pinLength": "Pin Length must be 4-6 digit",
   "passwordRequired": "Password is required",
   "passwordMinLength": "Password must be at least 6 characters",
-
   "splashTagline": "A production-grade Clean Architecture starter",
   "splashVersion": "Version 1.0.0",
-
-  "loginWelcomeTitle": "Welcome Back",
-  "loginSubtitle": "Login to your account to continue",
-  "loginEmailHint": "Enter your email",
-  "loginPinHint": "Enter your PIN",
-  "demoBadge": "DEMO",
-  "loginDemoCredentials": "Prefilled test@gmail.com / 1234",
-
-  "subscriptionActive": "Subscription Active",
-  "premiumFeatureTitle": "Premium Feature",
-  "premiumFeatureSubtitle": "Subscribe to unlock the full user list.",
-  "unlockPremiumTitle": "Unlock Premium",
-  "unlockPremiumSubtitle": "Subscribe to view the full user list.",
-  "userDirectoryTitle": "User Directory",
-  "userDirectorySubtitle": "Browse the team roster served through the repository layer.",
-  "premiumUnlockHint": "Premium unlocks the full list",
-
   "navHome": "Library",
-  "navVocabulary": "Vocabulary",
-  "navReview": "Review",
-  "navWidgets": "Widgets",
-  "navArchitecture": "Architecture",
   "navSettings": "Settings",
-
   "settingsTitle": "Settings",
-  "settingsAppearance": "Appearance",
-  "settingsTheme": "Theme",
-  "settingsLanguage": "Language",
-  "settingsLanguagePacks": "Offline language packs",
-  "settingsLanguagePackEnglishSpanish": "English → Spanish",
-  "settingsLanguagePackVersion": "Version {version}",
-  "settingsLanguagePackInstall": "Install",
-  "settingsLanguagePackDelete": "Delete",
-  "settingsLanguagePackEmpty": "No language packs are available",
-  "settingsLanguagePackFailed": "Language packs could not be updated",
-  "@settingsLanguagePackVersion": {
-    "placeholders": {
-      "version": {
-        "type": "String"
-      }
-    }
-  },
   "settingsBackupTitle": "Backup and restore",
   "settingsBackupCreate": "Export backup",
-  "settingsBackupCreateSubtitle": "Save annotations, vocabulary, reviews and settings",
+  "settingsBackupCreateSubtitle": "Save books list, annotations and settings",
   "settingsBackupRestore": "Restore backup",
   "settingsBackupRestoreSubtitle": "Merge a LinguaPages JSON backup",
   "settingsBackupCreated": "Backup exported",
@@ -266,198 +195,29 @@
       }
     }
   },
-  "settingsStudy": "Study",
-  "settingsDailyNewCardLimit": "Daily new cards",
-  "settingsDailyNewCardLimitValue": "{count} new cards per day",
-  "settingsReviewNotifications": "Review reminders",
-  "settingsReviewNotificationsSubtitle": "Remind me at 9:00 when cards are due",
-  "settingsSaveFailed": "Settings could not be saved",
-  "@settingsDailyNewCardLimitValue": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "settingsAccount": "Account",
   "settingsPrivacy": "Privacy",
   "privacyTitle": "Privacy",
   "privacyLocalDataTitle": "Your data stays on this device",
-  "privacyLocalDataBody": "Books, annotations, vocabulary, reviews and settings are stored locally. LinguaPages does not require an account or cloud sync for the current release.",
+  "privacyLocalDataBody": "Books, annotations and settings are stored locally. LinguaPages does not use an account or cloud sync.",
   "privacyBackupTitle": "Backups are user-controlled",
   "privacyBackupBody": "A backup is created only when you export one from Settings. It is a JSON file that you choose where to save and restore.",
-  "privacyTranslationTitle": "Offline translation",
-  "privacyTranslationBody": "The current English → Spanish dictionary is a bundled development fixture. No text is sent to a translation service.",
-  "onboardingTitle": "Start learning with LinguaPages",
-  "onboardingSubtitle": "A private reading space for English books and Spanish vocabulary.",
-  "onboardingPairTitle": "Your study pair",
-  "onboardingPairBody": "Version 1.0 is focused on English-native readers learning Spanish.",
+  "privacyDictionaryTitle": "Word lookups",
+  "privacyDictionaryBody": "Definitions currently come from a small dictionary bundled with the app. Nothing you read or select is sent anywhere.",
+  "onboardingTitle": "Welcome to LinguaPages",
+  "onboardingSubtitle": "A private reader for all of your DRM-free books and documents.",
+  "onboardingBooksTitle": "Bring your own books",
+  "onboardingBooksBody": "Open EPUB, PDF, TXT, Markdown, HTML and FB2 files in one library.",
   "onboardingOfflineTitle": "Works offline",
-  "onboardingOfflineBody": "Install the English → Spanish language pack once, then look up words without an account or connection.",
+  "onboardingOfflineBody": "Your books, highlights and notes stay on this device. No account needed.",
   "onboardingTapTitle": "Tap a word while reading",
-  "onboardingTapBody": "Select a word to look it up, highlight it, or save it for review later.",
+  "onboardingTapBody": "Select text to highlight it, add a note, or look up a word.",
   "onboardingContinue": "Continue to your library",
-  "onboardingPackFailed": "The language pack could not be prepared. Try again.",
-  "logoutSubtitle": "Sign out of your account",
-  "vocabularyTitle": "Vocabulary",
-  "vocabularySearchHint": "Search saved words",
-  "vocabularyFilterBook": "Book",
-  "vocabularyFilterAllBooks": "All books",
-  "vocabularyFilterLanguage": "Language",
-  "vocabularyFilterAllLanguages": "All languages",
-  "vocabularyFilterStatus": "Status",
-  "vocabularyFilterAllStatuses": "All statuses",
-  "vocabularyFilterNew": "New",
-  "vocabularyFilterDue": "Due",
-  "vocabularyFilterLearned": "Learned",
-  "vocabularyEmpty": "No saved words yet",
-  "vocabularyLoadFailed": "Vocabulary could not be loaded",
-  "vocabularyDeleteTitle": "Delete this word?",
-  "vocabularyDeleteFailed": "Word could not be deleted",
-  "reviewTitle": "Review",
-  "reviewEmpty": "You are all caught up",
-  "reviewLoadFailed": "Review cards could not be loaded",
-  "reviewSaveFailed": "Review could not be saved",
-  "reviewShowAnswer": "Show answer",
-  "reviewContextPrompt": "What does the hidden word mean?",
-  "reviewRate": "How well did you remember it?",
-  "reviewStatsDue": "Due",
-  "reviewStatsReviewed": "Reviewed",
-  "reviewStatsStreak": "Streak",
-  "reviewStatsActiveDays": "Active days",
-  "reviewRecentHistory": "Recent activity",
-  "reviewDueCount": "{count} cards due",
-  "@reviewDueCount": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "reviewAgain": "Again",
-  "reviewHard": "Hard",
-  "reviewGood": "Good",
-  "reviewEasy": "Easy",
+  "onboardingFailed": "Something went wrong. Try again.",
   "delete": "Delete",
   "refresh": "Refresh",
-
-  "themeSystem": "System",
-  "themeLight": "Light Mode",
-  "themeDark": "Dark Mode",
-
-  "languageSystem": "System",
-  "languageEnglish": "English",
-  "languageSpanish": "Spanish",
-
-  "galleryTitle": "Component Gallery",
-  "gallerySubtitle": "The template’s reusable widgets, grouped by role — all driven by the shared theme tokens.",
-  "sectionInputs": "Inputs",
-  "sectionSelection": "Selection",
-  "sectionOverlays": "Overlays & actions",
-  "fieldEmailHint": "Add Email",
-  "passwordLabel": "Password",
-  "fieldPasswordHint": "Add Password",
-  "searchLabel": "Search",
-  "textFieldLabel": "Text Field",
-  "fieldLabelGeneric": "Label",
-  "datePickerHint": "Date Picker",
-  "chooseCategory": "Choose category",
-  "showDialogButton": "Show Dialog",
-  "showSoftUpdateDialog": "Show Soft Update Dialog",
-  "buttonExample": "Button Example",
-  "openBottomSheet": "Open Bottom Sheet",
-  "bottomSheetGreeting": "Hello from the bottom sheet!",
-  "enableNotifications": "Enable notifications",
-  "checkbox": "Check Box",
-  "genderMale": "Male",
-  "genderFemale": "Female",
-  "updateInitiated": "Update initiated",
-  "categoryElectronics": "Electronics",
-  "categoryClothing": "Clothing",
-  "categoryBooks": "Books",
-  "categoryFood": "Food",
-  "categorySports": "Sports",
-
-  "updateDialogTitle": "App Update Available",
-  "updateDialogDescription": "A new version of the app is available. Please update to get the latest features and bug fixes.",
   "updateLater": "Later",
   "updateNow": "Update Now",
-
-  "archCleanTitle": "Clean Architecture",
-  "archIntro": "Dependencies point inward. Outer layers know inner ones — never the reverse. This is the rule the whole template is built around.",
-  "archPatternsTitle": "Design patterns",
-  "archPatternsSubtitle": "Every GoF pattern this template uses, grouped by kind — each tied to the real class that implements it.",
-  "archSeenInLabel": "Seen in:",
-  "archCoreCrossCutting": "cross-cutting",
-
-  "archLayerPresentationTitle": "Presentation",
-  "archLayerPresentationDesc": "BLoC / Cubit, screens, theme tokens and reusable widgets.",
-  "archLayerDomainTitle": "Domain",
-  "archLayerDomainDesc": "Entities, use-cases and repository interfaces. Pure Dart, no Flutter.",
-  "archLayerDataTitle": "Data",
-  "archLayerDataDesc": "Repository implementations, data sources (mock + remote) and DTO remappers.",
-  "archConnectorDependsOn": "depends on",
-  "archConnectorImplementedBy": "implemented by",
-
-  "archCatCreational": "Creational",
-  "archCatStructural": "Structural",
-  "archCatBehavioral": "Behavioral",
-  "archCatArchitectural": "Architectural",
-
-  "patternSingletonName": "Singleton",
-  "patternSingletonDesc": "One shared instance for the whole app — get_it returns the same object, and theme modes cache themselves behind a factory constructor.",
-  "patternSingletonSeen": "theme switching & the DI graph",
-
-  "patternFactoryName": "Factory Method",
-  "patternFactoryDesc": "Named factory constructors build the right configured object without exposing the constructor — the whole typed text scale is factory methods.",
-  "patternFactorySeen": "every AppText.* in the UI",
-
-  "patternAbstractFactoryName": "Abstract Factory",
-  "patternAbstractFactoryDesc": "Creates whole families of related data sources (user + auth). The flavor picks Mock vs Remote at DI time, so dev runs offline.",
-  "patternAbstractFactorySeen": "the Home user directory",
-
-  "patternPrototypeName": "Prototype",
-  "patternPrototypeDesc": "Clone-and-modify: copyWith / lerp produce a new object from an existing one — how themes interpolate and entities update immutably.",
-  "patternPrototypeSeen": "theme transitions & state updates",
-
-  "patternAdapterName": "Adapter",
-  "patternAdapterDesc": "Adapts the API’s UserResponseModel shape into the domain UserEntity the app expects, keeping the two independent.",
-  "patternAdapterSeen": "the user-list mapping",
-
-  "patternBridgeName": "Bridge",
-  "patternBridgeDesc": "Separates the theme abstraction from its colour and text implementations, so each can vary independently.",
-  "patternBridgeSeen": "the light / dark theme system",
-
-  "patternFacadeName": "Facade",
-  "patternFacadeDesc": "A small, task-focused API over the sprawling FlutterSecureStorage — callers just get / set the access token.",
-  "patternFacadeSeen": "login & session checks",
-
-  "patternProxyName": "Proxy",
-  "patternProxyDesc": "Stands in for the real repository and enforces access — throws SubscriptionRequiredException until the user subscribes.",
-  "patternProxySeen": "the premium gate",
-
-  "patternDecoratorName": "Decorator",
-  "patternDecoratorDesc": "Wraps the remote repository and adds cache-first behaviour without changing its interface.",
-  "patternDecoratorSeen": "cached user loading",
-
-  "patternObserverName": "Observer (BLoC)",
-  "patternObserverDesc": "The UI subscribes to a stream of immutable states; the Cubit emits, BlocBuilder rebuilds. State in, UI out.",
-  "patternObserverSeen": "loading / success / error states",
-
-  "patternChainName": "Chain of Responsibility",
-  "patternChainDesc": "A Dio interceptor in the request/response chain that translates raw backend errors into typed ResponseErrors.",
-  "patternChainSeen": "every network error message",
-
-  "patternDiName": "Dependency Injection",
-  "patternDiDesc": "Classes declare their dependencies; the container wires the graph and gates registrations per environment.",
-  "patternDiSeen": "core/injector — app-wide",
-
-  "patternRepositoryName": "Repository",
-  "patternRepositoryDesc": "A domain-owned interface hiding data origins — the UI never knows if data is mocked, cached, remote or gated.",
-  "patternRepositorySeen": "all user-data access",
-
-  "webViewLoadError": "Failed To Load Page",
-  "webViewCouldNotOpen": "Could not open the link.",
   "fieldEmpty": "Field Empty",
   "noInternetConnection": "No Internet Connection"
 }

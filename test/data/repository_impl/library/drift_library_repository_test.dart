@@ -1,4 +1,3 @@
-import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lingua_pages/data/data_source/library/local/lingua_page_database.dart';
@@ -81,42 +80,30 @@ void main() {
       expect(books.map((book) => book.title), ['Completed', 'Unread']);
     });
 
-    test('can remove a book while keeping linked study data', () async {
+    test('can remove a book while keeping its annotations', () async {
       final book = await repository.importDocument(_document());
-      await _seedLinkedStudyData(database, book.id);
+      await _seedAnnotations(database, book.id);
 
       await repository.deleteBook(bookId: book.id, data: DeleteBookData.keep);
 
       expect(await repository.getAll(), isEmpty);
       expect(await database.select(database.libraryBooks).get(), hasLength(1));
       expect(await database.select(database.bookmarks).get(), hasLength(1));
-      expect(await database.select(database.vocabItems).get(), hasLength(1));
-      expect(await database.select(database.reviewCards).get(), hasLength(1));
-      expect(
-        await database.select(database.reviewHistoryEntries).get(),
-        hasLength(1),
-      );
     });
 
-    test('removes a book and all linked study data when requested', () async {
+    test('removes a book and its annotations when requested', () async {
       final book = await repository.importDocument(_document());
-      await _seedLinkedStudyData(database, book.id);
+      await _seedAnnotations(database, book.id);
 
       await repository.deleteBook(bookId: book.id, data: DeleteBookData.delete);
 
       expect(await database.select(database.libraryBooks).get(), isEmpty);
       expect(await database.select(database.bookmarks).get(), isEmpty);
-      expect(await database.select(database.vocabItems).get(), isEmpty);
-      expect(await database.select(database.reviewCards).get(), isEmpty);
-      expect(
-        await database.select(database.reviewHistoryEntries).get(),
-        isEmpty,
-      );
     });
   });
 }
 
-Future<void> _seedLinkedStudyData(
+Future<void> _seedAnnotations(
   LinguaPageDatabase database,
   String bookId,
 ) async {
@@ -130,44 +117,6 @@ Future<void> _seedLinkedStudyData(
           title: 'Saved page',
           locatorJson: '{}',
           createdAt: now,
-        ),
-      );
-  await database
-      .into(database.vocabItems)
-      .insert(
-        VocabItemsCompanion.insert(
-          id: 'vocab-$bookId',
-          word: 'book',
-          lemma: 'book',
-          translation: 'libro',
-          bookId: Value(bookId),
-          sourceLanguage: 'en',
-          targetLanguage: 'es',
-          createdAt: now,
-        ),
-      );
-  await database
-      .into(database.reviewCards)
-      .insert(
-        ReviewCardsCompanion.insert(
-          id: 'review-$bookId',
-          vocabItemId: 'vocab-$bookId',
-          nextReviewDate: now,
-          createdAt: now,
-        ),
-      );
-  await database
-      .into(database.reviewHistoryEntries)
-      .insert(
-        ReviewHistoryEntriesCompanion.insert(
-          id: 'history-$bookId',
-          reviewCardId: 'review-$bookId',
-          vocabItemId: 'vocab-$bookId',
-          rating: 'good',
-          interval: 1,
-          easeFactor: 2.5,
-          repetitions: 1,
-          reviewedAt: now,
         ),
       );
 }

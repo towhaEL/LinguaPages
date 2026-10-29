@@ -19,10 +19,9 @@ void main() {
     test('returns stable defaults for an empty database', () async {
       final settings = await repository.getSettings();
 
-      expect(settings.sourceLanguage, 'en');
-      expect(settings.targetLanguage, 'es');
+      expect(settings.readerTheme, ReaderTheme.light);
       expect(settings.readerMode, ReaderMode.paginated);
-      expect(settings.dailyNewCardLimit, 15);
+      expect(settings.fontSize, 18);
     });
 
     test('persists settings and updates a single key', () async {
@@ -39,8 +38,8 @@ void main() {
       );
 
       final updated = await repository.updateSetting(
-        key: 'targetLanguage',
-        value: 'es',
+        key: 'lineSpacing',
+        value: 1.8,
       );
 
       expect(updated.readerTheme, ReaderTheme.sepia);
@@ -50,7 +49,7 @@ void main() {
       expect(updated.readerPdfMode, ReaderPdfMode.text);
       expect(updated.keepScreenAwake, isTrue);
       expect(updated.fontSize, 20);
-      expect(updated.targetLanguage, 'es');
+      expect(updated.lineSpacing, 1.8);
     });
   });
 }

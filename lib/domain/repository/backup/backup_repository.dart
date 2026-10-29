@@ -4,7 +4,7 @@ abstract interface class BackupRepository {
   Future<String> createBackup({bool includeBookFiles = false});
 
   /// Restores from a backup archive at [filePath].
-  /// Returns the count of items restored (books, highlights, vocab, etc.).
+  /// Returns the count of items restored (books, highlights, bookmarks).
   Future<BackupRestoreResult> restoreBackup(String filePath);
 }
 
@@ -13,25 +13,14 @@ class BackupRestoreResult {
     required this.booksRestored,
     required this.highlightsRestored,
     required this.bookmarksRestored,
-    required this.vocabItemsRestored,
-    required this.reviewCardsRestored,
-    required this.reviewHistoryRestored,
     required this.duplicatesSkipped,
   });
 
   final int booksRestored;
   final int highlightsRestored;
   final int bookmarksRestored;
-  final int vocabItemsRestored;
-  final int reviewCardsRestored;
-  final int reviewHistoryRestored;
   final int duplicatesSkipped;
 
   int get totalRestored =>
-      booksRestored +
-      highlightsRestored +
-      bookmarksRestored +
-      vocabItemsRestored +
-      reviewCardsRestored +
-      reviewHistoryRestored;
+      booksRestored + highlightsRestored + bookmarksRestored;
 }

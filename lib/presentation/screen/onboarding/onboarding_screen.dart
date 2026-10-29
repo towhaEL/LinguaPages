@@ -4,7 +4,6 @@ import 'package:gap/gap.dart';
 import 'package:lingua_pages/core/constants/app_constant.dart';
 import 'package:lingua_pages/core/injector/injector.dart';
 import 'package:lingua_pages/core/storage/onboarding_preferences.dart';
-import 'package:lingua_pages/domain/repository/translation/language_pack_repository.dart';
 import 'package:lingua_pages/l10n/l10n.dart';
 import 'package:lingua_pages/presentation/route/app_router.gr.dart';
 import 'package:lingua_pages/presentation/theme/base/theme_extension.dart';
@@ -29,7 +28,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     });
 
     try {
-      await injector<LanguagePackRepository>().install('en-es');
       await injector<OnboardingPreferences>().complete();
       if (!mounted) return;
       await context.router.replaceAll([const DashboardRoute()]);
@@ -37,7 +35,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       if (!mounted) return;
       setState(() {
         _busy = false;
-        _error = context.l10n.onboardingPackFailed;
+        _error = context.l10n.onboardingFailed;
       });
     }
   }
@@ -80,9 +78,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ),
             Gap(AppConstant.verticalGap24),
             _OnboardingCard(
-              icon: Icons.translate_rounded,
-              title: l10n.onboardingPairTitle,
-              body: l10n.onboardingPairBody,
+              icon: Icons.library_books_outlined,
+              title: l10n.onboardingBooksTitle,
+              body: l10n.onboardingBooksBody,
             ),
             Gap(AppConstant.verticalGap12),
             _OnboardingCard(

@@ -34,9 +34,9 @@ class PrivacyScreen extends StatelessWidget {
           ),
           Gap(AppConstant.verticalGap16),
           _PrivacySection(
-            icon: Icons.translate_outlined,
-            title: l10n.privacyTranslationTitle,
-            body: l10n.privacyTranslationBody,
+            icon: Icons.menu_book_outlined,
+            title: l10n.privacyDictionaryTitle,
+            body: l10n.privacyDictionaryBody,
           ),
         ],
       ),

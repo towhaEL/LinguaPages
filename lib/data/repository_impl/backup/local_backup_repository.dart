@@ -8,8 +8,8 @@ import 'package:lingua_pages/domain/repository/backup/backup_repository.dart';
 /// Stores a portable JSON snapshot of the local database.
 ///
 /// Book binaries are intentionally not copied yet. The snapshot contains
-/// metadata and all user-created study data, which keeps backup/restore useful
-/// while the app-private document storage contract is being finalized.
+/// metadata, annotations and settings. Sections from older backups that are no
+/// longer part of the product (vocabulary, review) are ignored on restore.
 @LazySingleton(as: BackupRepository)
 class LocalBackupRepository implements BackupRepository {
   LocalBackupRepository(this._database);
@@ -38,16 +38,6 @@ class LocalBackupRepository implements BackupRepository {
           (await _database.select(_database.readingSessions).get())
               .map((row) => row.toJson())
               .toList(),
-      'vocabItems': (await _database.select(_database.vocabItems).get())
-          .map((row) => row.toJson())
-          .toList(),
-      'reviewCards': (await _database.select(_database.reviewCards).get())
-          .map((row) => row.toJson())
-          .toList(),
-      'reviewHistory':
-          (await _database.select(_database.reviewHistoryEntries).get())
-              .map((row) => row.toJson())
-              .toList(),
       'settings': (await _database.select(_database.appSettings).get())
           .map((row) => row.toJson())
           .toList(),
@@ -63,9 +53,6 @@ class LocalBackupRepository implements BackupRepository {
     var booksRestored = 0;
     var highlightsRestored = 0;
     var bookmarksRestored = 0;
-    var vocabItemsRestored = 0;
-    var reviewCardsRestored = 0;
-    var reviewHistoryRestored = 0;
     var duplicatesSkipped = 0;
 
     for (final raw in _records(payload, 'books')) {
@@ -116,49 +103,6 @@ class LocalBackupRepository implements BackupRepository {
           .insertOnConflictUpdate(row.toCompanion(false));
     }
 
-    for (final raw in _records(payload, 'vocabItems')) {
-      final row = VocabItem.fromJson(raw);
-      final exists = await (_database.select(
-        _database.vocabItems,
-      )..where((item) => item.id.equals(row.id))).getSingleOrNull();
-      if (exists != null) {
-        duplicatesSkipped++;
-        continue;
-      }
-      await _database.into(_database.vocabItems).insert(row.toCompanion(false));
-      vocabItemsRestored++;
-    }
-
-    for (final raw in _records(payload, 'reviewCards')) {
-      final row = ReviewCard.fromJson(raw);
-      final exists = await (_database.select(
-        _database.reviewCards,
-      )..where((item) => item.id.equals(row.id))).getSingleOrNull();
-      if (exists != null) {
-        duplicatesSkipped++;
-        continue;
-      }
-      await _database
-          .into(_database.reviewCards)
-          .insert(row.toCompanion(false));
-      reviewCardsRestored++;
-    }
-
-    for (final raw in _records(payload, 'reviewHistory')) {
-      final row = ReviewHistoryEntry.fromJson(raw);
-      final exists = await (_database.select(
-        _database.reviewHistoryEntries,
-      )..where((item) => item.id.equals(row.id))).getSingleOrNull();
-      if (exists != null) {
-        duplicatesSkipped++;
-        continue;
-      }
-      await _database
-          .into(_database.reviewHistoryEntries)
-          .insert(row.toCompanion(false));
-      reviewHistoryRestored++;
-    }
-
     for (final raw in _records(payload, 'settings')) {
       final row = AppSetting.fromJson(raw);
       await _database
@@ -170,9 +114,6 @@ class LocalBackupRepository implements BackupRepository {
       booksRestored: booksRestored,
       highlightsRestored: highlightsRestored,
       bookmarksRestored: bookmarksRestored,
-      vocabItemsRestored: vocabItemsRestored,
-      reviewCardsRestored: reviewCardsRestored,
-      reviewHistoryRestored: reviewHistoryRestored,
       duplicatesSkipped: duplicatesSkipped,
     );
   }

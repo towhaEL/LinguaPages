@@ -1,4 +1,4 @@
-/// User preferences that affect reading and study behavior.
+/// User preferences that affect reading behavior.
 class SettingsEntity {
   const SettingsEntity({
     this.readerTheme = ReaderTheme.light,
@@ -10,10 +10,6 @@ class SettingsEntity {
     this.readerPdfFit = ReaderPdfFit.page,
     this.readerPdfMode = ReaderPdfMode.visual,
     this.keepScreenAwake = false,
-    this.sourceLanguage = 'en',
-    this.targetLanguage = 'es',
-    this.dailyNewCardLimit = 15,
-    this.reviewNotificationsEnabled = false,
   });
 
   final ReaderTheme readerTheme;
@@ -25,10 +21,6 @@ class SettingsEntity {
   final ReaderPdfFit readerPdfFit;
   final ReaderPdfMode readerPdfMode;
   final bool keepScreenAwake;
-  final String sourceLanguage;
-  final String targetLanguage;
-  final int dailyNewCardLimit;
-  final bool reviewNotificationsEnabled;
 
   SettingsEntity copyWith({
     ReaderTheme? readerTheme,
@@ -40,10 +32,6 @@ class SettingsEntity {
     ReaderPdfFit? readerPdfFit,
     ReaderPdfMode? readerPdfMode,
     bool? keepScreenAwake,
-    String? sourceLanguage,
-    String? targetLanguage,
-    int? dailyNewCardLimit,
-    bool? reviewNotificationsEnabled,
   }) {
     return SettingsEntity(
       readerTheme: readerTheme ?? this.readerTheme,
@@ -55,11 +43,6 @@ class SettingsEntity {
       readerPdfFit: readerPdfFit ?? this.readerPdfFit,
       readerPdfMode: readerPdfMode ?? this.readerPdfMode,
       keepScreenAwake: keepScreenAwake ?? this.keepScreenAwake,
-      sourceLanguage: sourceLanguage ?? this.sourceLanguage,
-      targetLanguage: targetLanguage ?? this.targetLanguage,
-      dailyNewCardLimit: dailyNewCardLimit ?? this.dailyNewCardLimit,
-      reviewNotificationsEnabled:
-          reviewNotificationsEnabled ?? this.reviewNotificationsEnabled,
     );
   }
 }

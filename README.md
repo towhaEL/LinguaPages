@@ -17,17 +17,17 @@ The reader uses `flutter_readium` for native EPUB/PDF reading on Android and
 iOS. TXT, Markdown, HTML and FB2 use the local document engine; EPUB and PDF
 also retain fallback adapters for desktop and unsupported native contexts.
 
-Word lookup is a single-language definition lookup. The current dictionary is
-a small original fixture used for development and testing and contains no
-third-party dictionary data. The lookup language and a licensed production
-dataset are still open decisions.
+Word lookup uses the free [Free Dictionary API](https://dictionaryapi.dev)
+(`/api/v2/entries/en/<word>`, Wiktionary data under CC BY-SA 3.0). It is the
+app's only network call; results are cached locally so repeated lookups work
+offline. The development flavor uses a mock and never touches the network.
+The app UI is English only.
 
 > **Requirements change (2026-10-29):** LinguaPages is no longer a
 > language-learning app. English→Spanish study, sentence translation,
-> language packs, vocabulary lists, spaced-repetition review, review reminders
-> and AI Recap are out of the product. Their code is still in the repository
-> and is scheduled for removal; see
-> [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md#phase-5--language-learning-removal).
+> language packs, vocabulary lists, spaced-repetition review, review reminders,
+> AI Recap and the Spanish UI were removed in plan Phase 1 (schema v7 drops the
+> old study tables).
 
 ## Requirements
 
@@ -95,7 +95,8 @@ while metadata, progress, annotations and settings live in Drift.
 LinguaPages is local-only. Imported files, covers, annotations and settings
 remain on the device unless the user exports a backup. Metadata JSON backup and
 restore are available from Settings. There is no authentication, cloud sync or
-AI service.
+AI service. The only data that leaves the device is a word sent to
+dictionaryapi.dev when the user looks it up.
 
 Do not put API keys, billing credentials or cloud secrets in Dart source,
 assets or checked-in flavor files.
@@ -118,7 +119,7 @@ available there; PDF rendering still needs physical-device verification.
 
 See [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) for the product roadmap
 and [implementation_status.md](implementation_status.md) for the verified
-implementation snapshot. The largest remaining areas are removing the
-language-learning features, choosing the dictionary language and a licensed
-dataset, billing/entitlements, encrypted/binary backups, PDF cover rendering,
-compatibility testing and Android release hardening.
+implementation snapshot. Remaining work, in order: cleanup of the
+language-learning code, a dark design foundation, the online dictionary,
+premium appearance (themes, fonts, styles), surface redesign, library/backup
+completion, hardening and Android release.
