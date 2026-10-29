@@ -1,24 +1,33 @@
 # LinguaPages
 
-LinguaPages is an offline-first Flutter reading and language-learning app for
-English → Spanish study. It imports DRM-free EPUB, PDF, TXT, Markdown, HTML
-and FB2 documents, stores the library and study data locally, and lets readers
-look up words, save vocabulary and review it with spaced repetition.
+LinguaPages is an offline-first, private Flutter ebook reader. It imports
+DRM-free EPUB, PDF, TXT, Markdown, HTML and FB2 documents, stores the library
+and reading data locally, and keeps highlights, notes, bookmarks and word
+definitions inside the book. There is no account, no cloud and no store.
+
+Product context lives in [PRODUCT.md](PRODUCT.md).
 
 ## Current scope
 
-The implemented local flow is:
+The target v1.0 flow is:
 
-`import → library → read → search/select → dictionary lookup → save vocabulary → review`
+`import → library → read → search/select → define word / annotate → export`
 
 The reader uses `flutter_readium` for native EPUB/PDF reading on Android and
 iOS. TXT, Markdown, HTML and FB2 use the local document engine; EPUB and PDF
 also retain fallback adapters for desktop and unsupported native contexts.
 
-The current dictionary is a small original fixture used for development and
-testing. It is intentionally limited to English → Spanish and contains no
-third-party dictionary data. A production dictionary dataset must be selected
-and license-reviewed before shipping additional vocabulary data.
+Word lookup is a single-language definition lookup. The current dictionary is
+a small original fixture used for development and testing and contains no
+third-party dictionary data. The lookup language and a licensed production
+dataset are still open decisions.
+
+> **Requirements change (2026-10-29):** LinguaPages is no longer a
+> language-learning app. English→Spanish study, sentence translation,
+> language packs, vocabulary lists, spaced-repetition review, review reminders
+> and AI Recap are out of the product. Their code is still in the repository
+> and is scheduled for removal; see
+> [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md#phase-5--language-learning-removal).
 
 ## Requirements
 
@@ -46,14 +55,7 @@ flutter run --flavor production -t lib/main_production.dart
 ```
 
 The development flavor enables local mock services and disables premium
-gating. Production keeps AI Recap disabled and does not include cloud or AI
-credentials. The available build-time flag is:
-
-```text
---dart-define=LINGUAPAGE_AI_RECAP=true
-```
-
-AI Recap remains disabled in production regardless of that flag.
+gating.
 
 ## Architecture
 
@@ -66,7 +68,7 @@ lib/
 ├── domain/     entities, repository interfaces, services and use cases
 ├── data/       Drift database, importers, document engines and repositories
 └── presentation/
-    ├── screen/ reader, library, vocabulary, review and settings screens
+    ├── screen/ reader, library and settings screens
     ├── route/  auto_route definitions and generated routes
     └── widgets shared UI components
 ```
@@ -74,8 +76,7 @@ lib/
 SQLite/Drift is the local source of truth. BLoCs and widgets call domain use
 cases or repository interfaces; they do not access plugins or database tables
 directly. Book files and extracted covers are kept in app-private storage,
-while metadata, progress, annotations, vocabulary, reviews and settings live
-in Drift.
+while metadata, progress, annotations and settings live in Drift.
 
 ## Supported reader behavior
 
@@ -84,16 +85,17 @@ in Drift.
 - Fallback pagination and continuous scrolling for reflowable text formats.
 - PDF fit-to-page, fit-to-width, text mode, thumbnails and zoom in fallback mode.
 - Search, bookmarks, four-color highlights, notes and portable Markdown export.
+- Word definition lookup from selected text.
 - Persisted theme, font, spacing, margin, alignment, wake-lock and reader-mode
   preferences.
 - Android `ACTION_VIEW` intake for supported document MIME types.
 
 ## Data and privacy model
 
-The v1.0 product is local-first. Imported files, covers, annotations,
-vocabulary, reviews and settings remain on the device unless the user exports
-a backup. Metadata JSON backup and restore are available from Settings. Cloud
-sync, authentication and AI Recap are not part of the v1.0 runtime path.
+LinguaPages is local-only. Imported files, covers, annotations and settings
+remain on the device unless the user exports a backup. Metadata JSON backup and
+restore are available from Settings. There is no authentication, cloud sync or
+AI service.
 
 Do not put API keys, billing credentials or cloud secrets in Dart source,
 assets or checked-in flavor files.
@@ -108,15 +110,15 @@ flutter build apk --debug --flavor development -t lib/main_development.dart
 ```
 
 The VM test suite includes database/repository, document-engine, import,
-locator, lookup, review and presentation-state coverage. Two PDF runtime tests
-are skipped in Flutter VM runs because pdfrx's native PDFium assets are not
+locator, lookup and presentation-state coverage. Two PDF runtime tests are
+skipped in Flutter VM runs because pdfrx's native PDFium assets are not
 available there; PDF rendering still needs physical-device verification.
 
 ## Project status and next work
 
 See [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) for the product roadmap
 and [implementation_status.md](implementation_status.md) for the verified
-implementation snapshot. The largest remaining areas are production dictionary
-licensing and remote pack downloads, billing/entitlements, full review history,
-encrypted/binary backups, PDF cover rendering, compatibility testing and
-Android release hardening.
+implementation snapshot. The largest remaining areas are removing the
+language-learning features, choosing the dictionary language and a licensed
+dataset, billing/entitlements, encrypted/binary backups, PDF cover rendering,
+compatibility testing and Android release hardening.
