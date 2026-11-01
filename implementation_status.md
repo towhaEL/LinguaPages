@@ -2,6 +2,8 @@
 
 ## Current Status Summary
 
+> **Plan update (2026-11-01):** after a review of the ReadEra app, two phases were added to [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md): plan Phase 7 (reader and library parity) and plan Phase 8 (read aloud). Hardening and release are now plan Phases 9 and 10. Their checklists are under "Plan Phase 7" and "Plan Phase 8" below. ReadEra features that conflict with the product decisions (vocabulary dictionary, translator, cloud sync, device-wide scanning) are listed in the plan under "Considered and excluded".
+>
 > **Plan update (2026-10-29):** [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) was rewritten as an eight-phase plan for the remaining work. The phase numbers below are the earlier numbering; their removal items map to plan Phase 1, the dictionary to Phase 3 (Free Dictionary API) and premium to Phase 4 (themes, fonts and styles only). The app is English-only, so the Spanish UI localization is also removed.
 >
 > **Requirements change (2026-10-29):** LinguaPages is now an offline, private ebook reader with no language-learning features (see [PRODUCT.md](PRODUCT.md) and [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md)). Everything below marked **🗑 Remove** was built for the dropped scope (English→Spanish study, translation, language packs, vocabulary, SRS review, reminders, AI Recap) and is tracked under the new Phase 5 — Language-learning removal. Percentages were re-based on the new scope; the verification history from 2026-10-20 is kept as recorded.
@@ -337,6 +339,76 @@ Bugs found while testing (not fixed in this phase):
 - The landscape `NavigationRail` has not been checked on a device.
 - Onboarding, splash (template copy), reader chrome and privacy still use the old layouts on the new tokens. They are redesigned in plan Phase 5.
 
+### 🔴 Plan Phase 7 — Reader and Library Parity (Not started, added 2026-11-01)
+
+See [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md#phase-7--reader-and-library-parity).
+
+#### Reader comfort
+- [ ] **Hyphenation** toggle (Readium `hyphens`)
+- [ ] **Paragraph spacing and indent** (`paragraphSpacing`, `paragraphIndent`)
+- [ ] **Letter and word spacing** (`letterSpacing`, `wordSpacing`)
+- [ ] **Font weight** (`fontWeight`)
+- [ ] **Use publisher styles** on/off (`publisherStyles`)
+- [ ] **Two columns / two pages in landscape** (`columnCount`, `spread`)
+- [ ] **Reading direction and vertical text** override (`readingProgression`, `verticalText`)
+- [ ] **Invert/dim images in dark themes** (`imageFilter`, plus fallback PDF pages)
+- [ ] **Fallback text engine parity** for the settings above
+- [ ] **Fix:** text pagination splits a word across pages
+
+#### Page turning and screen
+- [ ] **Configurable tap-zone schemes** (left/right, top/bottom, off)
+- [ ] **Volume-key page turning** (opt-in; `MainActivity` key hook behind an interface)
+- [ ] **Page-turn animation** on/off
+- [ ] **Full-screen reading** (hide status and navigation bars)
+- [ ] **Orientation lock** (portrait, landscape, auto)
+- [ ] **Brightness by edge swipe** (reader-only, reset on exit; plugin behind an interface)
+- [ ] **Progress display choice** (page, percent, time left in chapter, none)
+- [ ] **Corner shortcuts** (top-right bookmark, top-left theme switch; optional)
+- [ ] **PDF smart crop** of blank margins
+
+#### Selection menu
+- [ ] **Share** selected text
+- [ ] **Search the web** with the selection
+- [ ] **Send to app** via `ACTION_PROCESS_TEXT`
+
+#### Library organisation (schema v8)
+- [ ] **Drift v7 → v8 migration** with an upgrade test (books and annotations survive)
+- [ ] **Reading shelves**: To read, Reading, Finished, plus Favorites; auto-finish at 100%
+- [ ] **Collections**: create, rename, delete; a book can be in several
+- [ ] **Authors and Series views** from metadata (EPUB series/Calibre, FB2 `sequence`)
+- [ ] **Edit book details** (title, authors, series, number, language, reset from file)
+- [ ] **Fix:** FB2 title and author import (uses the first section heading; joins author names with no space)
+- [ ] **Trash** with restore, empty and 30-day auto-purge
+- [ ] **Duplicate detection** at import by content hash
+- [ ] **Folder import** through the Storage Access Framework (spike on Android 11+ first)
+- [ ] **Fix:** persist the grid/list view choice
+
+#### Annotations
+- [ ] **All annotations screen** across books, with colour/type/book filters and search
+- [ ] **Export the filtered selection** to Markdown
+
+#### Backup and tests
+- [ ] **Backup** includes shelves, collections, series and trash state; older backups restore with defaults
+- [ ] **Tests**: migration, shelf/collection/trash use cases, duplicate hash, reader-settings mapping, tap-zone hit-testing
+- [ ] **Verified on a physical device**: settings persist and apply on native and fallback engines; volume keys work
+
+### 🔴 Plan Phase 8 — Read Aloud (Not started, added 2026-11-01)
+
+See [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md#phase-8--read-aloud). `flutter_readium` 0.6.2 already exposes `ttsEnable`, `ttsSetPreferences`, `ttsGetAvailableVoices`, `ttsSetVoice` and `play`/`pause`/`resume`/`stop`.
+
+- [ ] **`ReadAloudService` domain interface** with Readium (EPUB/PDF) and `flutter_tts` (TXT/MD/HTML/FB2) implementations
+- [ ] **Spike: background playback** with the screen locked (Readium TTS navigator vs `audio_service`)
+- [ ] **Player controls**: play/pause, previous/next sentence
+- [ ] **Speed** 0.5×–3× and **voice per language** with a default
+- [ ] **Sleep timer** (15/30/60 minutes, end of chapter)
+- [ ] **Current-sentence highlight** on native and fallback engines
+- [ ] **Skip footnotes and page headers** option
+- [ ] **Media notification and lock-screen controls** (`FOREGROUND_SERVICE_MEDIA_PLAYBACK`)
+- [ ] **Empty states**: no TTS engine, no voice for the book's language
+- [ ] **Reading position follows playback**
+- [ ] **Tests**: service state machine, sleep timer, voice fallback
+- [ ] **Verified**: 30 minutes of locked-screen playback on a physical device
+
 ## Progress Gauge
 
 | Phase | Estimated Completion |
@@ -350,5 +422,9 @@ Bugs found while testing (not fixed in this phase):
 | Phase 5 — Language-learning removal | 🟢 100% (removed 2026-10-29; schema v7 drops the study tables) |
 | Phase 6 — Onboarding, premium, backup | 🟡 ~30% (metadata backup/restore, privacy and local entitlement caching exist; onboarding rewrite, premium entitlement decision, Play Billing, binary-file backup and encryption remain) |
 | Phase 7 — Hardening & launch | 🟡 ~15% (analysis clean; the automated suite covers domain library contracts and LibraryCubit transitions/recovery alongside metadata/TOC import persistence, typed import failures, locator serialization and delete cleanup with 2 environment-skipped PDF tests; widget, integration, compatibility and performance coverage remain pending device access) |
+| Plan Phase 7 — Reader and library parity | 🔴 0% (added 2026-11-01; most reader-comfort items are existing Readium preferences that need controls) |
+| Plan Phase 8 — Read aloud | 🔴 0% (added 2026-11-01; Readium TTS API is available, background playback needs a spike) |
 
-> **Overall: ~65% of the new v1.0 scope is implemented.** The strongest areas are the architecture foundation, local persistence, validated library import flow and the library-to-reader-to-annotation path. The largest gaps are removing the language-learning code, the single-language dictionary, PDF cover rendering, chapter-aware progress, adapter/target-device validation, Play Billing/online verification, binary/encrypted backups and release hardening.
+> **Scope added 2026-11-01:** plan Phases 7 and 8 add about 5–6 weeks of work, so the overall figure below drops to roughly **55%** of the enlarged v1.0 scope (a rough estimate, not re-measured).
+>
+> **Overall (before 2026-11-01): ~65% of the new v1.0 scope is implemented.** The strongest areas are the architecture foundation, local persistence, validated library import flow and the library-to-reader-to-annotation path. The largest gaps are removing the language-learning code, the single-language dictionary, PDF cover rendering, chapter-aware progress, adapter/target-device validation, Play Billing/online verification, binary/encrypted backups and release hardening.

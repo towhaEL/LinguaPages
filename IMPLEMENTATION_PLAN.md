@@ -13,10 +13,11 @@ Target: Android-first v1.0 of a private ebook reader for every common DRM-free f
 | App language | English only. Spanish UI localization is removed. |
 | Visual direction | Dark, premium, simple. The app chrome is dark-only; reading pages keep their own selectable themes. All UI work goes through the Impeccable skill. |
 | Out of scope | Accounts, cloud sync, AI Recap, vocabulary, spaced-repetition review, translation and language packs. |
+| ReadEra review (2026-11-01) | ReadEra 26.05.20 was reviewed for feature ideas. Reader-comfort, library-organisation and read-aloud features that fit the scope above are added as Phases 7 and 8. Features that conflict with the decisions above are listed under "Considered and excluded". Features are built independently; no ReadEra code, text or assets are used. |
 
 ## Where we are
 
-Already built and verified (see the status doc): Drift foundation (schema v6), import with validation, metadata, covers and TOC, the library UI, the native Readium EPUB/PDF reader plus fallback engines, reader settings, search, bookmarks, highlights, notes, Markdown export, metadata backup/restore and a local entitlement cache. The code also still contains vocabulary, review, reminders, translation, language packs, AI Recap, Spanish UI and a two-word EN→ES dictionary fixture. All of that is removed in Phase 1.
+Already built and verified (see the status doc): Drift foundation (schema v7), import with validation, metadata, covers and TOC, the library UI, the native Readium EPUB/PDF reader plus fallback engines, reader settings, search, bookmarks, highlights, notes, Markdown export, metadata backup/restore and a local entitlement cache. Phase 1 (cleanup and English-only) and Phase 2 (design foundation, "Paperback Bands") are done.
 
 ## Architecture rules
 
@@ -31,16 +32,18 @@ Already built and verified (see the status doc): Drift foundation (schema v6), i
 
 | Phase | Duration | Outcome |
 |---|---:|---|
-| 1. Cleanup and English-only | 1–1.5 weeks | No language-learning code, data, flags or copy; English is the only locale |
-| 2. Design foundation (Impeccable) | 1–1.5 weeks | A recorded dark design world in DESIGN.md, implemented as Flutter theme tokens with bundled fonts |
+| 1. Cleanup and English-only ✅ | 1–1.5 weeks | No language-learning code, data, flags or copy; English is the only locale |
+| 2. Design foundation (Impeccable) ✅ | 1–1.5 weeks | A recorded dark design world in DESIGN.md, implemented as Flutter theme tokens with bundled fonts |
 | 3. Online dictionary | 1.5–2 weeks | Free Dictionary API lookup with cache, offline/error states and attribution |
 | 4. Premium appearance | 2 weeks | Theme/font/style catalog, gating, Play Billing, restore |
 | 5. Surface redesign (Impeccable) | 3–4 weeks | Library, reader chrome, sheets, settings, paywall, onboarding and splash rebuilt on the new design |
 | 6. Library and backup completion | 1.5 weeks | PDF covers, chapter progress, backup without study data, optional book files |
-| 7. Hardening | 3 weeks | Corpus, performance, accessibility, failure testing |
-| 8. Beta and Android release | 1–2 weeks | Closed beta, store listing, Data Safety, release |
+| 7. Reader and library parity | 3–4 weeks | Typography and layout controls, page-turn controls, shelves, collections, trash, metadata editing, cross-book annotations |
+| 8. Read aloud | 2 weeks | Readium text-to-speech with voice, speed, sleep timer, sentence highlight and background playback |
+| 9. Hardening | 3 weeks | Corpus, performance, accessibility, failure testing |
+| 10. Beta and Android release | 1–2 weeks | Closed beta, store listing, Data Safety, release |
 
-Estimated remaining effort: about 14–17 weeks for one experienced developer.
+Estimated remaining effort (Phases 3–10): about 17–21 weeks for one experienced developer. Phases 7 and 8 can run before Phase 5 so the redesign covers their screens; otherwise Phase 5 needs a second pass for them.
 
 ---
 
@@ -171,6 +174,7 @@ Goal: users can pay for extra looks. Nothing functional is ever locked.
   - Keep the existing local entitlement cache, verify periodically when online, and never lock the user out offline.
   - Support restoring purchases.
   - **Open:** product type (one-time unlock or subscription), product IDs and price. These must be set in Play Console before this phase finishes.
+- **Catalog candidates from the ReadEra review:** Night-contrast, Sepia-contrast and Twilight reading themes, and importing the user's own font files (`.ttf`/`.otf`, copied into app-private storage). Both are appearance, so both may be premium.
 - **Cleanup:** remove the export-limit and vocabulary-limit rules from `premium_entitlement_repository`.
 - **Tests:** the catalog flags, the gate's behavior on expiry and offline, restore, and billing errors.
 
@@ -216,11 +220,90 @@ Exit criteria:
   - encrypted backup with a user passphrase is optional.
 - Annotation export: keep Markdown, and add sharing through the system share sheet.
 
-## Phase 7 — Hardening
+## Phase 7 — Reader and library parity
+
+Goal: close the everyday reading and organising gaps a heavy reader notices against a mature reader such as ReadEra. Nothing here needs the network, an account or extra storage permissions.
+
+Reader comfort. Most of these are existing `flutter_readium` EPUB preferences that only need a control and a persisted setting:
+
+- Hyphenation, paragraph spacing, paragraph indent, letter and word spacing (`hyphens`, `paragraphSpacing`, `paragraphIndent`, `letterSpacing`, `wordSpacing`).
+- "Use publisher styles" on/off (`publisherStyles`).
+- Two-column layout on tablets and two pages in landscape (`columnCount`, `spread`).
+- Reading direction and vertical text taken from the book, with a manual override (`readingProgression`, `verticalText`).
+- Invert or dim images in dark reading themes (`imageFilter`), and the same for fallback PDF pages.
+- Font weight (`fontWeight`).
+- Fallback text engine: apply the same settings where they make sense, and fix the known bug where pagination splits a word across pages.
+
+Page turning and screen:
+
+- Configurable tap zones: a left/right scheme and a top/bottom scheme, plus "tapping does not turn pages".
+- Turn pages with the volume keys (an opt-in setting). This needs a small key-event hook in `MainActivity` behind a platform interface.
+- Page-turn animation on/off where the engine allows it.
+- Full-screen reading that hides the status and navigation bars, and an orientation lock (portrait, landscape, auto).
+- Brightness by vertical swipe on the page edge, kept separate from the system brightness and reset on leaving the reader. This needs a brightness plugin (for example `screen_brightness`) behind an interface.
+- A choice of progress display: page number, percentage, time left in chapter, or none.
+- Optional corner shortcuts: tap the top-right corner to add a bookmark and the top-left corner to switch the reading theme.
+- Smart crop of blank PDF margins.
+
+Selection menu:
+
+- Add Share, Search the web (opens the browser with the selected text) and "Send to app", which uses Android `ACTION_PROCESS_TEXT` so installed apps (dictionaries, note apps) can take the selection. LinguaPages sends nothing itself.
+
+Library organisation (schema v8):
+
+- Reading shelves: To read, Reading and Finished, plus Favorites. A finished book can be marked manually or automatically at 100%.
+- Collections: user-named shelves, with a book allowed in several.
+- Authors and Series views, built from imported metadata (EPUB `belongs-to-collection`/Calibre series and FB2 `sequence`).
+- Edit book details: title, authors, series, series number and language, with a "reset from file" action.
+- Trash: deleting moves a book to Trash, keeping its file and annotations; restore and empty-trash actions; books in Trash are purged automatically after 30 days.
+- Duplicate detection at import using a content hash; offer "open existing" instead of importing twice.
+- Import a whole folder through the Storage Access Framework, copying supported files into app-private storage. Start with a spike to confirm `file_picker` directory access returns readable URIs on Android 11+.
+- Persist the grid/list view choice (a known bug).
+
+Annotations:
+
+- An "All annotations" screen across every book, filterable by colour, type (highlight, note, bookmark) and book, with search, opening each item at its position.
+- Markdown export of the filtered selection.
+
+Data and backup: the new shelf, collection, series and trash fields are included in the JSON backup, and restoring an older backup fills defaults.
+
+Tests:
+- the v7→v8 migration keeps books and annotations;
+- shelf, collection and trash use cases;
+- duplicate-hash detection;
+- the reader settings mapping to Readium preferences;
+- the tap-zone scheme hit-testing.
+
+Exit criteria:
+- Each new reader setting persists and applies to native and fallback engines.
+- Volume-key turning works on a physical device and is off by default.
+- A deleted book can be restored from Trash with its annotations.
+- No new Android permission apart from what the brightness plugin needs (if any).
+
+## Phase 8 — Read aloud
+
+Goal: listen to any EPUB (and PDFs with a text layer) using the device's own text-to-speech voices, fully offline.
+
+- Use `flutter_readium`'s built-in TTS (`ttsEnable`, `ttsSetPreferences`, `ttsGetAvailableVoices`, `ttsSetVoice`, `play`/`pause`/`resume`/`stop`) for EPUB and PDF. It already highlights the sentence being read through decorations and follows the content language.
+- For TXT, Markdown, HTML and FB2, use `flutter_tts` on the fallback engine's paragraphs, highlighting the current sentence. Put both behind one `ReadAloudService` domain interface.
+- Controls: play/pause, previous/next sentence, speed (0.5×–3×), voice per language with a sensible default, and a sleep timer (15, 30, 60 minutes or end of chapter).
+- Options: skip footnotes and page headers on or off, and keep the screen on during playback.
+- Background playback with the screen locked: media notification and lock-screen controls through a foreground media service (`FOREGROUND_SERVICE_MEDIA_PLAYBACK`). Start with a spike to see whether Readium's TTS navigator keeps running in the background or needs `audio_service`.
+- Empty states: no TTS engine installed, and no voice for the book's language (with a link to the system TTS settings).
+- Reading position follows playback, so stopping leaves the reader where the audio stopped.
+
+Tests: the `ReadAloudService` state machine, the sleep timer and voice selection fallback.
+
+Exit criteria:
+- An EPUB plays for 30 minutes with the screen locked on a physical device.
+- Pausing and resuming keep the position.
+- The sleep timer stops playback.
+
+## Phase 9 — Hardening
 
 - Build a compatibility corpus of 20–30 documents: valid, malformed, large, DRM-protected and right-to-left samples.
 - Tests:
-  - widget tests for the library, reader controls, annotations, lookup and paywall;
+  - widget tests for the library, reader controls, annotations, lookup, paywall, shelves and read-aloud controls;
   - an Android integration test for the path import → read → highlight → define → export;
   - performance checks for startup, import, first page, page turn and cached versus network lookups on a mid-range device.
 - Failure testing:
@@ -229,7 +312,7 @@ Exit criteria:
   - Play Billing sandbox, including refunds and expiry.
 - Accessibility: TalkBack and large-text passes on every surface.
 
-## Phase 8 — Beta and Android release
+## Phase 10 — Beta and Android release
 
 Release gates:
 - all P0 flows pass;
@@ -254,6 +337,21 @@ Ship a closed beta first, then production.
 - OCR for scanned PDFs.
 - A CBZ comic reader.
 - Web article import.
+- More formats seen in ReadEra: RTF, ODT, DJVU, CHM, CBR and books inside ZIP archives. Check each library's licence first: MuPDF and DjVuLibre-based engines are AGPL/GPL, which would force the app's source to be published.
+- A personal book rating and review.
+- Android Auto playback for read aloud.
+
+## Considered and excluded (ReadEra review, 2026-11-01)
+
+These ReadEra features conflict with the decisions above and stay out unless a decision changes:
+
+- **Personal word dictionary, word forms and context sentences.** This is a vocabulary feature, which was removed from the product.
+- **Built-in translator.** Translation was removed. "Send to app" in Phase 7 lets the user pick their own translator app instead.
+- **Cloud sync, accounts and cloud backup** (Google Drive, Huawei Drive). The product has no account or cloud.
+- **Scanning the whole device for books.** It needs the `MANAGE_EXTERNAL_STORAGE` permission, which Google Play restricts, and it breaks the app-private library model. Folder import (Phase 7) covers the need.
+- **Kids mode with a passcode.** Niche for the target users.
+- **Locking reading features behind premium.** ReadEra makes background read-aloud and sync premium; here premium stays appearance-only.
+- **Analytics SDKs, seasonal promotions and rating prompts.** These conflict with the calm, private positioning.
 
 ## Open decisions
 
