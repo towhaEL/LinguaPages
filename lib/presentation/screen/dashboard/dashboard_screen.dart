@@ -37,4 +37,10 @@ class _ResponsiveDashboard extends Screen {
   Widget buildMobileLandscapeView(BuildContext context) {
     return DashboardLandscape(child: child);
   }
+
+  /// Material guidance: a navigation rail, not a bottom bar, from 600dp.
+  @override
+  Widget buildTabletView(BuildContext context) {
+    return DashboardLandscape(child: child);
+  }
 }

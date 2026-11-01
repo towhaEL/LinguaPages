@@ -45,6 +45,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
               if (showBackIcon)
                 IconButton(
                   padding: EdgeInsets.zero,
+                  tooltip: MaterialLocalizations.of(context).backButtonTooltip,
                   icon: Icon(Icons.arrow_back, color: context.colors.onSurface),
                   onPressed: onBackIconTap ?? () => context.pop(),
                 ),

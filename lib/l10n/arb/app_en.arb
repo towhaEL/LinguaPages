@@ -143,17 +143,32 @@
   "readerExportAnnotations": "Copy Markdown export",
   "readerExportCopied": "Annotations copied as Markdown",
   "readerLookup": "Look up",
-  "readerLookupFor": "Look up “{word}”",
-  "@readerLookupFor": {
+  "readerLookupFailed": "Lookup could not be completed",
+  "readerNoDefinition": "No definition found",
+  "readerCopy": "Copy",
+  "dictionaryNotAWord": "Select a single word to see its definition.",
+  "dictionaryOfflineTitle": "Connect to look up new words",
+  "dictionaryOfflineBody": "Words you have looked up before work offline. If online lookups are off, turn them on in Settings.",
+  "dictionaryRetry": "Try again",
+  "dictionarySynonyms": "Synonyms",
+  "dictionaryAttribution": "Definitions from Wiktionary via dictionaryapi.dev.",
+  "dictionaryLicense": "License: {name}",
+  "@dictionaryLicense": {
     "placeholders": {
-      "word": {
+      "name": {
         "type": "String"
       }
     }
   },
-  "readerLookupFailed": "Lookup could not be completed",
-  "readerNoDefinition": "No definition found",
-  "readerCopy": "Copy",
+  "dictionarySource": "Source",
+  "dictionaryNetworkNote": "Only the looked-up word is sent online.",
+  "settingsDictionaryTitle": "Dictionary",
+  "settingsOnlineDictionary": "Online dictionary",
+  "settingsOnlineDictionarySubtitle": "Look up new words on dictionaryapi.dev. When off, only definitions saved on this device are used.",
+  "settingsClearDictionaryCache": "Clear saved definitions",
+  "settingsClearDictionaryCacheSubtitle": "Remove definitions kept for offline use",
+  "settingsDictionaryCacheCleared": "Saved definitions cleared",
+  "settingsDictionaryCacheFailed": "Saved definitions could not be cleared",
   "readerWordCopied": "Copied to clipboard",
   "save": "Save",
   "readerSettings": "Reader settings",
@@ -200,7 +215,6 @@
   "invalidEmail": "Please enter a valid email address",
   "passwordRequired": "Password is required",
   "passwordMinLength": "Password must be at least 6 characters",
-  "splashTagline": "A production-grade Clean Architecture starter",
   "splashVersion": "Version 1.0.0",
   "navHome": "Library",
   "navSettings": "Settings",
@@ -231,21 +245,130 @@
   "privacyBackupTitle": "Backups are user-controlled",
   "privacyBackupBody": "A backup is created only when you export one from Settings. It is a JSON file that you choose where to save and restore.",
   "privacyDictionaryTitle": "Word lookups",
-  "privacyDictionaryBody": "Definitions currently come from a small dictionary bundled with the app. Nothing you read or select is sent anywhere.",
+  "privacyDictionaryBody": "When you look up a word, only that word is sent to dictionaryapi.dev, a free dictionary service. Nothing else you read or select leaves the device. Definitions are saved on this device, so a word works offline after the first lookup. You can turn online lookups off or clear saved definitions in Settings.",
   "onboardingTitle": "Welcome to LinguaPages",
-  "onboardingSubtitle": "A private reader for all of your DRM-free books and documents.",
-  "onboardingBooksTitle": "Bring your own books",
-  "onboardingBooksBody": "Open EPUB, PDF, TXT, Markdown, HTML and FB2 files in one library.",
-  "onboardingOfflineTitle": "Works offline",
-  "onboardingOfflineBody": "Your books, highlights and notes stay on this device. No account needed.",
-  "onboardingTapTitle": "Tap a word while reading",
-  "onboardingTapBody": "Select text to highlight it, add a note, or look up a word.",
-  "onboardingContinue": "Continue to your library",
+  "onboardingSubtitle": "A private reader for the DRM-free books and documents you already own.",
+  "onboardingBooksTitle": "Every format, one shelf",
+  "onboardingBooksBody": "EPUB, PDF, TXT, Markdown, HTML and FB2. Import a file, or open one with LinguaPages from another app.",
+  "onboardingOfflineTitle": "Private by design",
+  "onboardingOfflineBody": "Your books, highlights and notes stay on this device, with no account. Only a word you look up is sent online, to the dictionary.",
+  "onboardingTapTitle": "Select to highlight or define",
+  "onboardingTapBody": "Press and hold on any text to highlight it, add a note, or look up a word.",
+  "onboardingContinue": "Go to your library",
   "onboardingFailed": "Something went wrong. Try again.",
   "delete": "Delete",
   "refresh": "Refresh",
   "updateLater": "Later",
   "updateNow": "Update Now",
   "fieldEmpty": "Field Empty",
-  "noInternetConnection": "No Internet Connection"
+  "noInternetConnection": "No Internet Connection",
+  "readerThemeTwilight": "Twilight",
+  "readerThemeNightContrast": "Night contrast",
+  "readerThemeSepiaContrast": "Sepia contrast",
+  "readerThemeSage": "Sage",
+  "readerFont": "Font",
+  "readerFontOriginal": "Book's own",
+  "readerFontSerif": "Serif",
+  "readerFontSans": "Sans",
+  "readerStyle": "Style",
+  "readerStyleStandard": "Standard",
+  "readerStyleClassic": "Classic",
+  "readerStyleAiry": "Airy",
+  "readerStyleCompact": "Compact",
+  "readerPremiumPreview": "You're previewing premium appearance. Unlock it to keep this look.",
+  "readerPremiumLocked": "Premium",
+  "premiumTitle": "Premium appearance",
+  "premiumSubtitle": "Extra looks for your reading pages.",
+  "premiumPresets": "Classic, Airy and Compact set font, size, spacing and margins in one tap.",
+  "premiumFreeNote": "Reading, highlights, notes, export, backup and the dictionary stay free.",
+  "premiumUnlockFor": "Unlock for {price}",
+  "@premiumUnlockFor": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "premiumUnlock": "Unlock",
+  "premiumRestore": "Restore purchase",
+  "premiumUnlocked": "Premium appearance is unlocked.",
+  "premiumPending": "Payment is pending. Premium unlocks when the store confirms it.",
+  "premiumNothingToRestore": "No previous purchase was found for this Google account.",
+  "premiumStoreUnavailable": "The store can't be reached. Check your connection and try again.",
+  "premiumFailed": "The purchase didn't go through. You weren't charged.",
+  "premiumDone": "Done",
+  "settingsPremiumLocked": "Extra themes, fonts and style presets",
+  "settingsPremiumUnlocked": "Unlocked",
+  "libraryLoadErrorBody": "Your books are still on this device. Try again.",
+  "librarySearchClear": "Clear search",
+  "readerToolContents": "Contents",
+  "readerToolSearch": "Search",
+  "readerToolNotes": "Notes",
+  "readerToolAppearance": "Appearance",
+  "readerToolPages": "Pages",
+  "readerToggleControls": "Show or hide reading controls",
+  "readerOpenErrorBody": "This file couldn't be displayed. It may be damaged, or use something the reader doesn't support yet.",
+  "dictionaryNotFoundBody": "The dictionary has no entry for this word. Inflected forms sometimes need their base form, such as \"run\" for \"ran\".",
+  "readerHighlightChooseColor": "Choose a color to save",
+  "readerNotesAll": "All {count}",
+  "@readerNotesAll": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "readerNotesHighlights": "Highlights {count}",
+  "@readerNotesHighlights": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "readerNotesBookmarks": "Bookmarks {count}",
+  "@readerNotesBookmarks": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "readerNotesEmptyTitle": "No notes yet",
+  "readerNotesEmptyBody": "Select text to highlight it or add a note. Bookmarks you add appear here too.",
+  "readerNotesFilterEmpty": "Nothing here yet",
+  "readerNotesCopyMarkdown": "Copy as Markdown",
+  "readerNotesExportHint": "Copies every highlight, note and bookmark in this book.",
+  "readerNotesActions": "Note actions",
+  "readerNotesEdit": "Edit",
+  "readerNotesDeleteHighlightTitle": "Delete this highlight?",
+  "readerNotesDeleteBookmarkTitle": "Delete this bookmark?",
+  "readerNotesDeleteBody": "This can't be undone.",
+  "readerNotesDeleteWithNoteBody": "Its note is deleted too. This can't be undone.",
+  "readerBookmarkUntitled": "Bookmark",
+  "settingsReadingTitle": "Reading",
+  "settingsKeepScreenOn": "Keep screen on while reading",
+  "settingsScrollMode": "Scroll instead of turning pages",
+  "settingsAppearanceHint": "Theme, font and spacing are set while reading, under Appearance, so you can see the page as you change them.",
+  "settingsPurchasesTitle": "Purchases",
+  "settingsLicenses": "Open-source licenses",
+  "settingsLicensesSubtitle": "Fonts and libraries used in LinguaPages",
+  "privacyPurchasesTitle": "Purchases",
+  "privacyPurchasesBody": "Premium appearance is bought through Google Play. LinguaPages only asks Google Play whether you own it; your payment details never reach the app.",
+  "privacyTrackingTitle": "No tracking",
+  "privacyTrackingBody": "LinguaPages has no ads, analytics or crash reporting. It does not know what you read.",
+  "premiumThemesHeading": "Four more reading themes",
+  "premiumFontsHeading": "Three book fonts",
+  "premiumPresetsHeading": "Style presets",
+  "premiumOneTime": "One-time purchase. No subscription.",
+  "premiumThankYou": "Premium appearance is unlocked. Thank you!",
+  "onboardingFormatsLabel": "Supported formats: EPUB, PDF, TXT, Markdown, HTML and FB2",
+  "readerSearchResultCount": "{count, plural, =1{1 result} other{{count} results}}",
+  "@readerSearchResultCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

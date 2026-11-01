@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:injectable/injectable.dart';
 import 'package:lingua_pages/data/data_source/library/local/lingua_page_database.dart';
 import 'package:lingua_pages/domain/entity/settings/settings_entity.dart';
+import 'package:lingua_pages/domain/entity/library/book_entity.dart';
 import 'package:lingua_pages/domain/repository/settings/settings_repository.dart';
 
 @LazySingleton(as: SettingsRepository)
@@ -42,15 +43,20 @@ class DriftSettingsRepository implements SettingsRepository {
   Future<SettingsEntity> updateSetting<T>({
     required String key,
     required T value,
-  }) async {
-    final current = _toValues(await getSettings())..[key] = value;
-    final settings = _fromValues(current);
-    await saveSettings(settings);
-    return settings;
+  }) {
+    // One transaction per update, so two quick updates cannot both read the
+    // old settings and drop each other's change.
+    return _database.transaction(() async {
+      final current = _toValues(await getSettings())..[key] = value;
+      final settings = _fromValues(current);
+      await saveSettings(settings);
+      return settings;
+    });
   }
 
   Map<String, dynamic> _toValues(SettingsEntity settings) => {
     'readerTheme': settings.readerTheme.name,
+    'readerFont': settings.readerFont.name,
     'readerMode': settings.readerMode.name,
     'fontSize': settings.fontSize,
     'lineSpacing': settings.lineSpacing,
@@ -59,6 +65,9 @@ class DriftSettingsRepository implements SettingsRepository {
     'readerPdfFit': settings.readerPdfFit.name,
     'readerPdfMode': settings.readerPdfMode.name,
     'keepScreenAwake': settings.keepScreenAwake,
+    'onlineDictionary': settings.onlineDictionary,
+    'libraryListView': settings.libraryListView,
+    'librarySort': settings.librarySort.name,
   };
 
   SettingsEntity _fromValues(Map<String, dynamic> values) {
@@ -67,6 +76,11 @@ class DriftSettingsRepository implements SettingsRepository {
         ReaderTheme.values,
         values['readerTheme'],
         ReaderTheme.light,
+      ),
+      readerFont: _enumValue(
+        ReaderFont.values,
+        values['readerFont'],
+        ReaderFont.original,
       ),
       readerMode: _enumValue(
         ReaderMode.values,
@@ -92,6 +106,13 @@ class DriftSettingsRepository implements SettingsRepository {
         ReaderPdfMode.visual,
       ),
       keepScreenAwake: values['keepScreenAwake'] as bool? ?? false,
+      onlineDictionary: values['onlineDictionary'] as bool? ?? true,
+      libraryListView: values['libraryListView'] as bool? ?? false,
+      librarySort: _enumValue(
+        LibrarySort.values,
+        values['librarySort'],
+        LibrarySort.recent,
+      ),
     );
   }
 

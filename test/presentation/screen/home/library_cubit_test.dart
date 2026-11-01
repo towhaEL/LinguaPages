@@ -1,6 +1,9 @@
 import 'dart:async';
 
+import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:lingua_pages/data/data_source/library/local/lingua_page_database.dart';
+import 'package:lingua_pages/data/repository_impl/settings/drift_settings_repository.dart';
 import 'package:logger/logger.dart';
 import 'package:lingua_pages/domain/entity/document/document_models.dart';
 import 'package:lingua_pages/domain/entity/library/book_entity.dart';
@@ -20,22 +23,48 @@ void main() {
   late _FakeLibraryRepository repository;
   late _FakeDocumentImportService importService;
   late _FakeIncomingDocumentService incomingService;
+  late LinguaPageDatabase database;
+  late DriftSettingsRepository settings;
   late LibraryCubit cubit;
 
   setUp(() {
     repository = _FakeLibraryRepository();
     importService = _FakeDocumentImportService();
     incomingService = _FakeIncomingDocumentService();
+    database = LinguaPageDatabase(NativeDatabase.memory());
+    settings = DriftSettingsRepository(database);
     cubit = _createCubit(
       repository,
       importService: importService,
       incomingService: incomingService,
+      settings: settings,
     );
   });
 
   tearDown(() async {
     await cubit.close();
     await incomingService.close();
+    await database.close();
+  });
+
+  test('view mode and sort survive a restart', () async {
+    await cubit.load();
+    cubit.toggleViewMode();
+    await cubit.changeSort(LibrarySort.title);
+    await _settleAsyncWork();
+
+    final restarted = _createCubit(
+      repository,
+      importService: importService,
+      incomingService: incomingService,
+      settings: settings,
+    );
+    await restarted.load();
+
+    expect(restarted.state.viewMode, LibraryViewMode.list);
+    expect(restarted.state.sort, LibrarySort.title);
+    expect(repository.lastSort, LibrarySort.title);
+    await restarted.close();
   });
 
   test('load emits success with books from the repository', () async {
@@ -67,32 +96,37 @@ void main() {
     expect(repository.lastQuery, 'language');
   });
 
-  test('changeSort reloads the current search with the selected sort', () async {
-    final book = _book('sorted', title: 'Sorted result');
-    repository.searchResults = [book];
-    await cubit.search('sorted');
+  test(
+    'changeSort reloads the current search with the selected sort',
+    () async {
+      final book = _book('sorted', title: 'Sorted result');
+      repository.searchResults = [book];
+      await cubit.search('sorted');
 
-    await cubit.changeSort(LibrarySort.title);
+      await cubit.changeSort(LibrarySort.title);
 
-    expect(cubit.state.sort, LibrarySort.title);
-    expect(cubit.state.books, [book]);
-    expect(repository.lastQuery, 'sorted');
-    expect(repository.lastSort, LibrarySort.title);
-  });
+      expect(cubit.state.sort, LibrarySort.title);
+      expect(cubit.state.books, [book]);
+      expect(repository.lastQuery, 'sorted');
+      expect(repository.lastSort, LibrarySort.title);
+    },
+  );
 
-  test('changeSort reloads the full library when there is no search query',
-      () async {
-    final book = _book('sorted', title: 'Sorted result');
-    repository.books = [book];
+  test(
+    'changeSort reloads the full library when there is no search query',
+    () async {
+      final book = _book('sorted', title: 'Sorted result');
+      repository.books = [book];
 
-    await cubit.changeSort(LibrarySort.progress);
+      await cubit.changeSort(LibrarySort.progress);
 
-    expect(cubit.state.status, LibraryStatus.success);
-    expect(cubit.state.sort, LibrarySort.progress);
-    expect(cubit.state.books, [book]);
-    expect(repository.lastQuery, isNull);
-    expect(repository.lastSort, LibrarySort.progress);
-  });
+      expect(cubit.state.status, LibraryStatus.success);
+      expect(cubit.state.sort, LibrarySort.progress);
+      expect(cubit.state.books, [book]);
+      expect(repository.lastQuery, isNull);
+      expect(repository.lastSort, LibrarySort.progress);
+    },
+  );
 
   test('toggleViewMode alternates between grid and list', () {
     expect(cubit.state.viewMode, LibraryViewMode.grid);
@@ -148,21 +182,23 @@ void main() {
     expect(cubit.state.status, LibraryStatus.initial);
   });
 
-  test('importDocument reports an imported book and refreshes the list',
-      () async {
-    final book = _book('imported', title: 'Imported book');
-    importService.pickedDocument = _request('imported.epub');
-    repository.importedBook = book;
-    repository.books = [book];
+  test(
+    'importDocument reports an imported book and refreshes the list',
+    () async {
+      final book = _book('imported', title: 'Imported book');
+      importService.pickedDocument = _request('imported.epub');
+      repository.importedBook = book;
+      repository.books = [book];
 
-    await cubit.importDocument();
+      await cubit.importDocument();
 
-    expect(cubit.state.status, LibraryStatus.success);
-    expect(cubit.state.isImporting, isFalse);
-    expect(cubit.state.importFeedback, LibraryImportFeedback.imported);
-    expect(cubit.state.importMessage, 'Imported book');
-    expect(cubit.state.books, [book]);
-  });
+      expect(cubit.state.status, LibraryStatus.success);
+      expect(cubit.state.isImporting, isFalse);
+      expect(cubit.state.importFeedback, LibraryImportFeedback.imported);
+      expect(cubit.state.importMessage, 'Imported book');
+      expect(cubit.state.books, [book]);
+    },
+  );
 
   test('importDocument reports duplicate feedback', () async {
     importService.pickedDocument = _request('duplicate.epub');
@@ -186,29 +222,35 @@ void main() {
     expect(cubit.state.importMessage, 'broken document');
   });
 
-  test('incoming documents are imported through the same feedback path',
-      () async {
-    final book = _book('incoming', title: 'Incoming book');
-    repository.importedBook = book;
-    repository.books = [book];
-    importService.externalDocument = _request('incoming.epub');
+  test(
+    'incoming documents are imported through the same feedback path',
+    () async {
+      final book = _book('incoming', title: 'Incoming book');
+      repository.importedBook = book;
+      repository.books = [book];
+      importService.externalDocument = _request('incoming.epub');
 
-    incomingService.add(
-      const IncomingDocument(path: '/tmp/incoming.epub', fileName: 'incoming.epub'),
-    );
-    await _settleAsyncWork();
+      incomingService.add(
+        const IncomingDocument(
+          path: '/tmp/incoming.epub',
+          fileName: 'incoming.epub',
+        ),
+      );
+      await _settleAsyncWork();
 
-    expect(cubit.state.status, LibraryStatus.success);
-    expect(cubit.state.importFeedback, LibraryImportFeedback.imported);
-    expect(cubit.state.importMessage, 'Incoming book');
-    expect(importService.lastExternalPath, '/tmp/incoming.epub');
-  });
+      expect(cubit.state.status, LibraryStatus.success);
+      expect(cubit.state.importFeedback, LibraryImportFeedback.imported);
+      expect(cubit.state.importMessage, 'Incoming book');
+      expect(importService.lastExternalPath, '/tmp/incoming.epub');
+    },
+  );
 }
 
 LibraryCubit _createCubit(
   _FakeLibraryRepository repository, {
   required _FakeDocumentImportService importService,
   required _FakeIncomingDocumentService incomingService,
+  required DriftSettingsRepository settings,
 }) {
   return LibraryCubit(
     GetLibraryBooksUseCase(repository),
@@ -216,6 +258,7 @@ LibraryCubit _createCubit(
     ImportDocumentUseCase(importService, repository),
     SearchLibraryUseCase(repository),
     incomingService,
+    settings,
     Logger(level: Level.off),
   );
 }
@@ -262,7 +305,9 @@ class _FakeLibraryRepository implements LibraryRepository {
   String? deletedBookId;
 
   @override
-  Future<List<BookEntity>> getAll({LibrarySort sort = LibrarySort.recent}) async {
+  Future<List<BookEntity>> getAll({
+    LibrarySort sort = LibrarySort.recent,
+  }) async {
     lastQuery = null;
     lastSort = sort;
     final error = getAllError;
@@ -343,16 +388,14 @@ class _FakeDocumentStorageService implements DocumentStorageService {
     required String contentFingerprint,
     String? sourcePath,
     List<int>? bytes,
-  }) async =>
-      sourceUriFor(sourceFileName);
+  }) async => sourceUriFor(sourceFileName);
 
   @override
   Future<String> storeCover({
     required String contentFingerprint,
     required String sourceFileName,
     required List<int> bytes,
-  }) async =>
-      'cover://$contentFingerprint';
+  }) async => 'cover://$contentFingerprint';
 }
 
 String sourceUriFor(String fileName) => 'file:///stored/$fileName';

@@ -1,14 +1,14 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:gap/gap.dart';
-import 'package:lingua_pages/core/constants/app_constant.dart';
 import 'package:lingua_pages/core/injector/injector.dart';
 import 'package:lingua_pages/core/storage/onboarding_preferences.dart';
 import 'package:lingua_pages/l10n/l10n.dart';
 import 'package:lingua_pages/presentation/route/app_router.gr.dart';
 import 'package:lingua_pages/presentation/theme/base/theme_extension.dart';
-import 'package:lingua_pages/presentation/theme/text/app_text.dart';
 
+/// Continues the native launch screen (ink ground, the three-paperback mark)
+/// for exactly one frame, then routes. No artificial delay: the reader wants
+/// their book, not a logo.
 class SplashPortraitView extends StatefulWidget {
   const SplashPortraitView({super.key});
 
@@ -16,179 +16,69 @@ class SplashPortraitView extends StatefulWidget {
   State<SplashPortraitView> createState() => _SplashPortraitViewState();
 }
 
-class _SplashPortraitViewState extends State<SplashPortraitView>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _fadeAnimation;
-  late Animation<double> _scaleAnimation;
-
+class _SplashPortraitViewState extends State<SplashPortraitView> {
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1500),
-    );
-
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: const Interval(0.0, 0.6, curve: Curves.easeIn),
-      ),
-    );
-
-    _scaleAnimation = Tween<double>(begin: 0.85, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: const Interval(0.0, 0.7, curve: Curves.easeOutBack),
-      ),
-    );
-
-    _controller.forward();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _navigate());
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  Future<void> _navigate() async {
-    // Hold briefly after the entrance animation, then route to library.
-    await Future<void>.delayed(const Duration(milliseconds: 1800));
-
-    if (!mounted) return;
-    if (injector<OnboardingPreferences>().isComplete) {
-      context.replaceRoute(const DashboardRoute());
-    } else {
-      context.replaceRoute(const OnboardingRoute());
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.replaceRoute(
+        injector<OnboardingPreferences>().isComplete
+            ? const DashboardRoute()
+            : const OnboardingRoute(),
+      );
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.colors;
-
     return Scaffold(
-      body: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: theme.primary,
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [theme.primary, theme.secondary],
-          ),
-        ),
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            // Decorative background patterns
-            Positioned(
-              top: -50,
-              left: -50,
-              child: _CircularDecorative(
-                color: Colors.white.withAlpha(13),
-                size: 200,
-              ),
-            ),
-            Positioned(
-              bottom: -100,
-              right: -100,
-              child: _CircularDecorative(
-                color: Colors.white.withAlpha(13),
-                size: 300,
-              ),
-            ),
-
-            FadeTransition(
-              opacity: _fadeAnimation,
-              child: ScaleTransition(
-                scale: _scaleAnimation,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      height: 116,
-                      width: 116,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withAlpha(38),
-                        borderRadius: BorderRadius.circular(32),
-                        border: Border.all(
-                          color: Colors.white.withAlpha(51),
-                          width: 2,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withAlpha(26),
-                            blurRadius: 24,
-                            offset: const Offset(0, 12),
-                          ),
-                        ],
-                      ),
-                      child: const Icon(
-                        Icons.auto_stories_rounded,
-                        size: 56,
-                        color: Colors.white,
-                      ),
-                    ),
-                    Gap(AppConstant.verticalGap20),
-                    AppText.displayLargeBold(
-                      context.l10n.appName,
-                      color: Colors.white,
-                    ),
-                    Gap(AppConstant.verticalGap8),
-                    AppText.bodyMedium(
-                      context.l10n.splashTagline,
-                      textAlign: TextAlign.center,
-                      color: Colors.white.withAlpha(204),
-                    ),
-                    Gap(AppConstant.verticalGap20 * 3),
-                    SizedBox(
-                      width: 40,
-                      height: 40,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 3,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          Colors.white.withAlpha(230),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            Positioned(
-              bottom: 40,
-              child: FadeTransition(
-                opacity: _fadeAnimation,
-                child: AppText.labelMedium(
-                  context.l10n.splashVersion,
-                  color: Colors.white.withAlpha(128),
-                ),
-              ),
-            ),
-          ],
-        ),
+      backgroundColor: context.colors.background,
+      body: Center(
+        child: Semantics(label: context.l10n.appName, child: const AppMark()),
       ),
     );
   }
 }
 
-class _CircularDecorative extends StatelessWidget {
-  const _CircularDecorative({required this.color, required this.size});
+/// The app icon's three paperbacks, drawn on the icon's 108-unit grid so it
+/// lines up with the native launch drawable.
+class AppMark extends StatelessWidget {
+  const AppMark({super.key, this.size = 108});
 
-  final Color color;
   final double size;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: size,
-      width: size,
-      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+    final bands = context.bands;
+    final unit = size / 108;
+    // (colour, left, top, height, band) on the 108 grid; every book is 12 wide.
+    final books = [
+      (bands.epub, 33.0, 40.0, 40.0, 9.0),
+      (bands.pdf, 48.0, 34.0, 46.0, 10.0),
+      (bands.txt, 63.0, 44.0, 36.0, 8.0),
+    ];
+    return SizedBox.square(
+      dimension: size,
+      child: Stack(
+        children: [
+          for (final (color, left, top, height, band) in books)
+            Positioned(
+              left: left * unit,
+              top: top * unit,
+              width: 12 * unit,
+              height: height * unit,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Container(height: band * unit, color: color),
+                  Expanded(child: ColoredBox(color: bands.label)),
+                  Container(height: band * unit, color: color),
+                ],
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

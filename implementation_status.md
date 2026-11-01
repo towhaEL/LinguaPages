@@ -166,7 +166,7 @@ Readium's Android integration uses `FlutterFragmentActivity`, Android API 24+ an
 - [x] **Replace the template README** with LinguaPages setup, flavors, architecture and environment documentation.
 - [x] **Restore or intentionally replace deleted template tests** — the active suite now compiles and covers the local foundation, document engines, repositories, use cases and presentation state.
 - [x] **Confirm Android minimum API level and finalize the application ID** — Android API 24+, `com.linguapages.app` with `.dev` and `.stg` flavor suffixes; iOS bundle identifiers use the same base ID.
-- [ ] **Choose dictionary lookup language and dataset, and verify redistribution rights**
+- [x] **Choose dictionary lookup language and dataset, and verify redistribution rights** — English definitions from the Free Dictionary API (Wiktionary content, CC BY-SA 3.0, shown with license and source link on every result)
 - [x] **Define English–Spanish direction** — v1.0 is English-native / Spanish-target; the replaceable repository contract can support another direction later. — 🗑 Remove
 - [x] **Repair and update CI checks** — the workflow is named `lingua_pages`, runs the current Flutter package checks, and no longer carries the deleted template name.
 
@@ -177,7 +177,7 @@ Readium's Android integration uses `FlutterFragmentActivity`, Android API 24+ an
 - [x] **Android file picker "Open with" spike** — validated `ACTION_VIEW` with a representative EPUB on CPH2819
 - [ ] **Create 20–30 document test corpus** — valid, malformed, large, DRM-protected samples
 - [x] **Add `premiumEnabled` to feature flags** — exists; `aiRecapEnabled`, `mockTranslationEnabled` and `cloudSyncEnabled` are 🗑 Remove (Phase 5)
-- [ ] **Evaluate dictionary licensing** — blocked on choosing the lookup language
+- [x] **Evaluate dictionary licensing** — CC BY-SA 3.0 attribution is shown on every lookup result
 
 ### 🟡 Phase 1 — Foundation (Remaining)
 
@@ -261,9 +261,9 @@ Readium's Android integration uses `FlutterFragmentActivity`, Android API 24+ an
 - [x] **Format-neutral locators for all formats** — fallback locators plus optional native Readium payloads are persisted
 - [x] **Markdown export contract** — reader annotation panel copies portable Markdown
 - [x] **Response caching for lookups** — normalized in-memory cache supports hits, misses and failure retry; reusable for the new dictionary
-- [ ] **Choose the dictionary lookup language** — open product decision
-- [ ] **Single-language definition lookup** — replace the English→Spanish lemma/translation entry with definition, part of speech and example
-- [ ] **Lookup bottom sheet** — reduce to Highlight and Copy actions (drop Save to vocabulary)
+- [x] **Choose the dictionary lookup language** — English (plan Phase 3)
+- [x] **Single-language definition lookup** — Free Dictionary API with phonetic, parts of speech, numbered definitions, examples and synonyms (plan Phase 3)
+- [x] **Lookup bottom sheet** — Highlight and Copy actions only
 
 ### ✅ Phase 5 — Language-Learning Removal (Done 2026-10-29, plan Phase 1)
 
@@ -286,12 +286,12 @@ Already-built code for the dropped scope. Remove it completely; see [IMPLEMENTAT
 ### 🟡 Phase 6 — Onboarding, Premium & Backup (Partial)
 
 - [ ] **Onboarding flow** — rewrite for the reader: offline/private explanation, first import and “select text to highlight or define” tutorial (current flow is English→Spanish and must be replaced)
-- [ ] **Decide premium entitlements** — open product decision; candidates are premium themes/fonts and export limits
-- [ ] **Google Play Billing integration**
-- [x] **Local entitlement cache** — SharedPreferences-backed purchase/restoration state with expiry and clear operations; periodic online verification remains tied to Billing integration
-- [ ] **Restore purchases**
-- [ ] **Premium themes and fonts**
-- [ ] **Premium limits enforcement** (exports)
+- [x] **Decide premium entitlements** — appearance only (2026-10-29); see plan Phase 4 below
+- [x] **Google Play Billing integration** — plan Phase 4 (Play sandbox check pending)
+- [x] **Local entitlement cache** — SharedPreferences-backed purchase/restoration state with expiry and clear operations; verified against Play once per launch (plan Phase 4)
+- [x] **Restore purchases** — plan Phase 4
+- [x] **Premium themes and fonts** — plan Phase 4
+- [x] ~~**Premium limits enforcement** (exports)~~ — dropped: export is free; no usage limits exist
 - [x] **Backup export** — Settings exports the local metadata JSON snapshot (still includes vocabulary/reviews until Phase 5)
 - [x] **Backup restore** with merge and duplicate prevention — Settings imports a JSON snapshot and reports restored/duplicate counts
 - [ ] **Encrypted backup** (optional)
@@ -371,8 +371,8 @@ See [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md#phase-7--reader-and-library-
 - [ ] **Search the web** with the selection
 - [ ] **Send to app** via `ACTION_PROCESS_TEXT`
 
-#### Library organisation (schema v8)
-- [ ] **Drift v7 → v8 migration** with an upgrade test (books and annotations survive)
+#### Library organisation (schema v9)
+- [ ] **Drift v8 → v9 migration** with an upgrade test (books and annotations survive)
 - [ ] **Reading shelves**: To read, Reading, Finished, plus Favorites; auto-finish at 100%
 - [ ] **Collections**: create, rename, delete; a book can be in several
 - [ ] **Authors and Series views** from metadata (EPUB series/Calibre, FB2 `sequence`)
@@ -409,6 +409,189 @@ See [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md#phase-8--read-aloud). `flutt
 - [ ] **Tests**: service state machine, sleep timer, voice fallback
 - [ ] **Verified**: 30 minutes of locked-screen playback on a physical device
 
+### 🟢 Plan Phase 3 — Online Dictionary (Implemented 2026-11-01, device check pending)
+
+See [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md#phase-3--online-dictionary).
+
+#### Domain
+- [x] **`DictionaryEntry` reshaped** to the API: word, phonetic, meanings (part of speech, numbered definitions with example/synonyms/antonyms), license and source URLs — `lib/domain/entity/dictionary/dictionary_entry.dart`
+- [x] **Typed lookup result**: found, not found, offline, failed
+- [x] **Input normalization**: trim, lowercase, strip surrounding punctuation and possessive `'s`; phrases and empty selections are not looked up
+- [x] **`ClearDictionaryCacheUseCase`**
+
+#### Data
+- [x] **`DictionaryDataSource`** interface with `remote/` (Retrofit, dictionaryapi.dev) and `mock/` (fixture with "hello", "book", "read"); staging/production use remote, development uses the mock through `@Environment` bindings (the template `DataSourceFactory` no longer exists)
+- [x] **Dio** with 8-second connect/receive timeouts and no retry loop
+- [x] **Error mapping**: 404 → not found; connection errors, timeouts and socket errors → offline; anything else (including 502s and malformed JSON) → failed
+- [x] **Drift `dictionary_cache_entries` table** (schema v8): found results kept until cleared, not-found cached for 7 days, unreadable rows dropped
+- [x] **In-memory cache** in front of Drift; concurrent lookups share one request; offline/failed answers are retried
+- [x] **Word is URL-encoded** before the request
+- [x] **`INTERNET` permission in the main Android manifest**, plus an `https` VIEW query for opening attribution links
+
+#### Presentation
+- [x] **Lookup sheet** (`DictionaryLookupCubit` + `DictionaryLookupSheet`): headword, phonetic, part-of-speech groups, numbered definitions, examples, synonym chips; loading, not found, offline, failed with Retry, and "select a single word" states; Highlight and Copy always available
+- [x] **Attribution**: Wiktionary credit, license link and source link on every result, plus "only the looked-up word is sent online"
+- [x] **Settings → Dictionary**: "Online dictionary" switch (on by default; off means cache-only) and "Clear saved definitions"
+- [x] **Privacy screen** states that only the looked-up word is sent to dictionaryapi.dev
+
+#### Verification
+- [x] **Tests**: normalization cases, API mapper with a "hello" fixture, cache round trip, repository (cache hit across restarts, shared concurrent request, 404 + 7-day TTL, three offline cases, 500, malformed response, online-off, clear cache, URL encoding), Cubit states and retry, schema v1–v7 → v8 migration
+- [x] `flutter analyze` (no issues), `flutter test` (95 passed, 2 PDF skipped), staging debug APK builds
+- [x] Mapper checked against live API responses ("run", "serendipity"); the live 404 body matches the expected shape. The API returned intermittent HTTP 502s during the check, which show as "Lookup could not be completed" with Try again
+- [ ] **Device check**: an online lookup, the same lookup again in airplane mode, a missing word, and the attribution links on a physical phone (staging flavor)
+
+### 🟢 Plan Phase 4 — Premium Appearance (Implemented 2026-11-01, Play sandbox check pending)
+
+See [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md#phase-4--premium-appearance).
+
+#### Catalog
+- [x] **`AppearanceCatalog`** (`lib/domain/entity/premium/appearance_catalog.dart`) with a premium flag on every theme, font and preset
+- [x] **Free:** Light, Sepia and Dark themes; the book's own font, Serif and Sans; the Standard style
+- [x] **Premium themes:** Twilight, Night contrast, Sepia contrast, Sage (the first three are ReadEra-review candidates, designed independently)
+- [x] **Premium fonts:** Literata, Source Serif 4, EB Garamond (OFL, static TTFs bundled under `assets/fonts/`, licences registered); registered with the Readium EPUB navigator through `fontFamilyDeclarations` and used by the fallback text renderers
+- [x] **Style presets:** Standard (free), Classic, Airy, Compact — each sets font, size, line spacing, margins and alignment
+- [x] **New `readerFont` setting**, stored in the existing key/value settings table (no schema change)
+- [x] Page colours now live in the catalog; the duplicated palettes in `reader_screen.dart` and `readium_document_session.dart` are gone
+- [ ] **Import your own font** (`.ttf`/`.otf`) — ReadEra-review candidate, not built; moved to v1.1 candidates
+
+#### Gating
+- [x] Reader settings sheet: Font and Style sections (hidden for PDF); premium chips show a lock; picking one previews it live on the page with an "Unlock" banner
+- [x] A preview is never saved, and closing the sheet ends it; unlocking from the banner keeps the previewed look
+- [x] **Expiry/refund:** the page falls back to the closest free look (night themes → Dark, Sepia contrast → Sepia, Sage → Light, premium fonts → the book's own); the saved premium choice is kept and returns after a restore, even if other settings change meanwhile
+- [x] Development flavor: everything unlocked, as before
+
+#### Billing
+- [x] **`BillingService`** domain interface; `PlayBillingService` (`in_app_purchase` + `in_app_purchase_android`) for staging/production, `MockBillingService` for development
+- [x] **One-time non-consumable product `premium_appearance`** (assumed; see open decisions)
+- [x] Purchases acknowledged (Play refunds unacknowledged ones after 3 days); pending payments do not unlock
+- [x] **`PremiumCubit`** (app-wide): the cached entitlement decides at launch, then Play is asked once per launch; only a definite "not owned" (refund) locks again, so an offline user is never locked out
+- [x] **Restore purchase** with "nothing to restore" and "store unavailable" results
+- [x] **Paywall sheet** (from the preview banner and Settings → Premium appearance): what is included, "everything else stays free", price from Play, Unlock, Restore, pending/failed/unavailable messages. Phase 5 restyles it
+- [x] Stale "export limit"/"offline limits" comments removed; no limit rules remained in code
+
+#### Verification
+- [x] **Tests:** catalog flags, effective fallback, what gets saved during preview and after expiry; `PremiumCubit` (development unlocked, locked start with price, offline keeps cache, refund locks and clears cache, purchase unlocks and caches, pending/canceled/failed stay locked, no product → store unavailable, restore found/none/unreachable); settings round trip of `readerFont`
+- [x] `flutter analyze` (no issues), `flutter test` (113 passed, 2 PDF skipped), staging debug APK builds
+- [ ] **Play Console:** create the `premium_appearance` in-app product and price, upload a build to a test track, add licence testers
+- [ ] **Play sandbox check:** purchase, restore after reinstall, refund → relock, pending payment, airplane-mode launch with a cached purchase
+- [ ] **Device check:** each premium theme and font in a Readium EPUB and a TXT/Markdown book; preview and revert in the settings sheet
+
+### 🟢 Plan Phase 5 — Surface Redesign (Done 2026-11-01, tablet check on hardware pending)
+
+See [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md#phase-5--surface-redesign-impeccable).
+
+#### 1. Library — harden and audit done (redesign was done in Phase 2)
+- [x] Grid/list choice and sort order are saved and restored (fixes the Phase 2 bug)
+- [x] Settings updates run in one transaction, so two quick changes no longer overwrite each other (found by the restart test)
+- [x] Load error shows calm copy ("Your books are still on this device") instead of a raw exception string
+- [x] No-results state has a "Clear search" action
+- [x] TalkBack: grid tiles and list rows announce title, author, format and progress once; book actions are in the accessibility actions menu on grid tiles
+- [x] Continue-reading card announces "title, author, format, progress, recency" once
+- [x] Checked on the phone (CPH2819): list view restored after relaunch, TalkBack labels read once, shelf with EPUB and MD books
+- [ ] Tablet-size screenshot review (with the final adapt pass)
+
+#### Highlights fixed (reported 2026-11-01: "the highlight color is not visible")
+- [x] **Cause:** highlights were saved but never drawn. Readium (EPUB/PDF) was never given decorations, and the TXT/Markdown/HTML/FB2 and PDF-text pages rendered plain text
+- [x] EPUB/PDF: highlights drawn through Readium `applyDecorations` when the book is ready, after a save, after the annotations sheet closes (edits/deletes) and when the page switches between light and dark
+- [x] Fallback pages: highlights drawn as text spans (`markedText`, unit-tested: trimmed selections, overlaps, missing text, dark tints)
+- [x] Tints per page brightness (`HighlightTint`): pale on light pages (text ≥7:1), deep on dark pages (text ≥5:1)
+- [x] The EPUB "Highlight" action now opens the colour picker instead of always saving yellow
+- [x] Fallback pages: Highlight and Look up are in the text selection toolbar, as in the EPUB reader. Continuous-scroll mode had no way to highlight or look up at all; paginated mode popped a sheet on every selection change
+- [x] Readium `publisherStyles: false`, so line spacing, alignment and margins actually apply to EPUBs
+- [x] Verified on the phone: EPUB yellow on Dark, pink on Sage and Dark, Markdown green on Dark and Light, highlights persist across reopen
+- [ ] **Known limit:** EPUBs whose stylesheet hard-codes heading colours (seen in a Google Docs export) show black headings on dark page themes. Readium's text colour skips h1–h6 by design and relies on its night theme, which flutter_readium 0.6.2 always passes as null. Needs a plugin fork or an upstream change
+
+#### 2. Reader chrome — built and checked on the phone (2026-11-01)
+Surface brief: `.impeccable/surfaces/lib-presentation-screen-reader-reader-screen-dart.md`.
+- [x] Top bar: back, book title (was squeezed out by seven icons), bookmark
+- [x] Bottom bar: progress bar in the book's format band colour with percent, or "Page n of m" with previous/next for paged fallback books; four labelled tools: Contents, Search, Notes, Appearance (plus Pages for fallback PDFs)
+- [x] Immersive reading: a centre tap toggles the bars and a page turn hides them (Readium `shouldShowControls`, fallback tap zones); continuous scrolling hides them on scroll down and shows them on scroll up; 200 ms slide, none with reduced motion
+- [x] Status bar icons follow what is behind them (the bar, or a light or dark page)
+- [x] The separate Bookmarks sheet is removed; Notes lists bookmarks and highlights together
+- [x] Loading drawn in the page colours with a band-coloured spinner (was near-invisible grey on white)
+- [x] Open errors show calm copy on the chrome ink instead of a raw exception string
+- [x] Readium's page-turn and controls labels are localized for TalkBack
+- [x] Appearance sheet: themes shown as swatches (page colour with "Aa" in its text colour, lock badge when premium is locked); sheet and section headings follow DESIGN.md
+- [x] Fallback text pads clear of the bars, so the first and last lines are never hidden
+- [ ] Harden/audit pass on Contents, Search and Notes sheets (spacing and empty states)
+- [ ] Known: when the bars are shown over a Readium page they cover its top and bottom lines until the next page turn
+
+#### 3. Selection and lookup — built and checked on the phone (2026-11-01)
+- [x] Selection toolbar: Highlight and Look up on every renderer (Readium actions; `contextMenuBuilder` on fallback pages)
+- [x] One highlight sheet (`highlight_editor_sheet.dart`) for creating and editing: the quote, an optional note, and four swatches drawn in the tint the current page will use. Creating saves on the first colour tap (with the note); editing selects a colour and saves with a button. Replaces the four-chip colour sheet and the edit dialog
+- [x] Highlight from the dictionary closes the definition first, then opens the highlight sheet (was: always yellow, no note)
+- [x] Dictionary sheet: headword in the Display style; the sheet fits its content up to 75% of the screen (was a fixed 62% with empty space); the not-found state has an icon and explains base forms; Copy and Highlight share the width
+- [x] Text fields inside sheets fill one tonal step above the sheet (card-high), so they have an edge
+- [x] Verified: look up a missing word, highlight from the dictionary with a typed note in blue, edit it from Notes
+- [ ] Readium draws its own green selection handles; they cannot be themed from Dart
+
+#### 4. Notes panel and export — built and checked on the phone (2026-11-01)
+- [x] `NotesSheet` (`widgets/notes_sheet.dart`) replaces the annotations list: titled "Notes" to match the toolbar
+- [x] All / Highlights / Bookmarks filters with counts
+- [x] Each highlight's quote is drawn in its own colour (the deep tint, readable on the dark sheet), with its note below
+- [x] Every entry shows where it is and when: "3% · Nov 1" for EPUB, "Page n" for paged formats
+- [x] One ⋮ menu per entry (Edit for highlights, Delete) instead of two icon buttons; the meaningless "Highlight" subtitle is gone
+- [x] Deleting asks first, and mentions when the highlight's note goes with it
+- [x] **Fixed:** the export copied the notes as they were when the panel opened, missing edits and deletions made in it; it now exports the current list
+- [x] Labelled "Copy as Markdown" with a line saying what it copies
+- [x] New EPUB bookmarks are named after the chapter (Readium locator title), else "Bookmark"; existing ones keep their saved title
+- [x] Empty and filtered-empty states
+
+#### 5. Settings and Privacy — built and checked on the phone (2026-11-01)
+- [x] Sections in order of use: Reading, Dictionary, Backup and restore, Purchases, About
+- [x] New Reading section: "Keep screen on while reading" and "Scroll instead of turning pages" (were reader-only), with a note that theme, font and spacing live under Appearance in the reader
+- [x] Every row uses one tile layout (switch rows toggle on a tap anywhere and read as one control); the mixed `ListTile`/`SwitchListTile` indents are gone
+- [x] "Premium appearance" no longer appears twice (section is now "Purchases")
+- [x] About: "Open-source licenses" opens the licence page, so the bundled fonts' OFL notices are reachable
+- [x] Privacy rebuilt as a reading page (headings and paragraphs, max 560 wide) instead of three bordered icon cards; removed orange icons (One Orange Rule) and translucent body text (Readable Muted Rule); added a back button
+- [x] Privacy adds "Purchases" (Google Play only reports ownership) and "No tracking" (no ads, analytics or crash reporting; checked against pubspec)
+- [x] The shared app bar's back button has a TalkBack label
+- [ ] The app version in About is still hard-coded as 1.0.0
+
+#### 6. Premium sheet — built and checked on the phone (2026-11-01)
+- [x] Shows the looks themselves: the four premium themes as page swatches with "Aa" in their colours, the three fonts each set in its own typeface, and the presets by name
+- [x] Calm offer: store price on the button ("Unlock" until Play returns one), "One-time purchase. No subscription.", "everything else stays free", Restore purchase; no countdowns, badges or guilt copy
+- [x] "Thank you!" only right after a purchase or restore; an already-unlocked build (development) says "Premium appearance is unlocked."
+- [x] Purchase and restore show progress in their own buttons; result messages are a live region for TalkBack
+- [x] Checked in development (unlocked) and staging (locked; Unlock without a Play product shows "The store can't be reached…")
+- [ ] The staging app (`com.linguapages.app.stg`) is left installed on the phone for the Phase 3/4 device checks
+
+#### 7. Onboarding — built and checked on the phone (2026-11-01)
+- [x] One screen, three facts, one action (the plan allowed up to three steps; one is enough)
+- [x] A shelf of six banded covers, one per supported format, as the hero: the design's signature and the "every format" promise, with one TalkBack label listing the formats
+- [x] Removed the orange banner and orange icons (One Orange Rule), the bordered cards and the translucent text (Readable Muted Rule)
+- [x] Points rewritten for the reader: "Every format, one shelf", "Private by design", "Select to highlight or define"
+- [x] **Copy fix:** "Works offline … No account needed" omitted that look-ups go online; the privacy point now says only a looked-up word is sent, as PRODUCT.md requires
+- [x] "Go to your library" leads to the empty library, whose Import button is the next step
+- [x] Checked on a fresh staging install (the phone blocks `pm clear`, so the staging app was reinstalled)
+
+#### 8. Launch screen and app icon — built and checked on the phone (2026-11-01)
+- [x] New app icon: three paperbacks on ink in the EPUB, PDF and TXT band colours (adaptive vector foreground, ink background, PNGs for API 24–25); development and staging add a violet or mustard dot
+- [x] Native launch screen: ink with the mark in both system modes, plus Android 12+ splash attributes (`values-v31`); the white template unicorn is gone
+- [x] Flutter splash routes on the first frame (was a 1.8 s animation on an orange gradient with "A production-grade Clean Architecture starter"); unused `splashTagline` removed
+- [ ] The installed staging app still shows the old icon until it is reinstalled from this build
+
+#### Sheets hardening
+- [x] Search: no "No results" before the first search; a live result count; the match set in bold; Readium snippets trimmed to about 60 characters before the match so it shows within three lines (pieces joined without inserted spaces)
+- [x] Contents: no list numbering; the current chapter is marked only when exactly one entry points at the current file (one-file books cannot be told apart)
+
+#### Adapt and polish
+- [x] Navigation rail from 600dp (tablets), not only in phone landscape
+- [x] Settings capped at 640 wide; Privacy and onboarding at 560
+- [x] Unused template widgets removed (animation, buttons, bottom sheet, dialogs, input field, internet overlay, date/dropdown pickers, pagination) — they held the last hard-coded light colours; no `Color(0x…)` literals remain in `lib/presentation/screen` or `lib/presentation/widgets`
+- [x] DESIGN.md records Sheets, Reader Chrome, Reading Page Themes, Highlights and App Mark
+- [ ] Landscape and tablet layouts were checked in code only: the test phone was in use, so its rotation was restored at once and its display size was not changed
+
+#### Exit criteria
+- [x] Every route uses the shared widgets and tokens
+- [x] Contrast: new colours measured (highlight tints ≥5:1 on dark pages, ≥7:1 on light); touch targets ≥48dp; TalkBack labels added for books, tools, swatches, sheets and the back button
+- [ ] Screenshots reviewed at phone size on the CPH2819; tablet-size review still pending
+
+#### Found on the phone, to fix in later surfaces
+
+#### Remaining surfaces
+- [x] 2. Reader chrome · [x] 3. Selection and lookup · [x] 4. Annotations panel and export · [x] 5. Settings · [x] 6. Paywall · [x] 7. Onboarding · [x] 8. Splash and app icon · [x] polish and adapt (tablet hardware check pending)
+
 ## Progress Gauge
 
 | Phase | Estimated Completion |
@@ -418,9 +601,12 @@ See [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md#phase-8--read-aloud). `flutt
 | Phase 1 — Foundation | 🟡 ~80% (entities, schema v6, locator persistence, local repositories, use cases and explicit upgrade-path coverage exist; production integrations remain) |
 | Phase 2 — Library & importing | 🟡 ~85% (picker and Android intent import, private storage, metadata/EPUB covers/TOC, grid/list UI, sorting, badges, progress summaries, deletion and localized import-error handling exist; PDF covers and richer library controls remain) |
 | Phase 3 — Reader core | 🟡 ~90% (native Readium EPUB/PDF reader, fallback adapters, native and fallback TOC/search jumps, paginated/continuous modes, debounced locator persistence, appearance/alignment controls, PDF fit/text modes, wake-lock, tap zones, fallback thumbnails and explicit zoom controls exist; adapter hardening and target-device validation remain) |
-| Phase 4 — Annotations & dictionary | 🟡 ~80% (bookmarks, four-color highlights, unified annotation management, editable notes, Markdown export and lookup caching are done; single-language definition lookup remains) |
+| Phase 4 — Annotations & dictionary | 🟢 ~100% (bookmarks, four-color highlights, unified annotation management, editable notes, Markdown export and the online English dictionary are done; device check of the dictionary pending) |
+| Plan Phase 3 — Online dictionary | 🟢 ~95% (implemented and tested 2026-11-01; physical-device check pending) |
 | Phase 5 — Language-learning removal | 🟢 100% (removed 2026-10-29; schema v7 drops the study tables) |
-| Phase 6 — Onboarding, premium, backup | 🟡 ~30% (metadata backup/restore, privacy and local entitlement caching exist; onboarding rewrite, premium entitlement decision, Play Billing, binary-file backup and encryption remain) |
+| Phase 6 — Onboarding, premium, backup | 🟡 ~60% (metadata backup/restore, privacy, premium appearance and Play Billing exist; onboarding rewrite, binary-file backup and encryption remain) |
+| Plan Phase 5 — Surface redesign | 🟢 ~95% (all eight surfaces rebuilt and checked on a phone 2026-11-01; tablet hardware review pending) |
+| Plan Phase 4 — Premium appearance | 🟢 ~85% (implemented and tested 2026-11-01; Play Console product, sandbox purchase and device checks pending) |
 | Phase 7 — Hardening & launch | 🟡 ~15% (analysis clean; the automated suite covers domain library contracts and LibraryCubit transitions/recovery alongside metadata/TOC import persistence, typed import failures, locator serialization and delete cleanup with 2 environment-skipped PDF tests; widget, integration, compatibility and performance coverage remain pending device access) |
 | Plan Phase 7 — Reader and library parity | 🔴 0% (added 2026-11-01; most reader-comfort items are existing Readium preferences that need controls) |
 | Plan Phase 8 — Read aloud | 🔴 0% (added 2026-11-01; Readium TTS API is available, background playback needs a spike) |

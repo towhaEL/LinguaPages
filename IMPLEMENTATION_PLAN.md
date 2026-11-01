@@ -17,7 +17,7 @@ Target: Android-first v1.0 of a private ebook reader for every common DRM-free f
 
 ## Where we are
 
-Already built and verified (see the status doc): Drift foundation (schema v7), import with validation, metadata, covers and TOC, the library UI, the native Readium EPUB/PDF reader plus fallback engines, reader settings, search, bookmarks, highlights, notes, Markdown export, metadata backup/restore and a local entitlement cache. Phase 1 (cleanup and English-only) and Phase 2 (design foundation, "Paperback Bands") are done.
+Already built and verified (see the status doc): Drift foundation (schema v8), import with validation, metadata, covers and TOC, the library UI, the native Readium EPUB/PDF reader plus fallback engines, reader settings, search, bookmarks, highlights, notes, Markdown export, metadata backup/restore and a local entitlement cache. Phase 1 (cleanup and English-only), Phase 2 (design foundation, "Paperback Bands"), Phase 3 (online dictionary, physical-device check pending) Phase 4 (premium appearance, Play sandbox check pending) and Phase 5 (surface redesign, tablet hardware check pending) are done.
 
 ## Architecture rules
 
@@ -25,7 +25,7 @@ Already built and verified (see the status doc): Drift foundation (schema v7), i
 - SQLite/Drift is the local source of truth. Book files and covers live in app-private storage.
 - `DocumentEngine` stays a domain abstraction with one adapter per format.
 - BLoCs/Cubits call use cases or repository interfaces, never plugins, Dio or Drift directly.
-- Network access exists only for the dictionary. It goes through the CLAUDE.md data-source pattern: an interface plus `remote/` (Retrofit) and `mock/` implementations behind `DataSourceFactory`. The development flavor uses the mock and stays fully offline.
+- Network access exists only for the dictionary. It goes through a data-source interface with `remote/` (Retrofit) and `mock/` implementations, chosen per flavor with `@Environment` bindings. The development flavor uses the mock and stays fully offline.
 - Platform features (file import, billing, wake-lock) stay behind interfaces.
 
 ## Phase plan
@@ -34,16 +34,16 @@ Already built and verified (see the status doc): Drift foundation (schema v7), i
 |---|---:|---|
 | 1. Cleanup and English-only ✅ | 1–1.5 weeks | No language-learning code, data, flags or copy; English is the only locale |
 | 2. Design foundation (Impeccable) ✅ | 1–1.5 weeks | A recorded dark design world in DESIGN.md, implemented as Flutter theme tokens with bundled fonts |
-| 3. Online dictionary | 1.5–2 weeks | Free Dictionary API lookup with cache, offline/error states and attribution |
-| 4. Premium appearance | 2 weeks | Theme/font/style catalog, gating, Play Billing, restore |
-| 5. Surface redesign (Impeccable) | 3–4 weeks | Library, reader chrome, sheets, settings, paywall, onboarding and splash rebuilt on the new design |
+| 3. Online dictionary ✅ | 1.5–2 weeks | Free Dictionary API lookup with cache, offline/error states and attribution |
+| 4. Premium appearance ✅ | 2 weeks | Theme/font/style catalog, gating, Play Billing, restore |
+| 5. Surface redesign (Impeccable) ✅ | 3–4 weeks | Library, reader chrome, sheets, settings, paywall, onboarding and splash rebuilt on the new design |
 | 6. Library and backup completion | 1.5 weeks | PDF covers, chapter progress, backup without study data, optional book files |
 | 7. Reader and library parity | 3–4 weeks | Typography and layout controls, page-turn controls, shelves, collections, trash, metadata editing, cross-book annotations |
 | 8. Read aloud | 2 weeks | Readium text-to-speech with voice, speed, sleep timer, sentence highlight and background playback |
 | 9. Hardening | 3 weeks | Corpus, performance, accessibility, failure testing |
 | 10. Beta and Android release | 1–2 weeks | Closed beta, store listing, Data Safety, release |
 
-Estimated remaining effort (Phases 3–10): about 17–21 weeks for one experienced developer. Phases 7 and 8 can run before Phase 5 so the redesign covers their screens; otherwise Phase 5 needs a second pass for them.
+Estimated remaining effort (Phases 6–10): about 10.5–12.5 weeks for one experienced developer. Phases 7 and 8 can run before Phase 5 so the redesign covers their screens; otherwise Phase 5 needs a second pass for them.
 
 ---
 
@@ -158,7 +158,9 @@ Exit criteria:
 - No crash when the API is down.
 - The development flavor never touches the network.
 
-## Phase 4 — Premium appearance
+## Phase 4 — Premium appearance ✅
+
+> Implemented 2026-11-01 as a one-time non-consumable product, `premium_appearance` (an assumption; confirm under Open decisions). Remaining: create the product in Play Console and run the sandbox checks in the exit criteria. Font import was not built and moved to v1.1 candidates. Details are in the status doc.
 
 Goal: users can pay for extra looks. Nothing functional is ever locked.
 
@@ -183,7 +185,9 @@ Exit criteria:
 - An expired entitlement falls back cleanly.
 - Every feature apart from appearance works without premium.
 
-## Phase 5 — Surface redesign (Impeccable)
+## Phase 5 — Surface redesign (Impeccable) ✅
+
+> Done 2026-11-01. All eight surfaces were rebuilt in order and checked on a phone; highlights now draw on every renderer (they were saved but never shown). Remaining: a tablet-size review on hardware, and the Readium limits noted in the status doc (hard-coded heading colours on dark themes, green selection handles). Phases 7 and 8 add new screens that will need the same treatment.
 
 Goal: every screen rebuilt on the Phase 2 world. Do one surface per pass, in this order, so the most-used surfaces set the bar:
 
@@ -249,7 +253,7 @@ Selection menu:
 
 - Add Share, Search the web (opens the browser with the selected text) and "Send to app", which uses Android `ACTION_PROCESS_TEXT` so installed apps (dictionaries, note apps) can take the selection. LinguaPages sends nothing itself.
 
-Library organisation (schema v8):
+Library organisation (schema v9):
 
 - Reading shelves: To read, Reading and Finished, plus Favorites. A finished book can be marked manually or automatically at 100%.
 - Collections: user-named shelves, with a book allowed in several.
@@ -268,7 +272,7 @@ Annotations:
 Data and backup: the new shelf, collection, series and trash fields are included in the JSON backup, and restoring an older backup fills defaults.
 
 Tests:
-- the v7→v8 migration keeps books and annotations;
+- the v8→v9 migration keeps books and annotations;
 - shelf, collection and trash use cases;
 - duplicate-hash detection;
 - the reader settings mapping to Readium preferences;
@@ -340,6 +344,7 @@ Ship a closed beta first, then production.
 - More formats seen in ReadEra: RTF, ODT, DJVU, CHM, CBR and books inside ZIP archives. Check each library's licence first: MuPDF and DjVuLibre-based engines are AGPL/GPL, which would force the app's source to be published.
 - A personal book rating and review.
 - Android Auto playback for read aloud.
+- Importing the user's own font files (`.ttf`/`.otf`) as a premium appearance item, copied into app-private storage.
 
 ## Considered and excluded (ReadEra review, 2026-11-01)
 
@@ -355,6 +360,6 @@ These ReadEra features conflict with the decisions above and stay out unless a d
 
 ## Open decisions
 
-- Premium product type, product IDs and price (needed by the end of Phase 4).
+- Premium product type and price. Built as a one-time non-consumable unlock with product ID `premium_appearance`; changing to a subscription means adding base-plan offers and expiry handling in `PlayBillingService`. The price is set only in Play Console.
 - Whether "Online dictionary" defaults to on (planned) or asks on first use.
 - A self-hosted or bundled fallback if dictionaryapi.dev becomes unreliable. It has no SLA and no published rate limits.

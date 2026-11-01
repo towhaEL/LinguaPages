@@ -11,6 +11,23 @@
 
 import 'package:flutter/widgets.dart';
 
+class $AssetsFontsGen {
+  const $AssetsFontsGen();
+
+  /// Directory path: assets/fonts/eb_garamond
+  $AssetsFontsEbGaramondGen get ebGaramond => const $AssetsFontsEbGaramondGen();
+
+  /// Directory path: assets/fonts/figtree
+  $AssetsFontsFigtreeGen get figtree => const $AssetsFontsFigtreeGen();
+
+  /// Directory path: assets/fonts/literata
+  $AssetsFontsLiterataGen get literata => const $AssetsFontsLiterataGen();
+
+  /// Directory path: assets/fonts/source_serif_4
+  $AssetsFontsSourceSerif4Gen get sourceSerif4 =>
+      const $AssetsFontsSourceSerif4Gen();
+}
+
 class $AssetsImagesGen {
   const $AssetsImagesGen();
 
@@ -33,9 +50,50 @@ class $AssetsImagesGen {
   ];
 }
 
+class $AssetsFontsEbGaramondGen {
+  const $AssetsFontsEbGaramondGen();
+
+  /// File path: assets/fonts/eb_garamond/OFL.txt
+  String get ofl => 'assets/fonts/eb_garamond/OFL.txt';
+
+  /// List of all assets
+  List<String> get values => [ofl];
+}
+
+class $AssetsFontsFigtreeGen {
+  const $AssetsFontsFigtreeGen();
+
+  /// File path: assets/fonts/figtree/OFL.txt
+  String get ofl => 'assets/fonts/figtree/OFL.txt';
+
+  /// List of all assets
+  List<String> get values => [ofl];
+}
+
+class $AssetsFontsLiterataGen {
+  const $AssetsFontsLiterataGen();
+
+  /// File path: assets/fonts/literata/OFL.txt
+  String get ofl => 'assets/fonts/literata/OFL.txt';
+
+  /// List of all assets
+  List<String> get values => [ofl];
+}
+
+class $AssetsFontsSourceSerif4Gen {
+  const $AssetsFontsSourceSerif4Gen();
+
+  /// File path: assets/fonts/source_serif_4/OFL.txt
+  String get ofl => 'assets/fonts/source_serif_4/OFL.txt';
+
+  /// List of all assets
+  List<String> get values => [ofl];
+}
+
 class Assets {
   const Assets._();
 
+  static const $AssetsFontsGen fonts = $AssetsFontsGen();
   static const $AssetsImagesGen images = $AssetsImagesGen();
 }
 

@@ -2469,6 +2469,275 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
   }
 }
 
+class $DictionaryCacheEntriesTable extends DictionaryCacheEntries
+    with TableInfo<$DictionaryCacheEntriesTable, DictionaryCacheEntry> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DictionaryCacheEntriesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _wordMeta = const VerificationMeta('word');
+  @override
+  late final GeneratedColumn<String> word = GeneratedColumn<String>(
+    'word',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _jsonMeta = const VerificationMeta('json');
+  @override
+  late final GeneratedColumn<String> json = GeneratedColumn<String>(
+    'json',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _fetchedAtMeta = const VerificationMeta(
+    'fetchedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> fetchedAt = GeneratedColumn<DateTime>(
+    'fetched_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [word, json, fetchedAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'dictionary_cache_entries';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<DictionaryCacheEntry> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('word')) {
+      context.handle(
+        _wordMeta,
+        word.isAcceptableOrUnknown(data['word']!, _wordMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_wordMeta);
+    }
+    if (data.containsKey('json')) {
+      context.handle(
+        _jsonMeta,
+        json.isAcceptableOrUnknown(data['json']!, _jsonMeta),
+      );
+    }
+    if (data.containsKey('fetched_at')) {
+      context.handle(
+        _fetchedAtMeta,
+        fetchedAt.isAcceptableOrUnknown(data['fetched_at']!, _fetchedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_fetchedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {word};
+  @override
+  DictionaryCacheEntry map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DictionaryCacheEntry(
+      word: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}word'],
+      )!,
+      json: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}json'],
+      ),
+      fetchedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}fetched_at'],
+      )!,
+    );
+  }
+
+  @override
+  $DictionaryCacheEntriesTable createAlias(String alias) {
+    return $DictionaryCacheEntriesTable(attachedDatabase, alias);
+  }
+}
+
+class DictionaryCacheEntry extends DataClass
+    implements Insertable<DictionaryCacheEntry> {
+  /// Normalized lookup word.
+  final String word;
+
+  /// API response JSON, or null when the API had no definition.
+  final String? json;
+  final DateTime fetchedAt;
+  const DictionaryCacheEntry({
+    required this.word,
+    this.json,
+    required this.fetchedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['word'] = Variable<String>(word);
+    if (!nullToAbsent || json != null) {
+      map['json'] = Variable<String>(json);
+    }
+    map['fetched_at'] = Variable<DateTime>(fetchedAt);
+    return map;
+  }
+
+  DictionaryCacheEntriesCompanion toCompanion(bool nullToAbsent) {
+    return DictionaryCacheEntriesCompanion(
+      word: Value(word),
+      json: json == null && nullToAbsent ? const Value.absent() : Value(json),
+      fetchedAt: Value(fetchedAt),
+    );
+  }
+
+  factory DictionaryCacheEntry.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DictionaryCacheEntry(
+      word: serializer.fromJson<String>(json['word']),
+      json: serializer.fromJson<String?>(json['json']),
+      fetchedAt: serializer.fromJson<DateTime>(json['fetchedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'word': serializer.toJson<String>(word),
+      'json': serializer.toJson<String?>(json),
+      'fetchedAt': serializer.toJson<DateTime>(fetchedAt),
+    };
+  }
+
+  DictionaryCacheEntry copyWith({
+    String? word,
+    Value<String?> json = const Value.absent(),
+    DateTime? fetchedAt,
+  }) => DictionaryCacheEntry(
+    word: word ?? this.word,
+    json: json.present ? json.value : this.json,
+    fetchedAt: fetchedAt ?? this.fetchedAt,
+  );
+  DictionaryCacheEntry copyWithCompanion(DictionaryCacheEntriesCompanion data) {
+    return DictionaryCacheEntry(
+      word: data.word.present ? data.word.value : this.word,
+      json: data.json.present ? data.json.value : this.json,
+      fetchedAt: data.fetchedAt.present ? data.fetchedAt.value : this.fetchedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DictionaryCacheEntry(')
+          ..write('word: $word, ')
+          ..write('json: $json, ')
+          ..write('fetchedAt: $fetchedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(word, json, fetchedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DictionaryCacheEntry &&
+          other.word == this.word &&
+          other.json == this.json &&
+          other.fetchedAt == this.fetchedAt);
+}
+
+class DictionaryCacheEntriesCompanion
+    extends UpdateCompanion<DictionaryCacheEntry> {
+  final Value<String> word;
+  final Value<String?> json;
+  final Value<DateTime> fetchedAt;
+  final Value<int> rowid;
+  const DictionaryCacheEntriesCompanion({
+    this.word = const Value.absent(),
+    this.json = const Value.absent(),
+    this.fetchedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  DictionaryCacheEntriesCompanion.insert({
+    required String word,
+    this.json = const Value.absent(),
+    required DateTime fetchedAt,
+    this.rowid = const Value.absent(),
+  }) : word = Value(word),
+       fetchedAt = Value(fetchedAt);
+  static Insertable<DictionaryCacheEntry> custom({
+    Expression<String>? word,
+    Expression<String>? json,
+    Expression<DateTime>? fetchedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (word != null) 'word': word,
+      if (json != null) 'json': json,
+      if (fetchedAt != null) 'fetched_at': fetchedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  DictionaryCacheEntriesCompanion copyWith({
+    Value<String>? word,
+    Value<String?>? json,
+    Value<DateTime>? fetchedAt,
+    Value<int>? rowid,
+  }) {
+    return DictionaryCacheEntriesCompanion(
+      word: word ?? this.word,
+      json: json ?? this.json,
+      fetchedAt: fetchedAt ?? this.fetchedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (word.present) {
+      map['word'] = Variable<String>(word.value);
+    }
+    if (json.present) {
+      map['json'] = Variable<String>(json.value);
+    }
+    if (fetchedAt.present) {
+      map['fetched_at'] = Variable<DateTime>(fetchedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DictionaryCacheEntriesCompanion(')
+          ..write('word: $word, ')
+          ..write('json: $json, ')
+          ..write('fetchedAt: $fetchedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$LinguaPageDatabase extends GeneratedDatabase {
   _$LinguaPageDatabase(QueryExecutor e) : super(e);
   $LinguaPageDatabaseManager get managers => $LinguaPageDatabaseManager(this);
@@ -2479,6 +2748,8 @@ abstract class _$LinguaPageDatabase extends GeneratedDatabase {
     this,
   );
   late final $AppSettingsTable appSettings = $AppSettingsTable(this);
+  late final $DictionaryCacheEntriesTable dictionaryCacheEntries =
+      $DictionaryCacheEntriesTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -2489,6 +2760,7 @@ abstract class _$LinguaPageDatabase extends GeneratedDatabase {
     bookmarks,
     readingSessions,
     appSettings,
+    dictionaryCacheEntries,
   ];
 }
 
@@ -4414,6 +4686,187 @@ typedef $$AppSettingsTableProcessedTableManager =
       AppSetting,
       PrefetchHooks Function()
     >;
+typedef $$DictionaryCacheEntriesTableCreateCompanionBuilder =
+    DictionaryCacheEntriesCompanion Function({
+      required String word,
+      Value<String?> json,
+      required DateTime fetchedAt,
+      Value<int> rowid,
+    });
+typedef $$DictionaryCacheEntriesTableUpdateCompanionBuilder =
+    DictionaryCacheEntriesCompanion Function({
+      Value<String> word,
+      Value<String?> json,
+      Value<DateTime> fetchedAt,
+      Value<int> rowid,
+    });
+
+class $$DictionaryCacheEntriesTableFilterComposer
+    extends Composer<_$LinguaPageDatabase, $DictionaryCacheEntriesTable> {
+  $$DictionaryCacheEntriesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get word => $composableBuilder(
+    column: $table.word,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get json => $composableBuilder(
+    column: $table.json,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get fetchedAt => $composableBuilder(
+    column: $table.fetchedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$DictionaryCacheEntriesTableOrderingComposer
+    extends Composer<_$LinguaPageDatabase, $DictionaryCacheEntriesTable> {
+  $$DictionaryCacheEntriesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get word => $composableBuilder(
+    column: $table.word,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get json => $composableBuilder(
+    column: $table.json,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get fetchedAt => $composableBuilder(
+    column: $table.fetchedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$DictionaryCacheEntriesTableAnnotationComposer
+    extends Composer<_$LinguaPageDatabase, $DictionaryCacheEntriesTable> {
+  $$DictionaryCacheEntriesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get word =>
+      $composableBuilder(column: $table.word, builder: (column) => column);
+
+  GeneratedColumn<String> get json =>
+      $composableBuilder(column: $table.json, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get fetchedAt =>
+      $composableBuilder(column: $table.fetchedAt, builder: (column) => column);
+}
+
+class $$DictionaryCacheEntriesTableTableManager
+    extends
+        RootTableManager<
+          _$LinguaPageDatabase,
+          $DictionaryCacheEntriesTable,
+          DictionaryCacheEntry,
+          $$DictionaryCacheEntriesTableFilterComposer,
+          $$DictionaryCacheEntriesTableOrderingComposer,
+          $$DictionaryCacheEntriesTableAnnotationComposer,
+          $$DictionaryCacheEntriesTableCreateCompanionBuilder,
+          $$DictionaryCacheEntriesTableUpdateCompanionBuilder,
+          (
+            DictionaryCacheEntry,
+            BaseReferences<
+              _$LinguaPageDatabase,
+              $DictionaryCacheEntriesTable,
+              DictionaryCacheEntry
+            >,
+          ),
+          DictionaryCacheEntry,
+          PrefetchHooks Function()
+        > {
+  $$DictionaryCacheEntriesTableTableManager(
+    _$LinguaPageDatabase db,
+    $DictionaryCacheEntriesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$DictionaryCacheEntriesTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$DictionaryCacheEntriesTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$DictionaryCacheEntriesTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> word = const Value.absent(),
+                Value<String?> json = const Value.absent(),
+                Value<DateTime> fetchedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => DictionaryCacheEntriesCompanion(
+                word: word,
+                json: json,
+                fetchedAt: fetchedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String word,
+                Value<String?> json = const Value.absent(),
+                required DateTime fetchedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => DictionaryCacheEntriesCompanion.insert(
+                word: word,
+                json: json,
+                fetchedAt: fetchedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$DictionaryCacheEntriesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$LinguaPageDatabase,
+      $DictionaryCacheEntriesTable,
+      DictionaryCacheEntry,
+      $$DictionaryCacheEntriesTableFilterComposer,
+      $$DictionaryCacheEntriesTableOrderingComposer,
+      $$DictionaryCacheEntriesTableAnnotationComposer,
+      $$DictionaryCacheEntriesTableCreateCompanionBuilder,
+      $$DictionaryCacheEntriesTableUpdateCompanionBuilder,
+      (
+        DictionaryCacheEntry,
+        BaseReferences<
+          _$LinguaPageDatabase,
+          $DictionaryCacheEntriesTable,
+          DictionaryCacheEntry
+        >,
+      ),
+      DictionaryCacheEntry,
+      PrefetchHooks Function()
+    >;
 
 class $LinguaPageDatabaseManager {
   final _$LinguaPageDatabase _db;
@@ -4428,4 +4881,9 @@ class $LinguaPageDatabaseManager {
       $$ReadingSessionsTableTableManager(_db, _db.readingSessions);
   $$AppSettingsTableTableManager get appSettings =>
       $$AppSettingsTableTableManager(_db, _db.appSettings);
+  $$DictionaryCacheEntriesTableTableManager get dictionaryCacheEntries =>
+      $$DictionaryCacheEntriesTableTableManager(
+        _db,
+        _db.dictionaryCacheEntries,
+      );
 }

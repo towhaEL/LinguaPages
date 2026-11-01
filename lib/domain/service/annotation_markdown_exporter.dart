@@ -6,8 +6,7 @@ import 'package:lingua_pages/domain/entity/reader/highlight_entity.dart';
 /// Converts local annotations into a portable Markdown document.
 ///
 /// The exporter deliberately has no file-system or sharing dependency. The
-/// presentation layer can copy or save the returned Markdown, and a future
-/// premium/export implementation can reuse the same stable contract.
+/// presentation layer can copy or save the returned Markdown.
 class AnnotationMarkdownExporter {
   const AnnotationMarkdownExporter();
 

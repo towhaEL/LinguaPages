@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:injectable/injectable.dart';
 import 'package:logger/logger.dart';
@@ -15,6 +16,20 @@ abstract class StorageModule {
   @preResolve
   Future<SharedPreferences> get sharedPreferences =>
       SharedPreferences.getInstance();
+}
+
+@module
+abstract class NetworkModule {
+  /// Only the dictionary uses the network. Short timeouts and no retries
+  /// keep a slow API from blocking the lookup sheet.
+  @lazySingleton
+  Dio get dio => Dio(
+    BaseOptions(
+      connectTimeout: const Duration(seconds: 8),
+      receiveTimeout: const Duration(seconds: 8),
+      headers: {'Accept': 'application/json'},
+    ),
+  );
 }
 
 @module

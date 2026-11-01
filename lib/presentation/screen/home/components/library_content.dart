@@ -1,5 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lingua_pages/domain/entity/library/book_entity.dart';
 import 'package:lingua_pages/domain/repository/library/library_repository.dart';
@@ -71,7 +72,8 @@ class _LibraryContentState extends State<LibraryContent> {
                 icon: Icons.error_outline_rounded,
                 iconColor: context.colors.error,
                 title: context.l10n.libraryLoadError,
-                body: state.errorMessage,
+                // The raw error is logged; the reader gets reassurance.
+                body: context.l10n.libraryLoadErrorBody,
                 action: FilledButton.icon(
                   onPressed: context.read<LibraryCubit>().load,
                   icon: const Icon(Icons.refresh_rounded),
@@ -135,7 +137,12 @@ class _LibraryContentState extends State<LibraryContent> {
                     ),
                 ],
                 if (state.books.isEmpty)
-                  SliverToBoxAdapter(child: _LibraryEmpty(query: state.query))
+                  SliverToBoxAdapter(
+                    child: _LibraryEmpty(
+                      query: state.query,
+                      onClearSearch: _closeSearch,
+                    ),
+                  )
                 else if (state.viewMode == LibraryViewMode.list)
                   _BookList(books: state.books)
                 else
@@ -200,68 +207,83 @@ class _ContinueReadingCard extends StatelessWidget {
 
     return Card(
       clipBehavior: Clip.antiAlias,
-      child: InkWell(
+      // Read once as "title, author, format, progress, recency"; the Resume
+      // button below is the single action.
+      child: Semantics(
+        container: true,
+        excludeSemantics: true,
+        button: true,
+        label: [
+          book.title,
+          ?book.author,
+          formatCode(book.format),
+          context.l10n.libraryProgressPercent(percent),
+          if (lastReadDays != null) context.l10n.libraryLastRead(lastReadDays),
+        ].join(', '),
         onTap: () => _openBook(context, book),
-        child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(width: 96, child: BookCover(book: book)),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      book.title,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: text.titleLarge?.copyWith(
-                        fontSize: 22,
-                        height: 1.15,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    if (book.author != null) ...[
-                      const SizedBox(height: 4),
+        child: InkWell(
+          onTap: () => _openBook(context, book),
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(width: 96, child: BookCover(book: book)),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                       Text(
-                        book.author!,
-                        maxLines: 1,
+                        book.title,
+                        maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: text.bodyMedium?.copyWith(
-                          color: colors.onSurfaceMuted,
+                        style: text.titleLarge?.copyWith(
+                          fontSize: 22,
+                          height: 1.15,
+                          fontWeight: FontWeight.w800,
                         ),
                       ),
+                      if (book.author != null) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          book.author!,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: text.bodyMedium?.copyWith(
+                            color: colors.onSurfaceMuted,
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 16),
+                      BandProgressBar(progress: book.progress, color: band),
+                      const SizedBox(height: 6),
+                      // Books carry no chapter or reading-speed data; position
+                      // is shown as percent read and recency.
+                      DefaultTextStyle.merge(
+                        style: text.labelMedium?.copyWith(
+                          color: colors.onSurfaceMuted,
+                          fontFeatures: _tabular,
+                        ),
+                        child: Row(
+                          children: [
+                            Text(context.l10n.libraryProgressPercent(percent)),
+                            const Spacer(),
+                            if (lastReadDays != null)
+                              Text(context.l10n.libraryLastRead(lastReadDays)),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      FilledButton(
+                        onPressed: () => _openBook(context, book),
+                        child: Text(context.l10n.libraryResume),
+                      ),
                     ],
-                    const SizedBox(height: 16),
-                    BandProgressBar(progress: book.progress, color: band),
-                    const SizedBox(height: 6),
-                    // Books carry no chapter or reading-speed data; position
-                    // is shown as percent read and recency.
-                    DefaultTextStyle.merge(
-                      style: text.labelMedium?.copyWith(
-                        color: colors.onSurfaceMuted,
-                        fontFeatures: _tabular,
-                      ),
-                      child: Row(
-                        children: [
-                          Text(context.l10n.libraryProgressPercent(percent)),
-                          const Spacer(),
-                          if (lastReadDays != null)
-                            Text(context.l10n.libraryLastRead(lastReadDays)),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    FilledButton(
-                      onPressed: () => _openBook(context, book),
-                      child: Text(context.l10n.libraryResume),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -395,27 +417,41 @@ class _GridBook extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    return InkWell(
-      borderRadius: BorderRadius.circular(6),
+    // One announcement per book; long-press actions stay reachable from
+    // TalkBack's actions menu.
+    return Semantics(
+      button: true,
+      excludeSemantics: true,
+      label:
+          '${book.title}, ${formatCode(book.format)}, '
+          '${_progressLabel(context, book)}',
       onTap: () => _openBook(context, book),
-      onLongPress: () => _showBookActions(context, book),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          BookCover(book: book, compact: true),
-          const SizedBox(height: 8),
-          Text(
-            book.title,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: text.bodyMedium?.copyWith(
-              fontWeight: FontWeight.w700,
-              height: 1.2,
+      customSemanticsActions: {
+        CustomSemanticsAction(label: context.l10n.libraryBookActions): () =>
+            _showBookActions(context, book),
+      },
+      child: InkWell(
+        borderRadius: BorderRadius.circular(6),
+        onTap: () => _openBook(context, book),
+        onLongPress: () => _showBookActions(context, book),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            BookCover(book: book, compact: true),
+            const SizedBox(height: 8),
+            Text(
+              book.title,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: text.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+                height: 1.2,
+              ),
             ),
-          ),
-          const SizedBox(height: 2),
-          _ProgressCaption(book: book),
-        ],
+            const SizedBox(height: 2),
+            _ProgressCaption(book: book),
+          ],
+        ),
       ),
     );
   }
@@ -456,34 +492,56 @@ class _ListBook extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(_gutter, 12, 4, 12),
         child: Row(
           children: [
-            SizedBox(width: 44, child: BookCover(book: book, compact: true)),
-            const SizedBox(width: 14),
+            // The row announces title, author, format and progress once; the
+            // trailing actions button stays a separate target.
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    book.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: text.bodyLarge?.copyWith(
-                      fontWeight: FontWeight.w700,
+              child: Semantics(
+                button: true,
+                excludeSemantics: true,
+                label: [
+                  book.title,
+                  ?book.author,
+                  formatCode(book.format),
+                  _progressLabel(context, book),
+                ].join(', '),
+                onTap: () => _openBook(context, book),
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 44,
+                      child: BookCover(book: book, compact: true),
                     ),
-                  ),
-                  if (book.author != null) ...[
-                    const SizedBox(height: 2),
-                    Text(
-                      book.author!,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: text.bodyMedium?.copyWith(
-                        color: colors.onSurfaceMuted,
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            book.title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: text.bodyLarge?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          if (book.author != null) ...[
+                            const SizedBox(height: 2),
+                            Text(
+                              book.author!,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: text.bodyMedium?.copyWith(
+                                color: colors.onSurfaceMuted,
+                              ),
+                            ),
+                          ],
+                          const SizedBox(height: 2),
+                          _ProgressCaption(book: book),
+                        ],
                       ),
                     ),
                   ],
-                  const SizedBox(height: 2),
-                  _ProgressCaption(book: book),
-                ],
+                ),
               ),
             ),
             IconButton(
@@ -505,14 +563,8 @@ class _ProgressCaption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    final label = switch (book.progress) {
-      <= 0 => l10n.libraryProgressNotStarted,
-      >= 1 => l10n.libraryProgressFinished,
-      final progress => l10n.libraryProgressPercent((progress * 100).round()),
-    };
     return Text(
-      label,
+      _progressLabel(context, book),
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
       style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -521,6 +573,15 @@ class _ProgressCaption extends StatelessWidget {
       ),
     );
   }
+}
+
+String _progressLabel(BuildContext context, BookEntity book) {
+  final l10n = context.l10n;
+  return switch (book.progress) {
+    <= 0 => l10n.libraryProgressNotStarted,
+    >= 1 => l10n.libraryProgressFinished,
+    final progress => l10n.libraryProgressPercent((progress * 100).round()),
+  };
 }
 
 /// Whole calendar days since [date], or null when it was never read.
@@ -615,9 +676,10 @@ Future<void> _showDeleteBookDialog(
 }
 
 class _LibraryEmpty extends StatelessWidget {
-  const _LibraryEmpty({required this.query});
+  const _LibraryEmpty({required this.query, required this.onClearSearch});
 
   final String query;
+  final VoidCallback onClearSearch;
 
   @override
   Widget build(BuildContext context) {
@@ -631,7 +693,10 @@ class _LibraryEmpty extends StatelessWidget {
           ? context.l10n.libraryNoResultsBody
           : context.l10n.libraryEmptyBody,
       action: hasQuery
-          ? null
+          ? OutlinedButton(
+              onPressed: onClearSearch,
+              child: Text(context.l10n.librarySearchClear),
+            )
           : FilledButton.icon(
               onPressed: context.read<LibraryCubit>().importDocument,
               icon: const Icon(Icons.add_rounded),

@@ -7,6 +7,7 @@ import 'package:lingua_pages/domain/entity/library/book_entity.dart';
 import 'package:lingua_pages/domain/exceptions/document_import_exception.dart';
 import 'package:lingua_pages/domain/exceptions/duplicate_document_exception.dart';
 import 'package:lingua_pages/domain/repository/library/library_repository.dart';
+import 'package:lingua_pages/domain/repository/settings/settings_repository.dart';
 import 'package:lingua_pages/domain/service/document_import_service.dart';
 import 'package:lingua_pages/domain/use_cases/library/delete_library_book_use_case.dart';
 import 'package:lingua_pages/domain/use_cases/library/get_library_books_use_case.dart';
@@ -22,6 +23,7 @@ class LibraryCubit extends Cubit<LibraryState> {
     this._importDocumentUseCase,
     this._searchLibraryUseCase,
     this._incomingDocumentService,
+    this._settingsRepository,
     this._logger,
   ) : super(const LibraryState()) {
     _incomingSubscription = _incomingDocumentService.documents.listen(
@@ -34,11 +36,21 @@ class LibraryCubit extends Cubit<LibraryState> {
   final ImportDocumentUseCase _importDocumentUseCase;
   final SearchLibraryUseCase _searchLibraryUseCase;
   final IncomingDocumentService _incomingDocumentService;
+  final SettingsRepository _settingsRepository;
   final Logger _logger;
   late final StreamSubscription<IncomingDocument> _incomingSubscription;
 
   Future<void> load() async {
-    emit(state.copyWith(status: LibraryStatus.loading));
+    final shelf = state.status == LibraryStatus.initial
+        ? await _shelfPreferences()
+        : null;
+    emit(
+      state.copyWith(
+        status: LibraryStatus.loading,
+        viewMode: shelf?.$1,
+        sort: shelf?.$2,
+      ),
+    );
     try {
       final books = await _getLibraryBooksUseCase.execute(sort: state.sort);
       emit(state.copyWith(status: LibraryStatus.success, books: books));
@@ -91,18 +103,19 @@ class LibraryCubit extends Cubit<LibraryState> {
   }
 
   void toggleViewMode() {
+    final list = state.viewMode == LibraryViewMode.grid;
     emit(
       state.copyWith(
-        viewMode: state.viewMode == LibraryViewMode.grid
-            ? LibraryViewMode.list
-            : LibraryViewMode.grid,
+        viewMode: list ? LibraryViewMode.list : LibraryViewMode.grid,
       ),
     );
+    unawaited(_saveShelfPreference('libraryListView', list));
   }
 
   Future<void> changeSort(LibrarySort sort) async {
     if (sort == state.sort) return;
     emit(state.copyWith(sort: sort, status: LibraryStatus.loading));
+    unawaited(_saveShelfPreference('librarySort', sort.name));
     try {
       final books = state.query.trim().isEmpty
           ? await _getLibraryBooksUseCase.execute(sort: sort)
@@ -116,6 +129,28 @@ class LibraryCubit extends Cubit<LibraryState> {
           errorMessage: error.toString(),
         ),
       );
+    }
+  }
+
+  /// The saved view mode and sort, or null to keep the defaults.
+  Future<(LibraryViewMode, LibrarySort)?> _shelfPreferences() async {
+    try {
+      final settings = await _settingsRepository.getSettings();
+      return (
+        settings.libraryListView ? LibraryViewMode.list : LibraryViewMode.grid,
+        settings.librarySort,
+      );
+    } catch (error) {
+      _logger.w('Unable to restore shelf preferences', error: error);
+      return null;
+    }
+  }
+
+  Future<void> _saveShelfPreference(String key, Object value) async {
+    try {
+      await _settingsRepository.updateSetting(key: key, value: value);
+    } catch (error) {
+      _logger.w('Unable to save shelf preference', error: error);
     }
   }
 

@@ -6,8 +6,16 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lingua_pages/presentation/app/app.dart';
+import 'package:lingua_pages/presentation/screen/premium/cubit/premium_cubit.dart';
 
 import '../injector/injector.dart';
+
+const _bundledFonts = [
+  ('Figtree', 'figtree'),
+  ('Literata', 'literata'),
+  ('Source Serif 4', 'source_serif_4'),
+  ('EB Garamond', 'eb_garamond'),
+];
 
 abstract class Env {
   static late Env shared;
@@ -27,12 +35,15 @@ abstract class Env {
       log(details.exceptionAsString(), stackTrace: details.stack);
     };
     LicenseRegistry.addLicense(() async* {
-      final license = await rootBundle.loadString(
-        'assets/fonts/figtree/OFL.txt',
-      );
-      yield LicenseEntryWithLineBreaks(['Figtree'], license);
+      for (final (package, directory) in _bundledFonts) {
+        final license = await rootBundle.loadString(
+          'assets/fonts/$directory/OFL.txt',
+        );
+        yield LicenseEntryWithLineBreaks([package], license);
+      }
     });
     await configureDependencies(name);
+    unawaited(injector<PremiumCubit>().start());
 
     Bloc.observer = const AppBlocObserver();
 

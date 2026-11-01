@@ -292,6 +292,21 @@ A 6px fully rounded track in card-high, filled to scale in the book's band colou
 ### State View
 A centred empty or error state built from an icon, a title (Title at 800), muted body text and an optional filled pill action. The error variant tints the icon error coral.
 
+### Sheets
+Every sheet has a Title (15/800) heading. Groups inside a sheet are labelled like the Settings section labels (muted paper, 700). Text fields inside a sheet fill `card-high`, one tonal step above the sheet, so they keep an edge. Destructive actions in a sheet confirm in a dialog first.
+
+### Reader Chrome
+Two nav-ink bands overlay the page. The top bar holds back, the book title (Title, one line) and the bookmark action. The bottom bar holds the band progress bar with a tabular percent (or "Page n of m" with previous/next for paged fallback books) and four labelled tools: Contents, Search, Notes, Appearance. A centre tap toggles the bars and a page turn hides them; they slide 200ms ease-out, or not at all with reduced motion. Status-bar icons follow whatever is behind them. Fallback text pads clear of both bars.
+
+### Reading Page Themes
+The page keeps its own themes, separate from the chrome; a light page inside dark chrome is intended. Free: Light, Sepia, Dark. Premium: Twilight, Night contrast, Sepia contrast, Sage. Their colours live in `AppearanceCatalog` (`ReaderTheme.backgroundArgb` / `textArgb`), never in widgets. Themes are always shown as swatches: the page colour with "Aa" in its text colour.
+
+### Highlights
+Four colours (yellow, green, blue, pink), each with a pale tint for light pages and a deep tint for dark pages (`HighlightTint`), so the page's text stays at 5:1 or better on top. The chrome (Notes list, highlight sheet) uses the deep tint behind paper text. Swatches in the highlight sheet show the tint the current page will draw.
+
+### App Mark
+Three paperbacks on ink, banded in the EPUB, PDF and TXT colours (the icon foreground on a 108-unit grid). The same mark is the native launch screen and the first Flutter frame. Development and staging builds add a violet or mustard dot above it.
+
 ## Do's and Don'ts
 
 ### Do:
@@ -300,7 +315,8 @@ A centred empty or error state built from an icon, a title (Title at 800), muted
 - **Do** keep every surface at elevation 0 with a transparent surface tint, and separate layers by tonal step.
 - **Do** set numbers (counts, percentages, recency) in tabular figures.
 - **Do** keep cover text unscaled and size every caption and grid tile from the user's text scale.
-- **Do** keep the reading page's own themes separate from the chrome. The light, sepia and dark page palettes in `reader_screen.dart` (`_ReaderPalette`) are not yet redesigned and are not part of this world; they remain pending.
+- **Do** keep the reading page's own themes separate from the chrome, and take page and highlight colours from `AppearanceCatalog`, never from literals in widgets.
+- **Do** cap reading-style pages (Settings, Privacy, onboarding) at 560–640 wide on tablets and in landscape, and use the navigation rail from 600dp.
 
 ### Don't:
 - **Don't** use press orange as decoration or as a second accent. It belongs to navigation, focus, selection and EPUB only.

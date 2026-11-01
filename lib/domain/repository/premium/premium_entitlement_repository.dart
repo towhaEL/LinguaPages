@@ -2,8 +2,8 @@ import 'package:lingua_pages/domain/entity/premium/premium_entitlement_entity.da
 
 /// Persists the last locally verified billing entitlement.
 ///
-/// Billing providers remain behind this boundary so offline limits can be
-/// enforced without making the rest of the app depend on Play Billing.
+/// The cache lets a premium appearance purchase keep working offline; the
+/// store itself stays behind `BillingService`.
 abstract interface class PremiumEntitlementRepository {
   Future<PremiumEntitlementEntity> getCurrent();
 

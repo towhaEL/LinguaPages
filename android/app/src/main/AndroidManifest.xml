@@ -1,4 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Used only for dictionary lookups (dictionaryapi.dev). -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
         android:label="${appName}"
         android:name="${applicationName}"
@@ -53,6 +55,11 @@
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
+        </intent>
+        <!-- Opens dictionary license and source links in the browser. -->
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <data android:scheme="https"/>
         </intent>
     </queries>
 </manifest>

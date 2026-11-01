@@ -1,17 +1,10 @@
-class DictionaryEntry {
-  const DictionaryEntry({
-    required this.word,
-    required this.definition,
-    this.partOfSpeech,
-    this.example,
-  });
-
-  final String word;
-  final String definition;
-  final String? partOfSpeech;
-  final String? example;
-}
+import 'package:lingua_pages/domain/entity/dictionary/dictionary_entry.dart';
 
 abstract interface class DictionaryRepository {
-  Future<DictionaryEntry?> lookup(String word);
+  /// Looks up an already-normalized single [word]. Never throws for network
+  /// failures; they are returned as [DictionaryOffline] or [DictionaryFailed].
+  Future<DictionaryLookupResult> lookup(String word);
+
+  /// Removes every cached definition, in memory and on disk.
+  Future<void> clearCache();
 }

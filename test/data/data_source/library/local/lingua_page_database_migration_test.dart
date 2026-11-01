@@ -5,8 +5,8 @@ import 'package:sqlite3/sqlite3.dart';
 
 void main() {
   group('LinguaPageDatabase migrations', () {
-    for (var fromVersion = 1; fromVersion < 7; fromVersion++) {
-      test('upgrades a version $fromVersion database to version 7', () async {
+    for (var fromVersion = 1; fromVersion < 8; fromVersion++) {
+      test('upgrades a version $fromVersion database to version 8', () async {
         final nativeDatabase = sqlite3.openInMemory();
 
         _createLegacySchema(nativeDatabase, fromVersion);
@@ -23,13 +23,17 @@ void main() {
         expect(book.readingLocatorJson, isNull);
         expect(book.tableOfContentsJson, isNull);
         expect(book.isDeleted, isFalse);
-        expect(nativeDatabase.userVersion, 7);
+        expect(nativeDatabase.userVersion, 8);
 
         expect(await database.select(database.highlights).get(), isEmpty);
         expect(await database.select(database.bookmarks).get(), isEmpty);
         expect(await database.select(database.readingSessions).get(), isEmpty);
         expect(await database.select(database.appSettings).get(), isEmpty);
         expect(_tableNames(nativeDatabase), isNot(contains('vocab_items')));
+        expect(
+          await database.select(database.dictionaryCacheEntries).get(),
+          isEmpty,
+        );
       });
     }
 
@@ -78,7 +82,7 @@ void main() {
         (await database.select(database.appSettings).getSingle()).value,
         '20',
       );
-      expect(nativeDatabase.userVersion, 7);
+      expect(nativeDatabase.userVersion, 8);
       expect(
         _tableNames(nativeDatabase),
         isNot(
@@ -116,7 +120,7 @@ void main() {
 
       expect(highlights.single.selectedText, 'hello');
       expect(settings.single.value, '15');
-      expect(nativeDatabase.userVersion, 7);
+      expect(nativeDatabase.userVersion, 8);
     });
   });
 }
@@ -238,6 +242,13 @@ void _createLegacySchema(Database database, int version) {
         repetitions INTEGER NOT NULL,
         reviewed_at INTEGER NOT NULL
       );
+    ''');
+  }
+  if (version >= 7) {
+    database.execute('''
+      DROP TABLE review_history_entries;
+      DROP TABLE review_cards;
+      DROP TABLE vocab_items;
     ''');
   }
 }

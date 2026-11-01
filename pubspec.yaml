@@ -46,6 +46,8 @@ dependencies:
   webview_flutter: ^4.13.1
   url_launcher: ^6.3.2
   xml: ^6.6.1
+  in_app_purchase: ^3.3.1
+  in_app_purchase_android: ^0.5.5
 
 
 dev_dependencies:
@@ -67,6 +69,9 @@ flutter:
   assets:
     - assets/images/
     - assets/fonts/figtree/OFL.txt
+    - assets/fonts/literata/OFL.txt
+    - assets/fonts/source_serif_4/OFL.txt
+    - assets/fonts/eb_garamond/OFL.txt
 
   fonts:
     - family: Figtree
@@ -80,3 +85,33 @@ flutter:
           weight: 700
         - asset: assets/fonts/figtree/Figtree-ExtraBold.ttf
           weight: 800
+    - family: Literata
+      fonts:
+        - asset: assets/fonts/literata/Literata-Regular.ttf
+        - asset: assets/fonts/literata/Literata-Italic.ttf
+          style: italic
+        - asset: assets/fonts/literata/Literata-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/literata/Literata-BoldItalic.ttf
+          weight: 700
+          style: italic
+    - family: Source Serif 4
+      fonts:
+        - asset: assets/fonts/source_serif_4/SourceSerif4-Regular.ttf
+        - asset: assets/fonts/source_serif_4/SourceSerif4-Italic.ttf
+          style: italic
+        - asset: assets/fonts/source_serif_4/SourceSerif4-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/source_serif_4/SourceSerif4-BoldItalic.ttf
+          weight: 700
+          style: italic
+    - family: EB Garamond
+      fonts:
+        - asset: assets/fonts/eb_garamond/EBGaramond-Regular.ttf
+        - asset: assets/fonts/eb_garamond/EBGaramond-Italic.ttf
+          style: italic
+        - asset: assets/fonts/eb_garamond/EBGaramond-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/eb_garamond/EBGaramond-BoldItalic.ttf
+          weight: 700
+          style: italic

@@ -91,6 +91,23 @@ class AppSettings extends Table {
 }
 
 // ---------------------------------------------------------------------------
+// Dictionary — cached online lookups
+// ---------------------------------------------------------------------------
+
+class DictionaryCacheEntries extends Table {
+  /// Normalized lookup word.
+  TextColumn get word => text()();
+
+  /// API response JSON, or null when the API had no definition.
+  TextColumn get json => text().nullable()();
+
+  DateTimeColumn get fetchedAt => dateTime()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {word};
+}
+
+// ---------------------------------------------------------------------------
 // Database
 // ---------------------------------------------------------------------------
 
@@ -101,6 +118,7 @@ class AppSettings extends Table {
     Bookmarks,
     ReadingSessions,
     AppSettings,
+    DictionaryCacheEntries,
   ],
 )
 class LinguaPageDatabase extends _$LinguaPageDatabase {
@@ -109,7 +127,7 @@ class LinguaPageDatabase extends _$LinguaPageDatabase {
   LinguaPageDatabase.defaults() : super(driftDatabase(name: 'lingua_page'));
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -135,6 +153,9 @@ class LinguaPageDatabase extends _$LinguaPageDatabase {
         await customStatement('DROP TABLE IF EXISTS review_history_entries');
         await customStatement('DROP TABLE IF EXISTS review_cards');
         await customStatement('DROP TABLE IF EXISTS vocab_items');
+      }
+      if (from < 8) {
+        await m.createTable(dictionaryCacheEntries);
       }
     },
   );

@@ -22,12 +22,14 @@ void main() {
       expect(settings.readerTheme, ReaderTheme.light);
       expect(settings.readerMode, ReaderMode.paginated);
       expect(settings.fontSize, 18);
+      expect(settings.readerFont, ReaderFont.original);
     });
 
     test('persists settings and updates a single key', () async {
       await repository.saveSettings(
         const SettingsEntity(
-          readerTheme: ReaderTheme.sepia,
+          readerTheme: ReaderTheme.twilight,
+          readerFont: ReaderFont.literata,
           readerMode: ReaderMode.continuous,
           readerTextAlignment: ReaderTextAlignment.justify,
           readerPdfFit: ReaderPdfFit.width,
@@ -42,7 +44,8 @@ void main() {
         value: 1.8,
       );
 
-      expect(updated.readerTheme, ReaderTheme.sepia);
+      expect(updated.readerTheme, ReaderTheme.twilight);
+      expect(updated.readerFont, ReaderFont.literata);
       expect(updated.readerMode, ReaderMode.continuous);
       expect(updated.readerTextAlignment, ReaderTextAlignment.justify);
       expect(updated.readerPdfFit, ReaderPdfFit.width);
