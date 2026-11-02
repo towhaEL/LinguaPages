@@ -134,6 +134,8 @@ class FilePickerDocumentImportService implements DocumentImportService {
       coverPath: coverPath,
       languageCode: metadata.languageCode,
       tableOfContents: metadata.tableOfContents,
+      series: metadata.series,
+      seriesIndex: metadata.seriesIndex,
       fileSizeBytes: fileSizeBytes,
     );
   }

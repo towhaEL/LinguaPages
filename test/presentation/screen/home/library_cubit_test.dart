@@ -293,6 +293,9 @@ BookImportRequest _request(String fileName) {
 }
 
 class _FakeLibraryRepository implements LibraryRepository {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
   List<BookEntity> books = [];
   List<BookEntity> searchResults = [];
   BookEntity? importedBook;

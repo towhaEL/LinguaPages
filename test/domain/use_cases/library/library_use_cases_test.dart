@@ -134,6 +134,10 @@ BookImportRequest _request(String fileName) {
 }
 
 class _FakeLibraryRepository implements LibraryRepository {
+  // Shelf, Trash and details methods are not used by these use cases.
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
   List<BookEntity> books = [];
   List<BookEntity> searchResults = [];
   BookEntity? importedBook;

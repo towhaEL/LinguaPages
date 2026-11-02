@@ -75,8 +75,11 @@ class DriftLibraryRepository implements LibraryRepository {
               _encodeTableOfContents(document.tableOfContents),
             ),
             fileSizeBytes: Value(document.fileSizeBytes),
+            series: Value(document.series),
+            seriesIndex: Value(document.seriesIndex),
             addedAt: Value(now),
             isDeleted: const Value(false),
+            deletedAt: const Value(null),
           ),
         );
         final restored = await (_database.select(
@@ -84,7 +87,10 @@ class DriftLibraryRepository implements LibraryRepository {
         )..where((book) => book.id.equals(duplicate.id))).getSingle();
         return _toEntity(restored);
       }
-      throw DuplicateDocumentException(document.sourceFileName);
+      throw DuplicateDocumentException(
+        document.sourceFileName,
+        existingBookId: duplicate.id,
+      );
     }
 
     final now = DateTime.now();
@@ -100,6 +106,8 @@ class DriftLibraryRepository implements LibraryRepository {
       languageCode: document.languageCode,
       tableOfContents: document.tableOfContents,
       fileSizeBytes: document.fileSizeBytes,
+      series: document.series,
+      seriesIndex: document.seriesIndex,
       addedAt: now,
     );
     await _database.into(_database.libraryBooks).insert(_toCompanion(entity));
@@ -112,13 +120,26 @@ class DriftLibraryRepository implements LibraryRepository {
     required DeleteBookData data,
   }) async {
     if (data == DeleteBookData.keep) {
-      await (_database.update(_database.libraryBooks)
-            ..where((book) => book.id.equals(bookId)))
-          .write(const LibraryBooksCompanion(isDeleted: Value(true)));
+      await _database.transaction(() async {
+        await (_database.update(
+          _database.libraryBooks,
+        )..where((book) => book.id.equals(bookId))).write(
+          const LibraryBooksCompanion(
+            isDeleted: Value(true),
+            deletedAt: Value(null),
+          ),
+        );
+        await (_database.delete(
+          _database.bookCollections,
+        )..where((item) => item.bookId.equals(bookId))).go();
+      });
       return;
     }
 
     await _database.transaction(() async {
+      await (_database.delete(
+        _database.bookCollections,
+      )..where((item) => item.bookId.equals(bookId))).go();
       await (_database.delete(
         _database.highlights,
       )..where((item) => item.bookId.equals(bookId))).go();
@@ -165,16 +186,98 @@ class DriftLibraryRepository implements LibraryRepository {
         'must be between 0 and 1',
       );
     }
-    await (_database.update(
+    await _database.transaction(() async {
+      await (_database.update(
+        _database.libraryBooks,
+      )..where((book) => book.id.equals(bookId))).write(
+        LibraryBooksCompanion(
+          progress: Value(progress),
+          readingLocatorJson: Value(readingLocatorJson),
+          lastReadAt: Value(lastReadAt),
+        ),
+      );
+      if (progress > 0) {
+        await (_database.update(_database.libraryBooks)..where(
+              (book) =>
+                  book.id.equals(bookId) &
+                  book.shelf.equals(BookShelf.toRead.name),
+            ))
+            .write(const LibraryBooksCompanion(shelf: Value(null)));
+      }
+    });
+  }
+
+  @override
+  Future<List<BookEntity>> getTrash() async {
+    final rows =
+        await (_database.select(_database.libraryBooks)
+              ..where((book) => book.deletedAt.isNotNull())
+              ..orderBy([(book) => OrderingTerm.desc(book.deletedAt)]))
+            .get();
+    return rows.map(_toEntity).toList();
+  }
+
+  @override
+  Future<void> moveToTrash(String bookId) => _update(
+    bookId,
+    LibraryBooksCompanion(
+      isDeleted: const Value(true),
+      deletedAt: Value(DateTime.now()),
+    ),
+  );
+
+  @override
+  Future<void> restoreFromTrash(String bookId) => _update(
+    bookId,
+    const LibraryBooksCompanion(
+      isDeleted: Value(false),
+      deletedAt: Value(null),
+    ),
+  );
+
+  @override
+  Future<List<BookEntity>> trashedBefore(DateTime cutoff) async {
+    final rows = await (_database.select(
       _database.libraryBooks,
-    )..where((book) => book.id.equals(bookId))).write(
+    )..where((book) => book.deletedAt.isSmallerThanValue(cutoff))).get();
+    return rows.map(_toEntity).toList();
+  }
+
+  @override
+  Future<void> setShelf({required String bookId, BookShelf? shelf}) =>
+      _update(bookId, LibraryBooksCompanion(shelf: Value(shelf?.name)));
+
+  @override
+  Future<void> setFavorite({required String bookId, required bool favorite}) =>
+      _update(bookId, LibraryBooksCompanion(isFavorite: Value(favorite)));
+
+  @override
+  Future<void> updateDetails({
+    required String bookId,
+    required BookDetails details,
+  }) {
+    final title = details.title.trim();
+    if (title.isEmpty) {
+      throw ArgumentError.value(details.title, 'title', 'must not be empty');
+    }
+    String? clean(String? value) =>
+        value == null || value.trim().isEmpty ? null : value.trim();
+    return _update(
+      bookId,
       LibraryBooksCompanion(
-        progress: Value(progress),
-        readingLocatorJson: Value(readingLocatorJson),
-        lastReadAt: Value(lastReadAt),
+        title: Value(title),
+        author: Value(clean(details.author)),
+        series: Value(clean(details.series)),
+        seriesIndex: Value(details.seriesIndex),
+        languageCode: Value(clean(details.languageCode)),
       ),
     );
   }
+
+  Future<void> _update(String bookId, LibraryBooksCompanion values) =>
+      (_database.update(
+        _database.libraryBooks,
+      )..where((book) => book.id.equals(bookId))).write(values);
 
   BookEntity _toEntity(LibraryBook row) {
     return BookEntity(
@@ -193,6 +296,11 @@ class DriftLibraryRepository implements LibraryRepository {
       readingLocatorJson: row.readingLocatorJson,
       addedAt: row.addedAt,
       lastReadAt: row.lastReadAt,
+      shelf: BookShelf.values.asNameMap()[row.shelf],
+      isFavorite: row.isFavorite,
+      series: row.series,
+      seriesIndex: row.seriesIndex,
+      deletedAt: row.deletedAt,
     );
   }
 
@@ -213,6 +321,10 @@ class DriftLibraryRepository implements LibraryRepository {
       progress: Value(book.progress),
       readingLocatorJson: Value(book.readingLocatorJson),
       lastReadAt: Value(book.lastReadAt),
+      shelf: Value(book.shelf?.name),
+      isFavorite: Value(book.isFavorite),
+      series: Value(book.series),
+      seriesIndex: Value(book.seriesIndex),
     );
   }
 

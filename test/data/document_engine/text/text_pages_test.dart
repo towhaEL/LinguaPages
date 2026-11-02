@@ -6,11 +6,10 @@ void main() {
     // The grid at 8 falls inside "bbbbbbb"; the one at 16 is a word start.
     final pages = TextPages('aaaa bbbbbbb cc dd', size: 8);
 
-    expect([for (var i = 0; i < pages.count; i++) pages.pageText(i)], [
-      'aaaa bbbbbbb ',
-      'cc ',
-      'dd',
-    ]);
+    expect(
+      [for (var i = 0; i < pages.count; i++) pages.pageText(i)],
+      ['aaaa bbbbbbb ', 'cc ', 'dd'],
+    );
   });
 
   test('every offset maps to the page that shows it', () {

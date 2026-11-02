@@ -56,6 +56,13 @@ class LocalBackupRepository implements BackupRepository {
       'settings': (await _database.select(_database.appSettings).get())
           .map((row) => row.toJson())
           .toList(),
+      'collections': (await _database.select(_database.collections).get())
+          .map((row) => row.toJson())
+          .toList(),
+      'bookCollections':
+          (await _database.select(_database.bookCollections).get())
+              .map((row) => row.toJson())
+              .toList(),
       if (includeDictionaryCache)
         'dictionaryCache':
             (await _database.select(_database.dictionaryCacheEntries).get())
@@ -147,7 +154,8 @@ class LocalBackupRepository implements BackupRepository {
       final bookIds = <String, String>{};
 
       for (final raw in _records(payload, 'books')) {
-        var row = LibraryBook.fromJson(raw);
+        // Backups before schema v9 lack the shelf columns.
+        var row = LibraryBook.fromJson({'isFavorite': false, ...raw});
         final existing =
             await (_database.select(_database.libraryBooks)
                   ..where(
@@ -219,6 +227,25 @@ class LocalBackupRepository implements BackupRepository {
         await _database
             .into(_database.appSettings)
             .insertOnConflictUpdate(row.toCompanion(false));
+      }
+
+      for (final raw in _records(payload, 'collections')) {
+        await _database
+            .into(_database.collections)
+            .insert(
+              Collection.fromJson(raw).toCompanion(false),
+              mode: InsertMode.insertOrIgnore,
+            );
+      }
+
+      for (final raw in _records(payload, 'bookCollections')) {
+        final row = BookCollection.fromJson(raw);
+        await _database
+            .into(_database.bookCollections)
+            .insert(
+              row.copyWith(bookId: bookId(row.bookId)).toCompanion(false),
+              mode: InsertMode.insertOrIgnore,
+            );
       }
 
       // Lookups already cached on this device are newer; keep them.

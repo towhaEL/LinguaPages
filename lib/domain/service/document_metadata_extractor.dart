@@ -27,6 +27,8 @@ class DocumentMetadata {
     this.coverBytes,
     this.coverFileName,
     this.tableOfContents = const [],
+    this.series,
+    this.seriesIndex,
   });
 
   final String? title;
@@ -35,4 +37,6 @@ class DocumentMetadata {
   final Uint8List? coverBytes;
   final String? coverFileName;
   final List<String> tableOfContents;
+  final String? series;
+  final double? seriesIndex;
 }

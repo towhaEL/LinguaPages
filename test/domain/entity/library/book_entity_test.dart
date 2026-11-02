@@ -46,6 +46,38 @@ void main() {
     );
   });
 
+  test('BookEntity derives its shelf from progress unless chosen', () {
+    final book = _book('shelf');
+
+    expect(book.readingShelf, isNull);
+    expect(book.copyWith(progress: .3).readingShelf, BookShelf.reading);
+    expect(book.copyWith(progress: 1).readingShelf, BookShelf.finished);
+    expect(
+      BookEntity(
+        id: 'manual',
+        title: 'Manual',
+        format: DocumentFormat.epub,
+        sourceUri: 'file:///m.epub',
+        sourceFileName: 'm.epub',
+        contentFingerprint: 'm',
+        addedAt: DateTime(2026),
+        progress: 1,
+        shelf: BookShelf.toRead,
+      ).readingShelf,
+      BookShelf.toRead,
+    );
+  });
+
+  test('BookEntity splits its author field into names', () {
+    expect(_book('a').authors, isEmpty);
+    expect(_book('a').copyWith(author: 'Anna Lind, Ben Ek & Cy Ro').authors, [
+      'Anna Lind',
+      'Ben Ek',
+      'Cy Ro',
+    ]);
+    expect(_book('a').copyWith(author: 'Ann and Bo').authors, ['Ann', 'Bo']);
+  });
+
   test('BookEntity rejects progress outside the valid range', () {
     expect(
       () => BookEntity(

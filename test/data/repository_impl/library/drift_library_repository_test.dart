@@ -100,6 +100,125 @@ void main() {
       expect(await database.select(database.libraryBooks).get(), isEmpty);
       expect(await database.select(database.bookmarks).get(), isEmpty);
     });
+
+    test('moves books to Trash and back with their annotations', () async {
+      final book = await repository.importDocument(_document());
+      await _addAnnotation(database, book.id);
+
+      await repository.moveToTrash(book.id);
+
+      expect(await repository.getAll(), isEmpty);
+      final trash = await repository.getTrash();
+      expect(trash.single.id, book.id);
+      expect(trash.single.isInTrash, isTrue);
+      expect(
+        await repository.trashedBefore(
+          DateTime.now().add(const Duration(days: 1)),
+        ),
+        hasLength(1),
+      );
+      expect(
+        await repository.trashedBefore(
+          DateTime.now().subtract(const Duration(days: 1)),
+        ),
+        isEmpty,
+      );
+
+      await repository.restoreFromTrash(book.id);
+
+      expect((await repository.getAll()).single.isInTrash, isFalse);
+      expect(await repository.getTrash(), isEmpty);
+      expect(await database.select(database.highlights).get(), hasLength(1));
+    });
+
+    test('a To read book follows progress once it is started', () async {
+      final book = await repository.importDocument(_document());
+      await repository.setShelf(bookId: book.id, shelf: BookShelf.toRead);
+      expect(
+        (await repository.getById(book.id))!.readingShelf,
+        BookShelf.toRead,
+      );
+
+      await repository.updateProgress(
+        bookId: book.id,
+        progress: .2,
+        lastReadAt: DateTime(2026),
+      );
+
+      final started = (await repository.getById(book.id))!;
+      expect(started.shelf, isNull);
+      expect(started.readingShelf, BookShelf.reading);
+    });
+
+    test('a manual Finished shelf survives further reading', () async {
+      final book = await repository.importDocument(_document());
+      await repository.setShelf(bookId: book.id, shelf: BookShelf.finished);
+      await repository.setFavorite(bookId: book.id, favorite: true);
+
+      await repository.updateProgress(
+        bookId: book.id,
+        progress: .5,
+        lastReadAt: DateTime(2026),
+      );
+
+      final stored = (await repository.getById(book.id))!;
+      expect(stored.readingShelf, BookShelf.finished);
+      expect(stored.isFavorite, isTrue);
+    });
+
+    test('edits details and rejects an empty title', () async {
+      final book = await repository.importDocument(_document());
+
+      await repository.updateDetails(
+        bookId: book.id,
+        details: const BookDetails(
+          title: '  Don Quixote ',
+          author: 'Cervantes',
+          series: 'Classics',
+          seriesIndex: 1,
+          languageCode: '',
+        ),
+      );
+
+      final stored = (await repository.getById(book.id))!;
+      expect(stored.title, 'Don Quixote');
+      expect(stored.series, 'Classics');
+      expect(stored.seriesIndex, 1);
+      expect(stored.languageCode, isNull);
+      expect(
+        () => repository.updateDetails(
+          bookId: book.id,
+          details: const BookDetails(title: ' '),
+        ),
+        throwsArgumentError,
+      );
+    });
+
+    test('reports the existing book for a duplicate import', () async {
+      final book = await repository.importDocument(_document());
+
+      await expectLater(
+        repository.importDocument(_document()),
+        throwsA(
+          isA<DuplicateDocumentException>().having(
+            (error) => error.existingBookId,
+            'existingBookId',
+            book.id,
+          ),
+        ),
+      );
+    });
+
+    test('re-importing a trashed book restores it from Trash', () async {
+      final book = await repository.importDocument(_document());
+      await repository.moveToTrash(book.id);
+
+      final restored = await repository.importDocument(_document());
+
+      expect(restored.id, book.id);
+      expect(restored.isInTrash, isFalse);
+      expect(await repository.getTrash(), isEmpty);
+    });
   });
 }
 
@@ -138,3 +257,17 @@ BookImportRequest _document({
     tableOfContents: const ['Chapter One', 'Chapter Two'],
   );
 }
+
+Future<void> _addAnnotation(LinguaPageDatabase database, String bookId) =>
+    database
+        .into(database.highlights)
+        .insert(
+          HighlightsCompanion.insert(
+            id: 'highlight-$bookId',
+            bookId: bookId,
+            color: 'yellow',
+            selectedText: 'text',
+            locatorJson: '{}',
+            createdAt: DateTime(2026),
+          ),
+        );

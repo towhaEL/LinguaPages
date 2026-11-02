@@ -22,6 +22,28 @@ abstract class LibraryRepository {
     required DeleteBookData data,
   });
 
+  /// Books in Trash, most recently deleted first.
+  Future<List<BookEntity>> getTrash();
+
+  /// Hides the book in Trash; its file and annotations stay.
+  Future<void> moveToTrash(String bookId);
+
+  Future<void> restoreFromTrash(String bookId);
+
+  /// Trashed books deleted before [cutoff].
+  Future<List<BookEntity>> trashedBefore(DateTime cutoff);
+
+  Future<void> setShelf({required String bookId, BookShelf? shelf});
+
+  Future<void> setFavorite({required String bookId, required bool favorite});
+
+  Future<void> updateDetails({
+    required String bookId,
+    required BookDetails details,
+  });
+
+  /// Saves the reading position. Starting a To read book moves it on to
+  /// the progress-based shelf.
   Future<void> updateProgress({
     required String bookId,
     required double progress,
@@ -30,6 +52,8 @@ abstract class LibraryRepository {
   });
 }
 
+/// Permanent deletion: [keep] archives the annotations so re-importing the
+/// file brings them back; [delete] removes them too.
 enum DeleteBookData { keep, delete }
 
 class BookImportRequest {
@@ -44,6 +68,8 @@ class BookImportRequest {
     this.coverPath,
     this.languageCode,
     this.tableOfContents = const [],
+    this.series,
+    this.seriesIndex,
   });
 
   final String title;
@@ -56,4 +82,6 @@ class BookImportRequest {
   final String? languageCode;
   final List<String> tableOfContents;
   final int fileSizeBytes;
+  final String? series;
+  final double? seriesIndex;
 }

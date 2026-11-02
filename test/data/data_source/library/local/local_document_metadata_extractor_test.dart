@@ -33,6 +33,76 @@ void main() {
     expect(metadata.tableOfContents, ['Opening', 'Second chapter']);
   });
 
+  test('reads the EPUB 3 collection and its position', () async {
+    final metadata = await LocalDocumentMetadataExtractor().extract(
+      format: DocumentFormat.epub,
+      fileName: 'series.epub',
+      bytes: _epubBytes(
+        extraMeta:
+            '<meta property="belongs-to-collection" id="c1">Harbour Tales</meta>'
+            '<meta refines="#c1" property="group-position">2</meta>',
+      ),
+    );
+
+    expect(metadata.series, 'Harbour Tales');
+    expect(metadata.seriesIndex, 2);
+  });
+
+  test('falls back to Calibre series metadata', () async {
+    final metadata = await LocalDocumentMetadataExtractor().extract(
+      format: DocumentFormat.epub,
+      fileName: 'calibre.epub',
+      bytes: _epubBytes(
+        extraMeta:
+            '<meta name="calibre:series" content="Lamplight"/>'
+            '<meta name="calibre:series_index" content="3.5"/>',
+      ),
+    );
+
+    expect(metadata.series, 'Lamplight');
+    expect(metadata.seriesIndex, 3.5);
+    expect(
+      (await LocalDocumentMetadataExtractor().extract(
+        format: DocumentFormat.epub,
+        fileName: 'plain.epub',
+        bytes: epubBytes,
+      )).series,
+      isNull,
+    );
+  });
+
+  test('reads FB2 title-info instead of the first section title', () async {
+    final metadata = await LocalDocumentMetadataExtractor().extract(
+      format: DocumentFormat.fb2,
+      fileName: 'book.fb2',
+      bytes: Uint8List.fromList(
+        '<?xml version="1.0" encoding="utf-8"?>'
+                '<FictionBook xmlns:l="http://www.w3.org/1999/xlink">'
+                '<description><title-info>'
+                '<author><first-name>Anna</first-name>'
+                '<middle-name>K.</middle-name><last-name>Lind</last-name></author>'
+                '<author><nickname>Quill</nickname></author>'
+                '<book-title>Northern Lights</book-title><lang>sv</lang>'
+                '<sequence name="Polar" number="4"/>'
+                '<coverpage><image l:href="#cover.png"/></coverpage>'
+                '</title-info></description><body>'
+                '<section><title><p>Chapter One</p></title><p>Text.</p></section>'
+                '</body><binary id="cover.png" content-type="image/png">'
+                'AQIDBA==</binary></FictionBook>'
+            .codeUnits,
+      ),
+    );
+
+    expect(metadata.title, 'Northern Lights');
+    expect(metadata.author, 'Anna K. Lind, Quill');
+    expect(metadata.languageCode, 'sv');
+    expect(metadata.series, 'Polar');
+    expect(metadata.seriesIndex, 4);
+    expect(metadata.coverBytes, [1, 2, 3, 4]);
+    expect(metadata.coverFileName, 'cover.png');
+    expect(metadata.tableOfContents, ['Chapter One']);
+  });
+
   test('extracts basic PDF Info metadata without requiring PDFium', () async {
     final extractor = LocalDocumentMetadataExtractor();
 
@@ -137,7 +207,7 @@ void main() {
   });
 }
 
-Uint8List _epubBytes() {
+Uint8List _epubBytes({String extraMeta = ''}) {
   final archive = Archive()
     ..addFile(
       ArchiveFile.string(
@@ -158,6 +228,7 @@ Uint8List _epubBytes() {
             'A Reader</dc:creator>'
             '<dc:language xmlns:dc="http://purl.org/dc/elements/1.1/">en</dc:language>'
             '<meta name="cover" content="cover-image"/>'
+            '$extraMeta'
             '</metadata><manifest>'
             '<item id="cover-image" href="images/cover.png" '
             'media-type="image/png"/>'

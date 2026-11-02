@@ -54,7 +54,8 @@ class LocalDocumentMetadataExtractor implements DocumentMetadataExtractor {
     return switch (format) {
       DocumentFormat.epub => _extractEpub(source),
       DocumentFormat.pdf => await _extractPdf(source),
-      DocumentFormat.html || DocumentFormat.fb2 => _extractMarkup(source),
+      DocumentFormat.html => _extractMarkup(source),
+      DocumentFormat.fb2 => _extractFb2(source),
       DocumentFormat.markdown => _extractMarkdown(source),
       DocumentFormat.txt => const DocumentMetadata(),
     };
@@ -100,7 +101,10 @@ class LocalDocumentMetadataExtractor implements DocumentMetadataExtractor {
       }
 
       final cover = _findCover(opf, manifest, files);
+      final (series, seriesIndex) = _epubSeries(opf);
       return DocumentMetadata(
+        series: series,
+        seriesIndex: seriesIndex,
         title: _firstText(opf, 'title'),
         author: _firstText(opf, 'creator'),
         languageCode: _firstText(opf, 'language'),
@@ -162,6 +166,101 @@ class LocalDocumentMetadataExtractor implements DocumentMetadataExtractor {
       rethrow;
     } on Object catch (error) {
       throw CorruptDocumentException('This FB2 file is corrupt: $error');
+    }
+  }
+
+  /// EPUB 3 `belongs-to-collection` (with `group-position`), else Calibre's
+  /// `calibre:series` and `calibre:series_index`.
+  (String?, double?) _epubSeries(XmlDocument opf) {
+    final metas = _elements(opf, 'meta');
+    for (final meta in metas) {
+      if (_attribute(meta, 'property') != 'belongs-to-collection') continue;
+      final name = _cleanText(meta.innerText);
+      if (name == null) continue;
+      final id = _attribute(meta, 'id');
+      final position = id == null
+          ? null
+          : metas
+                .where(
+                  (refine) =>
+                      _attribute(refine, 'refines') == '#$id' &&
+                      _attribute(refine, 'property') == 'group-position',
+                )
+                .map((refine) => double.tryParse(refine.innerText.trim()))
+                .firstWhere((value) => value != null, orElse: () => null);
+      return (name, position);
+    }
+    String? calibre(String name) => metas
+        .where((meta) => _attribute(meta, 'name') == name)
+        .map((meta) => _cleanText(_attribute(meta, 'content')))
+        .firstWhere((value) => value != null, orElse: () => null);
+    final name = calibre('calibre:series');
+    if (name == null) return (null, null);
+    return (name, double.tryParse(calibre('calibre:series_index') ?? ''));
+  }
+
+  /// FictionBook metadata lives in `description/title-info`; its `title`
+  /// elements are section headings, not the book title.
+  DocumentMetadata _extractFb2(Uint8List bytes) {
+    try {
+      final document = XmlDocument.parse(
+        utf8.decode(bytes, allowMalformed: true),
+      );
+      final info = _firstOrNull(_elements(document, 'title-info'));
+      if (info == null) return _extractMarkup(bytes);
+      final authors = [
+        for (final author in _elements(info, 'author'))
+          ?_cleanText(
+                [
+                  _firstText(author, 'first-name'),
+                  _firstText(author, 'middle-name'),
+                  _firstText(author, 'last-name'),
+                ].whereType<String>().join(' '),
+              ) ??
+              _firstText(author, 'nickname'),
+      ];
+      final sequence = _firstOrNull(_elements(info, 'sequence'));
+      final cover = _fb2Cover(document, info);
+      return DocumentMetadata(
+        title: _firstText(info, 'book-title'),
+        author: authors.isEmpty ? null : authors.join(', '),
+        languageCode: _firstText(info, 'lang'),
+        series: sequence == null
+            ? null
+            : _cleanText(_attribute(sequence, 'name')),
+        seriesIndex: sequence == null
+            ? null
+            : double.tryParse(_attribute(sequence, 'number') ?? ''),
+        coverBytes: cover?.bytes,
+        coverFileName: cover?.fileName,
+        tableOfContents: _extractMarkupTableOfContents(document),
+      );
+    } on XmlParserException {
+      return _extractMarkup(bytes);
+    }
+  }
+
+  /// The `coverpage` image, stored base64 in a `binary` element.
+  _CoverData? _fb2Cover(XmlDocument document, XmlElement info) {
+    final image = _firstOrNull(
+      _elements(info, 'coverpage').expand((page) => _elements(page, 'image')),
+    );
+    final href = image == null ? null : _attribute(image, 'href');
+    if (href == null || !href.startsWith('#')) return null;
+    final binary = _elements(document, 'binary')
+        .where((element) => _attribute(element, 'id') == href.substring(1))
+        .firstOrNull;
+    if (binary == null) return null;
+    try {
+      return _CoverData(
+        bytes: base64.decode(binary.innerText.replaceAll(RegExp(r'\s+'), '')),
+        fileName: _coverFileName(
+          href.substring(1),
+          _attribute(binary, 'content-type') ?? '',
+        ),
+      );
+    } on FormatException {
+      return null;
     }
   }
 

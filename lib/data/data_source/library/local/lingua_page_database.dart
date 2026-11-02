@@ -25,8 +25,39 @@ class LibraryBooks extends Table {
   DateTimeColumn get lastReadAt => dateTime().nullable()();
   BoolColumn get isDeleted => boolean().withDefault(const Constant(false))();
 
+  /// When the book went to Trash. Null for live books and for books deleted
+  /// before v9, whose files are already gone.
+  DateTimeColumn get deletedAt => dateTime().nullable()();
+
+  /// BookShelf.name chosen by the user; null derives it from progress.
+  TextColumn get shelf => text().nullable()();
+  BoolColumn get isFavorite => boolean().withDefault(const Constant(false))();
+  TextColumn get series => text().nullable()();
+  RealColumn get seriesIndex => real().nullable()();
+
   @override
   Set<Column<Object>> get primaryKey => {id};
+}
+
+// ---------------------------------------------------------------------------
+// Library — Collections
+// ---------------------------------------------------------------------------
+
+class Collections extends Table {
+  TextColumn get id => text()();
+  TextColumn get name => text()();
+  DateTimeColumn get createdAt => dateTime()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+class BookCollections extends Table {
+  TextColumn get bookId => text().references(LibraryBooks, #id)();
+  TextColumn get collectionId => text().references(Collections, #id)();
+
+  @override
+  Set<Column<Object>> get primaryKey => {bookId, collectionId};
 }
 
 // ---------------------------------------------------------------------------
@@ -119,6 +150,8 @@ class DictionaryCacheEntries extends Table {
     ReadingSessions,
     AppSettings,
     DictionaryCacheEntries,
+    Collections,
+    BookCollections,
   ],
 )
 class LinguaPageDatabase extends _$LinguaPageDatabase {
@@ -127,7 +160,7 @@ class LinguaPageDatabase extends _$LinguaPageDatabase {
   LinguaPageDatabase.defaults() : super(driftDatabase(name: 'lingua_page'));
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -156,6 +189,15 @@ class LinguaPageDatabase extends _$LinguaPageDatabase {
       }
       if (from < 8) {
         await m.createTable(dictionaryCacheEntries);
+      }
+      if (from < 9) {
+        await m.addColumn(libraryBooks, libraryBooks.deletedAt);
+        await m.addColumn(libraryBooks, libraryBooks.shelf);
+        await m.addColumn(libraryBooks, libraryBooks.isFavorite);
+        await m.addColumn(libraryBooks, libraryBooks.series);
+        await m.addColumn(libraryBooks, libraryBooks.seriesIndex);
+        await m.createTable(collections);
+        await m.createTable(bookCollections);
       }
     },
   );

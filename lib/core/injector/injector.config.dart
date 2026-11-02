@@ -45,6 +45,8 @@ import '../../data/repository_impl/backup/local_backup_repository.dart'
     as _i1066;
 import '../../data/repository_impl/dictionary/drift_dictionary_repository.dart'
     as _i921;
+import '../../data/repository_impl/library/drift_collection_repository.dart'
+    as _i25;
 import '../../data/repository_impl/library/drift_library_repository.dart'
     as _i623;
 import '../../data/repository_impl/premium/local_premium_entitlement_repository.dart'
@@ -55,6 +57,7 @@ import '../../data/repository_impl/settings/drift_settings_repository.dart'
     as _i143;
 import '../../domain/repository/backup/backup_repository.dart' as _i862;
 import '../../domain/repository/dictionary/dictionary_repository.dart' as _i900;
+import '../../domain/repository/library/collection_repository.dart' as _i949;
 import '../../domain/repository/library/library_repository.dart' as _i603;
 import '../../domain/repository/premium/premium_entitlement_repository.dart'
     as _i363;
@@ -81,6 +84,9 @@ import '../../domain/use_cases/library/delete_library_book_use_case.dart'
 import '../../domain/use_cases/library/get_library_books_use_case.dart'
     as _i879;
 import '../../domain/use_cases/library/import_document_use_case.dart' as _i964;
+import '../../domain/use_cases/library/purge_trash_use_case.dart' as _i205;
+import '../../domain/use_cases/library/reset_book_details_use_case.dart'
+    as _i110;
 import '../../domain/use_cases/library/search_library_use_case.dart' as _i322;
 import '../../domain/use_cases/reader/save_reading_progress_use_case.dart'
     as _i214;
@@ -122,6 +128,9 @@ extension GetItInjectableX on _i174.GetIt {
       () => featureFlagsModule.featureFlags,
     );
     gh.lazySingleton<_i211.LinguaPageDatabase>(() => databaseModule.database);
+    gh.lazySingleton<_i949.CollectionRepository>(
+      () => _i25.DriftCollectionRepository(gh<_i211.LinguaPageDatabase>()),
+    );
     gh.lazySingleton<_i749.HighlightRepository>(
       () => _i487.DriftHighlightRepository(gh<_i211.LinguaPageDatabase>()),
     );
@@ -206,6 +215,12 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i47.DocumentMetadataExtractor>(),
       ),
     );
+    gh.singleton<_i110.ResetBookDetailsUseCase>(
+      () => _i110.ResetBookDetailsUseCase(
+        gh<_i603.LibraryRepository>(),
+        gh<_i47.DocumentMetadataExtractor>(),
+      ),
+    );
     gh.singleton<_i964.ImportDocumentUseCase>(
       () => _i964.ImportDocumentUseCase(
         gh<_i536.DocumentImportService>(),
@@ -227,6 +242,12 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i536.IncomingDocumentService>(),
         gh<_i55.SettingsRepository>(),
         gh<_i974.Logger>(),
+      ),
+    );
+    gh.singleton<_i205.PurgeTrashUseCase>(
+      () => _i205.PurgeTrashUseCase(
+        gh<_i603.LibraryRepository>(),
+        gh<_i486.DeleteLibraryBookUseCase>(),
       ),
     );
     gh.lazySingleton<_i900.DictionaryRepository>(

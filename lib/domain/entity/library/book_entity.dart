@@ -23,6 +23,11 @@ class BookEntity {
     this.progress = 0,
     this.readingLocatorJson,
     this.lastReadAt,
+    this.shelf,
+    this.isFavorite = false,
+    this.series,
+    this.seriesIndex,
+    this.deletedAt,
   }) : assert(progress >= 0 && progress <= 1);
 
   final String id;
@@ -41,7 +46,34 @@ class BookEntity {
   final DateTime addedAt;
   final DateTime? lastReadAt;
 
+  /// The shelf the user picked; null follows [progress] (see [readingShelf]).
+  final BookShelf? shelf;
+  final bool isFavorite;
+  final String? series;
+  final double? seriesIndex;
+
+  /// Set while the book is in Trash.
+  final DateTime? deletedAt;
+
   bool get isStarted => progress > 0;
+
+  bool get isInTrash => deletedAt != null;
+
+  /// The shelf the book sits on: the user's choice, else Finished at 100 %,
+  /// Reading once started, and none before that.
+  BookShelf? get readingShelf =>
+      shelf ??
+      (progress >= 1
+          ? BookShelf.finished
+          : progress > 0
+          ? BookShelf.reading
+          : null);
+
+  /// The author field split into names ("A, B & C" holds three).
+  List<String> get authors => [
+    for (final name in (author ?? '').split(RegExp(r'\s*(?:[,;&]| and )\s*')))
+      if (name.trim().isNotEmpty) name.trim(),
+  ];
 
   /// The chapter title of the saved reading position, when the reader's
   /// locator carries one (Readium EPUB/PDF locators do).
@@ -93,3 +125,22 @@ class BookEntity {
 }
 
 enum LibrarySort { recent, title, author, progress }
+
+enum BookShelf { toRead, reading, finished }
+
+/// Metadata the user can edit; null clears a field.
+class BookDetails {
+  const BookDetails({
+    required this.title,
+    this.author,
+    this.series,
+    this.seriesIndex,
+    this.languageCode,
+  });
+
+  final String title;
+  final String? author;
+  final String? series;
+  final double? seriesIndex;
+  final String? languageCode;
+}

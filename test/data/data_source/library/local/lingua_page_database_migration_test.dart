@@ -5,8 +5,8 @@ import 'package:sqlite3/sqlite3.dart';
 
 void main() {
   group('LinguaPageDatabase migrations', () {
-    for (var fromVersion = 1; fromVersion < 8; fromVersion++) {
-      test('upgrades a version $fromVersion database to version 8', () async {
+    for (var fromVersion = 1; fromVersion < 9; fromVersion++) {
+      test('upgrades a version $fromVersion database to version 9', () async {
         final nativeDatabase = sqlite3.openInMemory();
 
         _createLegacySchema(nativeDatabase, fromVersion);
@@ -23,7 +23,12 @@ void main() {
         expect(book.readingLocatorJson, isNull);
         expect(book.tableOfContentsJson, isNull);
         expect(book.isDeleted, isFalse);
-        expect(nativeDatabase.userVersion, 8);
+        expect(book.deletedAt, isNull);
+        expect(book.shelf, isNull);
+        expect(book.isFavorite, isFalse);
+        expect(book.series, isNull);
+        expect(await database.select(database.collections).get(), isEmpty);
+        expect(nativeDatabase.userVersion, 9);
 
         expect(await database.select(database.highlights).get(), isEmpty);
         expect(await database.select(database.bookmarks).get(), isEmpty);
@@ -82,7 +87,7 @@ void main() {
         (await database.select(database.appSettings).getSingle()).value,
         '20',
       );
-      expect(nativeDatabase.userVersion, 8);
+      expect(nativeDatabase.userVersion, 9);
       expect(
         _tableNames(nativeDatabase),
         isNot(
@@ -93,6 +98,51 @@ void main() {
           ),
         ),
       );
+    });
+
+    test('v8 to v9 keeps books, annotations and archived books', () async {
+      final nativeDatabase = sqlite3.openInMemory();
+
+      _createLegacySchema(nativeDatabase, 8);
+      nativeDatabase.execute('''
+        INSERT INTO library_books
+          (id, title, document_format, source_uri, source_file_name,
+           content_fingerprint, file_size_bytes, added_at, is_deleted,
+           progress)
+        VALUES ('book-2', 'Archived', 'epub', '/books/gone.epub', 'gone.epub',
+          'archived-fingerprint', 10, 1792406400000, 1, 0.4);
+        INSERT INTO highlights
+          (id, book_id, color, selected_text, locator_json, created_at)
+        VALUES ('highlight-1', 'book-2', 'yellow', 'kept', '{}', 1792406400000);
+        INSERT INTO bookmarks (id, book_id, title, locator_json, created_at)
+        VALUES ('bookmark-1', 'book-1', 'Page 2', '{}', 1792406400000);
+        INSERT INTO dictionary_cache_entries (word, json, fetched_at)
+        VALUES ('hello', '[]', 1792406400000);
+      ''');
+      nativeDatabase.userVersion = 8;
+
+      final database = LinguaPageDatabase(
+        NativeDatabase.opened(nativeDatabase),
+      );
+      addTearDown(database.close);
+
+      final books = await database.select(database.libraryBooks).get();
+      expect(books, hasLength(2));
+      final archived = books.singleWhere((book) => book.id == 'book-2');
+      expect(archived.isDeleted, isTrue);
+      expect(archived.progress, .4);
+      // Pre-v9 deletions removed the file, so they never appear in Trash.
+      expect(archived.deletedAt, isNull);
+      expect(
+        (await database.select(database.highlights).getSingle()).selectedText,
+        'kept',
+      );
+      expect(await database.select(database.bookmarks).get(), hasLength(1));
+      expect(
+        await database.select(database.dictionaryCacheEntries).get(),
+        hasLength(1),
+      );
+      expect(nativeDatabase.userVersion, 9);
     });
 
     test('preserves annotations while adding later library columns', () async {
@@ -120,7 +170,7 @@ void main() {
 
       expect(highlights.single.selectedText, 'hello');
       expect(settings.single.value, '15');
-      expect(nativeDatabase.userVersion, 8);
+      expect(nativeDatabase.userVersion, 9);
     });
   });
 }
@@ -249,6 +299,15 @@ void _createLegacySchema(Database database, int version) {
       DROP TABLE review_history_entries;
       DROP TABLE review_cards;
       DROP TABLE vocab_items;
+    ''');
+  }
+  if (version >= 8) {
+    database.execute('''
+      CREATE TABLE dictionary_cache_entries (
+        word TEXT NOT NULL PRIMARY KEY,
+        json TEXT,
+        fetched_at INTEGER NOT NULL
+      );
     ''');
   }
 }

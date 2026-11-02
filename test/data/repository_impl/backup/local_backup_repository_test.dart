@@ -123,6 +123,60 @@ void main() {
     expect(result.booksRestored, 1);
   });
 
+  test('restores a pre-v9 book without shelf fields', () async {
+    final raw = (await source.select(source.libraryBooks).getSingle()).toJson()
+      ..remove('isFavorite')
+      ..remove('shelf')
+      ..remove('deletedAt')
+      ..remove('series')
+      ..remove('seriesIndex');
+    final legacy = File('${temp.path}/v8.json')
+      ..writeAsStringSync(
+        jsonEncode({
+          'version': 1,
+          'books': [raw],
+        }),
+      );
+
+    await targetRepository.restoreBackup(legacy.path);
+
+    final restored = await target.select(target.libraryBooks).getSingle();
+    expect(restored.isFavorite, isFalse);
+    expect(restored.shelf, isNull);
+  });
+
+  test('backs up collections and remaps their books', () async {
+    await source
+        .into(source.collections)
+        .insert(
+          CollectionsCompanion.insert(
+            id: 'col-1',
+            name: 'Sea',
+            createdAt: DateTime(2026),
+          ),
+        );
+    await source
+        .into(source.bookCollections)
+        .insert(
+          BookCollectionsCompanion.insert(
+            bookId: 'book-1',
+            collectionId: 'col-1',
+          ),
+        );
+    await target
+        .into(target.libraryBooks)
+        .insert(_book('local-id', 'abc123', '/local/book.epub'));
+    final path = await sourceRepository.createBackup();
+
+    await targetRepository.restoreBackup(path);
+
+    expect((await target.select(target.collections).getSingle()).name, 'Sea');
+    expect(
+      (await target.select(target.bookCollections).getSingle()).bookId,
+      'local-id',
+    );
+  });
+
   test('merges a book imported under another id by fingerprint', () async {
     await target
         .into(target.libraryBooks)
