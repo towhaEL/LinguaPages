@@ -8,7 +8,7 @@ class RestoreBackupUseCase {
   final BackupRepository _backupRepository;
 
   /// Restores a backup from the given file path.
-  Future<BackupRestoreResult> execute(String filePath) {
-    return _backupRepository.restoreBackup(filePath);
+  Future<BackupRestoreResult> execute(String filePath, {String? passphrase}) {
+    return _backupRepository.restoreBackup(filePath, passphrase: passphrase);
   }
 }

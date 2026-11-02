@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:lingua_pages/domain/entity/document/document_models.dart';
 
 /// A document as it appears in the user's library.
@@ -40,6 +42,19 @@ class BookEntity {
   final DateTime? lastReadAt;
 
   bool get isStarted => progress > 0;
+
+  /// The chapter title of the saved reading position, when the reader's
+  /// locator carries one (Readium EPUB/PDF locators do).
+  String? get currentChapterTitle {
+    final json = readingLocatorJson;
+    if (json == null || json.isEmpty) return null;
+    try {
+      final title = (jsonDecode(json) as Map<String, dynamic>)['title'];
+      return title is String && title.trim().isNotEmpty ? title.trim() : null;
+    } on Object {
+      return null;
+    }
+  }
 
   BookEntity copyWith({
     String? title,

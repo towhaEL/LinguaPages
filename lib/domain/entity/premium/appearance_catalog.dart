@@ -92,8 +92,9 @@ extension ReaderThemeAppearance on ReaderTheme {
 
   /// Light text on a dark page; highlights then use deep tints.
   bool get isDarkPage => switch (this) {
-    ReaderTheme.dark || ReaderTheme.twilight || ReaderTheme.nightContrast =>
-      true,
+    ReaderTheme.dark ||
+    ReaderTheme.twilight ||
+    ReaderTheme.nightContrast => true,
     _ => false,
   };
 

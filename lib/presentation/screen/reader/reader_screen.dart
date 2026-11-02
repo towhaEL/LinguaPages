@@ -5,6 +5,7 @@ import 'dart:math' as math;
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -815,14 +816,20 @@ class _ReaderScreenState extends State<ReaderScreen>
           onExport: (highlights, bookmarks) async {
             final messenger = ScaffoldMessenger.of(context);
             final copiedMessage = context.l10n.readerExportCopied;
-            final markdown = const AnnotationMarkdownExporter().export(
-              bookTitle: widget.book.title,
-              highlights: highlights,
-              bookmarks: bookmarks,
+            await Clipboard.setData(
+              ClipboardData(text: _annotationMarkdown(highlights, bookmarks)),
             );
-            await Clipboard.setData(ClipboardData(text: markdown));
             if (!mounted) return;
             messenger.showSnackBar(SnackBar(content: Text(copiedMessage)));
+          },
+          onShare: (highlights, bookmarks, origin) async {
+            await SharePlus.instance.share(
+              ShareParams(
+                text: _annotationMarkdown(highlights, bookmarks),
+                subject: widget.book.title,
+                sharePositionOrigin: origin,
+              ),
+            );
           },
         ),
       );
@@ -835,6 +842,15 @@ class _ReaderScreenState extends State<ReaderScreen>
       );
     }
   }
+
+  String _annotationMarkdown(
+    List<HighlightEntity> highlights,
+    List<BookmarkEntity> bookmarks,
+  ) => const AnnotationMarkdownExporter().export(
+    bookTitle: widget.book.title,
+    highlights: highlights,
+    bookmarks: bookmarks,
+  );
 
   Future<void> _deleteNote(ReaderNote note) {
     final bookmark = note.bookmark;

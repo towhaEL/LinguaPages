@@ -17,7 +17,7 @@ Target: Android-first v1.0 of a private ebook reader for every common DRM-free f
 
 ## Where we are
 
-Already built and verified (see the status doc): Drift foundation (schema v8), import with validation, metadata, covers and TOC, the library UI, the native Readium EPUB/PDF reader plus fallback engines, reader settings, search, bookmarks, highlights, notes, Markdown export, metadata backup/restore and a local entitlement cache. Phase 1 (cleanup and English-only), Phase 2 (design foundation, "Paperback Bands"), Phase 3 (online dictionary, physical-device check pending) Phase 4 (premium appearance, Play sandbox check pending) and Phase 5 (surface redesign, tablet hardware check pending) are done.
+Already built and verified (see the status doc): Drift foundation (schema v8), import with validation, metadata, covers and TOC, the library UI, the native Readium EPUB/PDF reader plus fallback engines, reader settings, search, bookmarks, highlights, notes, Markdown export, metadata backup/restore and a local entitlement cache. Phase 1 (cleanup and English-only), Phase 2 (design foundation, "Paperback Bands"), Phase 3 (online dictionary, physical-device check pending) Phase 4 (premium appearance, Play sandbox check pending) and Phase 5 (surface redesign, tablet hardware check pending) and Phase 6 (library and backup completion, device check pending) are done.
 
 ## Architecture rules
 
@@ -37,7 +37,7 @@ Already built and verified (see the status doc): Drift foundation (schema v8), i
 | 3. Online dictionary ✅ | 1.5–2 weeks | Free Dictionary API lookup with cache, offline/error states and attribution |
 | 4. Premium appearance ✅ | 2 weeks | Theme/font/style catalog, gating, Play Billing, restore |
 | 5. Surface redesign (Impeccable) ✅ | 3–4 weeks | Library, reader chrome, sheets, settings, paywall, onboarding and splash rebuilt on the new design |
-| 6. Library and backup completion | 1.5 weeks | PDF covers, chapter progress, backup without study data, optional book files |
+| 6. Library and backup completion ✅ | 1.5 weeks | PDF covers, chapter progress, backup without study data, optional book files |
 | 7. Reader and library parity | 3–4 weeks | Typography and layout controls, page-turn controls, shelves, collections, trash, metadata editing, cross-book annotations |
 | 8. Read aloud | 2 weeks | Readium text-to-speech with voice, speed, sleep timer, sentence highlight and background playback |
 | 9. Hardening | 3 weeks | Corpus, performance, accessibility, failure testing |
@@ -212,7 +212,9 @@ Exit criteria:
 - Audits show no contrast or touch-target failures.
 - Screenshots of all surfaces are reviewed at phone and tablet sizes.
 
-## Phase 6 — Library and backup completion
+## Phase 6 — Library and backup completion ✅
+
+Done 2026-11-02; PDF covers, the share sheet and backup save/restore still need a device check. Backups are a zip (`backup.json` plus optional `books/` and `covers/`), optionally AES-encrypted with WinZip AES (PBKDF2-SHA1, 1000 iterations, passphrase of 8+ characters). Restore still reads the old JSON backups, matches books by content fingerprint and remaps their annotations. Chapter labels come from the saved Readium locator, so TXT/Markdown/HTML/FB2 cards still show only a percentage.
 
 - PDF cover rendering at import (render the first page with pdfrx and store it in cover storage).
 - Chapter-aware progress labels on library cards, using the stored TOC and locator.

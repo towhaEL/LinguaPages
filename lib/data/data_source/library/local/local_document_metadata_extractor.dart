@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:archive/archive.dart';
 import 'package:injectable/injectable.dart';
+import 'package:lingua_pages/data/document_engine/pdf/pdf_document_engine.dart';
 import 'package:lingua_pages/domain/entity/document/document_models.dart';
 import 'package:lingua_pages/domain/exceptions/document_import_exception.dart';
 import 'package:lingua_pages/domain/service/document_metadata_extractor.dart';
@@ -52,7 +53,7 @@ class LocalDocumentMetadataExtractor implements DocumentMetadataExtractor {
 
     return switch (format) {
       DocumentFormat.epub => _extractEpub(source),
-      DocumentFormat.pdf => _extractPdf(source),
+      DocumentFormat.pdf => await _extractPdf(source),
       DocumentFormat.html || DocumentFormat.fb2 => _extractMarkup(source),
       DocumentFormat.markdown => _extractMarkdown(source),
       DocumentFormat.txt => const DocumentMetadata(),
@@ -348,9 +349,18 @@ class LocalDocumentMetadataExtractor implements DocumentMetadataExtractor {
     return titles;
   }
 
-  DocumentMetadata _extractPdf(Uint8List bytes) {
+  Future<DocumentMetadata> _extractPdf(Uint8List bytes) async {
     final source = latin1.decode(bytes, allowInvalid: true);
+    Uint8List? cover;
+    try {
+      cover = await PdfDocumentEngine.renderCover(bytes);
+    } on Object {
+      // PDFium can be unavailable (VM tests) or reject the file; the book
+      // still imports with the default cover.
+    }
     return DocumentMetadata(
+      coverBytes: cover,
+      coverFileName: cover == null ? null : 'cover.png',
       title: _pdfInfoValue(source, 'Title') ?? _xmpValue(source, 'title'),
       author: _pdfInfoValue(source, 'Author') ?? _xmpValue(source, 'creator'),
       languageCode:

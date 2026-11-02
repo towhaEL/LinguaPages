@@ -6,25 +6,63 @@ import 'package:lingua_pages/core/document/document_locator.dart';
 import 'package:lingua_pages/domain/entity/document/document_models.dart';
 import 'package:lingua_pages/domain/service/document_engine.dart';
 
-/// Reflowable engine for plain text and text-backed markup formats.
-///
-/// It deliberately keeps pagination format-neutral. Richer format adapters
-/// can replace this implementation without changing the domain contract.
-class PlainTextDocumentEngine implements DocumentEngine {
-  PlainTextDocumentEngine({required this.file, required this.format})
-    : assert(
-        format == DocumentFormat.txt ||
-            format == DocumentFormat.markdown ||
-            format == DocumentFormat.html ||
-            format == DocumentFormat.fb2,
-      );
+/// Readable text produced by a format parser, with each heading's offset.
+class ReflowableText {
+  const ReflowableText(this.text, this.headings);
+
+  /// Builds the text from [marked], where each heading is wrapped in
+  /// [headingStart] and [headingEnd]. Run it after all other normalization
+  /// so the recorded offsets stay exact.
+  factory ReflowableText.fromMarked(String marked) {
+    final buffer = StringBuffer();
+    final headings = <DocumentTocEntry>[];
+    var index = 0;
+    while (index < marked.length) {
+      final start = marked.indexOf(headingStart, index);
+      if (start < 0) {
+        buffer.write(marked.substring(index));
+        break;
+      }
+      buffer.write(marked.substring(index, start));
+      var end = marked.indexOf(headingEnd, start);
+      if (end < 0) end = marked.length;
+      final raw = marked.substring(start + 1, end);
+      final title = raw.replaceAll(RegExp(r'\s+'), ' ').trim();
+      if (title.isNotEmpty) {
+        headings.add(
+          DocumentTocEntry(
+            title: title,
+            locator: TextLocator(offset: buffer.length),
+          ),
+        );
+      }
+      buffer.write(raw);
+      index = end + 1;
+    }
+    return ReflowableText(buffer.toString(), headings);
+  }
+
+  static const headingStart = '\u0001';
+  static const headingEnd = '\u0002';
+
+  final String text;
+  final List<DocumentTocEntry> headings;
+}
+
+/// Shared pagination, search and selection for the reflowable text formats.
+/// Each format subclass only turns its source into [ReflowableText].
+abstract class ReflowableTextDocumentEngine implements DocumentEngine {
+  ReflowableTextDocumentEngine(this.file);
 
   static const pageCharacterCount = 2400;
 
   final File file;
-  final DocumentFormat format;
   String? _text;
-  List<String> _headings = const [];
+  List<DocumentTocEntry> _headings = const [];
+
+  DocumentFormat get format;
+
+  ReflowableText parse(String source);
 
   String get text {
     final value = _text;
@@ -34,10 +72,9 @@ class PlainTextDocumentEngine implements DocumentEngine {
 
   @override
   Future<DocumentInfo> open() async {
-    final bytes = await file.readAsBytes();
-    final source = utf8.decode(bytes, allowMalformed: true);
-    _text = _toReadableText(source);
-    _headings = _extractHeadings(source);
+    final parsed = parse(decodeText(await file.readAsBytes()));
+    _text = parsed.text;
+    _headings = parsed.headings;
     return DocumentInfo(
       title: _title,
       format: format,
@@ -55,27 +92,13 @@ class PlainTextDocumentEngine implements DocumentEngine {
   @override
   Future<List<String>> tableOfContents() async {
     _ensureOpen();
-    return List.unmodifiable(_headings);
+    return List.unmodifiable(_headings.map((entry) => entry.title));
   }
 
   @override
   Future<List<DocumentTocEntry>> tableOfContentsEntries() async {
     _ensureOpen();
-    var searchStart = 0;
-    return _headings
-        .map((heading) {
-          final offset = text.toLowerCase().indexOf(
-            heading.toLowerCase(),
-            searchStart,
-          );
-          final resolvedOffset = offset < 0 ? searchStart : offset;
-          searchStart = resolvedOffset + heading.length;
-          return DocumentTocEntry(
-            title: heading,
-            locator: TextLocator(offset: resolvedOffset),
-          );
-        })
-        .toList(growable: false);
+    return List.unmodifiable(_headings);
   }
 
   @override
@@ -169,55 +192,13 @@ class PlainTextDocumentEngine implements DocumentEngine {
     );
   }
 
-  String _toReadableText(String source) {
-    if (format == DocumentFormat.txt || format == DocumentFormat.markdown) {
-      return source.replaceAll('\r\n', '\n');
-    }
-    return source
-        .replaceAll(RegExp(r'<br\s*/?>', caseSensitive: false), '\n')
-        .replaceAll(RegExp(r'</(p|div|li|h[1-6])>', caseSensitive: false), '\n')
-        .replaceAll(RegExp(r'<[^>]+>'), '')
-        .replaceAll('&amp;', '&')
-        .replaceAll('&lt;', '<')
-        .replaceAll('&gt;', '>')
-        .replaceAll('&quot;', '"')
-        .replaceAll('&#39;', "'")
-        .replaceAll('\r\n', '\n')
-        .trim();
-  }
-
-  List<String> _extractHeadings(String source) {
-    if (format == DocumentFormat.markdown) {
-      return source
-          .split('\n')
-          .map(
-            (line) => RegExp(
-              r'^\s{0,3}#{1,6}\s+(.+?)\s*#*\s*$',
-            ).firstMatch(line)?.group(1),
-          )
-          .whereType<String>()
-          .toList(growable: false);
-    }
-    if (format == DocumentFormat.html || format == DocumentFormat.fb2) {
-      final headingPattern = RegExp(
-        r'<h[1-6][^>]*>(.*?)</h[1-6]>',
-        caseSensitive: false,
-        dotAll: true,
-      );
-      return headingPattern
-          .allMatches(source)
-          .map((match) => match.group(1) ?? '')
-          .map((heading) => heading.replaceAll(RegExp(r'<[^>]+>'), '').trim())
-          .where((heading) => heading.isNotEmpty)
-          .toList(growable: false);
-    }
-    return const [];
-  }
-
   String _chapterAt(int offset) {
-    if (_headings.isEmpty) return _title;
-    final pageIndex = offset ~/ pageCharacterCount;
-    return _headings[pageIndex.clamp(0, _headings.length - 1)];
+    var chapter = _title;
+    for (final heading in _headings) {
+      if ((heading.locator! as TextLocator).offset > offset) break;
+      chapter = heading.title;
+    }
+    return chapter;
   }
 
   String _sentenceAround(int start, int end) {
@@ -241,3 +222,66 @@ class PlainTextDocumentEngine implements DocumentEngine {
     if (_text == null) throw StateError('The document is not open.');
   }
 }
+
+/// Decodes UTF-8 (dropping a BOM), falling back to Latin-1 for legacy files.
+String decodeText(Uint8List bytes) {
+  final start =
+      bytes.length >= 3 &&
+          bytes[0] == 0xEF &&
+          bytes[1] == 0xBB &&
+          bytes[2] == 0xBF
+      ? 3
+      : 0;
+  final content = Uint8List.sublistView(bytes, start);
+  try {
+    return utf8.decode(content);
+  } on FormatException {
+    return latin1.decode(content);
+  }
+}
+
+/// Collapses blank-line runs and trims, keeping heading markers intact.
+String tidyLines(String text) => text
+    .replaceAll(RegExp(r'[ \t]*\n[ \t]*'), '\n')
+    .replaceAll(RegExp(r'\n{3,}'), '\n\n')
+    .trim();
+
+/// Decodes HTML/XML character references in one pass, so `&amp;lt;` stays
+/// `&lt;`.
+String decodeEntities(String text) => text.replaceAllMapped(
+  RegExp(r'&(#[xX][0-9a-fA-F]+|#\d+|[a-zA-Z]+);'),
+  (match) {
+    final name = match.group(1)!;
+    if (name.startsWith('#')) {
+      final hex = name.length > 1 && (name[1] == 'x' || name[1] == 'X');
+      final code = int.tryParse(
+        hex ? name.substring(2) : name.substring(1),
+        radix: hex ? 16 : 10,
+      );
+      return code == null || code > 0x10FFFF
+          ? match.group(0)!
+          : String.fromCharCode(code);
+    }
+    return _namedEntities[name] ?? match.group(0)!;
+  },
+);
+
+const _namedEntities = {
+  'amp': '&',
+  'lt': '<',
+  'gt': '>',
+  'quot': '"',
+  'apos': "'",
+  'nbsp': ' ',
+  'mdash': '\u2014',
+  'ndash': '\u2013',
+  'hellip': '\u2026',
+  'lsquo': '\u2018',
+  'rsquo': '\u2019',
+  'ldquo': '\u201C',
+  'rdquo': '\u201D',
+  'laquo': '\u00AB',
+  'raquo': '\u00BB',
+  'copy': '\u00A9',
+  'shy': '',
+};

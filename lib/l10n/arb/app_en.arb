@@ -36,6 +36,17 @@
       }
     }
   },
+  "libraryProgressChapter": "{chapter} · {percent}%",
+  "@libraryProgressChapter": {
+    "placeholders": {
+      "chapter": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
   "libraryLastRead": "{days, plural, =0{Read today} =1{Read yesterday} other{Read {days} days ago}}",
   "@libraryLastRead": {
     "placeholders": {
@@ -223,7 +234,20 @@
   "settingsBackupCreate": "Export backup",
   "settingsBackupCreateSubtitle": "Save books list, annotations and settings",
   "settingsBackupRestore": "Restore backup",
-  "settingsBackupRestoreSubtitle": "Merge a LinguaPages JSON backup",
+  "settingsBackupRestoreSubtitle": "Merge a LinguaPages backup",
+  "settingsBackupIncludeBooks": "Include book files",
+  "settingsBackupIncludeBooksSubtitle": "Larger, but restores your books on a new device",
+  "settingsBackupIncludeDictionary": "Include dictionary cache",
+  "settingsBackupPassphrase": "Passphrase (optional)",
+  "settingsBackupPassphraseLabel": "Passphrase",
+  "settingsBackupPassphraseConfirm": "Confirm passphrase",
+  "settingsBackupPassphraseHelper": "A forgotten passphrase cannot be recovered",
+  "settingsBackupPassphraseTooShort": "Use at least 8 characters",
+  "settingsBackupPassphraseMismatch": "Passphrases do not match",
+  "settingsBackupExportAction": "Export",
+  "settingsBackupPassphrasePrompt": "This backup is encrypted",
+  "settingsBackupPassphraseIncorrect": "That passphrase is incorrect",
+  "settingsBackupRestoreAction": "Restore",
   "settingsBackupCreated": "Backup exported",
   "settingsBackupRestored": "Restored {restored} items; skipped {skipped} duplicates",
   "settingsBackupFailed": "Backup could not be completed",
@@ -338,7 +362,8 @@
   "readerNotesEmptyBody": "Select text to highlight it or add a note. Bookmarks you add appear here too.",
   "readerNotesFilterEmpty": "Nothing here yet",
   "readerNotesCopyMarkdown": "Copy as Markdown",
-  "readerNotesExportHint": "Copies every highlight, note and bookmark in this book.",
+  "readerNotesExportHint": "Copy or share every highlight, note and bookmark in this book as Markdown.",
+  "readerNotesShareMarkdown": "Share Markdown",
   "readerNotesActions": "Note actions",
   "readerNotesEdit": "Edit",
   "readerNotesDeleteHighlightTitle": "Delete this highlight?",

@@ -26,6 +26,26 @@ void main() {
     expect(updated.readingLocatorJson, '{"type":"epub"}');
   });
 
+  test('BookEntity reads the chapter title from the saved locator', () {
+    final book = _book('chapter');
+
+    expect(book.currentChapterTitle, isNull);
+    expect(
+      book
+          .copyWith(readingLocatorJson: '{"href":"c1.xhtml","title":" Ch 1 "}')
+          .currentChapterTitle,
+      'Ch 1',
+    );
+    expect(
+      book.copyWith(readingLocatorJson: '{"title":"  "}').currentChapterTitle,
+      isNull,
+    );
+    expect(
+      book.copyWith(readingLocatorJson: 'not json').currentChapterTitle,
+      isNull,
+    );
+  });
+
   test('BookEntity rejects progress outside the valid range', () {
     expect(
       () => BookEntity(

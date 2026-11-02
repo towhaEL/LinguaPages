@@ -142,9 +142,6 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i603.LibraryRepository>(
       () => _i623.DriftLibraryRepository(gh<_i211.LinguaPageDatabase>()),
     );
-    gh.lazySingleton<_i862.BackupRepository>(
-      () => _i1066.LocalBackupRepository(gh<_i211.LinguaPageDatabase>()),
-    );
     gh.lazySingleton<_i798.BookmarkRepository>(
       () => _i487.DriftBookmarkRepository(gh<_i211.LinguaPageDatabase>()),
     );
@@ -171,11 +168,11 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i610.RemoteDictionaryDataSource(gh<_i361.Dio>()),
       registerFor: {_staging, _production},
     );
-    gh.singleton<_i590.CreateBackupUseCase>(
-      () => _i590.CreateBackupUseCase(gh<_i862.BackupRepository>()),
-    );
-    gh.singleton<_i895.RestoreBackupUseCase>(
-      () => _i895.RestoreBackupUseCase(gh<_i862.BackupRepository>()),
+    gh.lazySingleton<_i862.BackupRepository>(
+      () => _i1066.LocalBackupRepository(
+        gh<_i211.LinguaPageDatabase>(),
+        gh<_i824.DocumentStorageService>(),
+      ),
     );
     gh.lazySingleton<_i1036.DictionaryDataSource>(
       () => _i406.MockDictionaryDataSource(),
@@ -229,6 +226,12 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i101.AppFeatureFlags>(),
         gh<_i974.Logger>(),
       ),
+    );
+    gh.singleton<_i590.CreateBackupUseCase>(
+      () => _i590.CreateBackupUseCase(gh<_i862.BackupRepository>()),
+    );
+    gh.singleton<_i895.RestoreBackupUseCase>(
+      () => _i895.RestoreBackupUseCase(gh<_i862.BackupRepository>()),
     );
     gh.singleton<_i993.ClearDictionaryCacheUseCase>(
       () => _i993.ClearDictionaryCacheUseCase(gh<_i900.DictionaryRepository>()),

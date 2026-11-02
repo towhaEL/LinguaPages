@@ -8,7 +8,15 @@ class CreateBackupUseCase {
   final BackupRepository _backupRepository;
 
   /// Creates a backup and returns the file path to the archive.
-  Future<String> execute({bool includeBookFiles = false}) {
-    return _backupRepository.createBackup(includeBookFiles: includeBookFiles);
+  Future<String> execute({
+    bool includeBookFiles = false,
+    bool includeDictionaryCache = false,
+    String? passphrase,
+  }) {
+    return _backupRepository.createBackup(
+      includeBookFiles: includeBookFiles,
+      includeDictionaryCache: includeDictionaryCache,
+      passphrase: passphrase,
+    );
   }
 }

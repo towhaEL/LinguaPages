@@ -1,11 +1,20 @@
 /// Manages backup creation and restore.
 abstract interface class BackupRepository {
-  /// Creates a backup archive and returns its file path.
-  Future<String> createBackup({bool includeBookFiles = false});
+  /// Creates a backup zip and returns its file path. A non-empty
+  /// [passphrase] encrypts every entry with AES.
+  Future<String> createBackup({
+    bool includeBookFiles = false,
+    bool includeDictionaryCache = false,
+    String? passphrase,
+  });
 
-  /// Restores from a backup archive at [filePath].
-  /// Returns the count of items restored (books, highlights, bookmarks).
-  Future<BackupRestoreResult> restoreBackup(String filePath);
+  /// Merges the backup at [filePath] (zip, or a legacy JSON snapshot) into the
+  /// library. Throws `BackupException` when an encrypted backup needs a
+  /// passphrase or the passphrase is wrong.
+  Future<BackupRestoreResult> restoreBackup(
+    String filePath, {
+    String? passphrase,
+  });
 }
 
 class BackupRestoreResult {

@@ -38,6 +38,7 @@ class NotesSheet extends StatefulWidget {
     required this.onDeleted,
     required this.onEdited,
     required this.onExport,
+    required this.onShare,
     super.key,
   });
 
@@ -52,6 +53,14 @@ class NotesSheet extends StatefulWidget {
     List<BookmarkEntity> bookmarks,
   )
   onExport;
+
+  /// Shares what the sheet shows; [origin] anchors the iPad share popover.
+  final Future<void> Function(
+    List<HighlightEntity> highlights,
+    List<BookmarkEntity> bookmarks,
+    Rect? origin,
+  )
+  onShare;
 
   @override
   State<NotesSheet> createState() => _NotesSheetState();
@@ -129,6 +138,15 @@ class _NotesSheetState extends State<NotesSheet> {
     [for (final note in _notes) ?note.bookmark],
   );
 
+  Future<void> _share(BuildContext buttonContext) {
+    final box = buttonContext.findRenderObject() as RenderBox?;
+    return widget.onShare(
+      [for (final note in _notes) ?note.highlight],
+      [for (final note in _notes) ?note.bookmark],
+      box == null ? null : box.localToGlobal(Offset.zero) & box.size,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -163,6 +181,14 @@ class _NotesSheetState extends State<NotesSheet> {
                       onPressed: _export,
                       icon: const Icon(Icons.copy_all_outlined),
                       label: Text(l10n.readerNotesCopyMarkdown),
+                    ),
+                  if (_notes.isNotEmpty)
+                    Builder(
+                      builder: (buttonContext) => IconButton(
+                        onPressed: () => _share(buttonContext),
+                        tooltip: l10n.readerNotesShareMarkdown,
+                        icon: const Icon(Icons.ios_share_outlined),
+                      ),
                     ),
                 ],
               ),

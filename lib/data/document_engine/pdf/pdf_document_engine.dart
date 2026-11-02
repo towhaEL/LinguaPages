@@ -16,6 +16,7 @@ class PdfDocumentEngine implements DocumentEngine {
 
   static const _renderWidth = 1600.0;
   static const _thumbnailWidth = 320.0;
+  static const _coverWidth = 480.0;
   static Future<void>? _initialization;
 
   final File file;
@@ -124,13 +125,28 @@ class PdfDocumentEngine implements DocumentEngine {
     return _pages[pageIndex].text;
   }
 
+  /// Renders the first page of a PDF as a PNG library cover.
+  static Future<Uint8List?> renderCover(Uint8List bytes) async {
+    await _ensureInitialized();
+    final document = await PdfDocument.openData(bytes);
+    try {
+      if (document.pages.isEmpty) return null;
+      return await _renderToPng(document.pages.first, _coverWidth);
+    } finally {
+      await document.dispose();
+    }
+  }
+
   Future<Uint8List?> _renderPageAtWidth(int pageIndex, double width) async {
     final document = _ensureOpen();
     if (pageIndex < 0 || pageIndex >= document.pages.length) {
       throw RangeError.index(pageIndex, 'pageIndex');
     }
+    return _renderToPng(document.pages[pageIndex], width);
+  }
 
-    final page = await document.pages[pageIndex].ensureLoaded();
+  static Future<Uint8List?> _renderToPng(PdfPage pdfPage, double width) async {
+    final page = await pdfPage.ensureLoaded();
     final height = (page.height * width / page.width).roundToDouble();
     final rendered = await page.render(fullWidth: width, fullHeight: height);
     if (rendered == null) return null;
@@ -195,7 +211,7 @@ class PdfDocumentEngine implements DocumentEngine {
     );
   }
 
-  Future<void> _ensureInitialized() {
+  static Future<void> _ensureInitialized() {
     return _initialization ??= pdfrxFlutterInitialize();
   }
 

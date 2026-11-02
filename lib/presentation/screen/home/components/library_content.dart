@@ -202,7 +202,6 @@ class _ContinueReadingCard extends StatelessWidget {
     final colors = context.colors;
     final text = Theme.of(context).textTheme;
     final band = context.bands.forFormat(book.format);
-    final percent = (book.progress * 100).round();
     final lastReadDays = _daysSince(book.lastReadAt);
 
     return Card(
@@ -217,7 +216,7 @@ class _ContinueReadingCard extends StatelessWidget {
           book.title,
           ?book.author,
           formatCode(book.format),
-          context.l10n.libraryProgressPercent(percent),
+          _progressLabel(context, book),
           if (lastReadDays != null) context.l10n.libraryLastRead(lastReadDays),
         ].join(', '),
         onTap: () => _openBook(context, book),
@@ -258,8 +257,6 @@ class _ContinueReadingCard extends StatelessWidget {
                       const SizedBox(height: 16),
                       BandProgressBar(progress: book.progress, color: band),
                       const SizedBox(height: 6),
-                      // Books carry no chapter or reading-speed data; position
-                      // is shown as percent read and recency.
                       DefaultTextStyle.merge(
                         style: text.labelMedium?.copyWith(
                           color: colors.onSurfaceMuted,
@@ -267,8 +264,14 @@ class _ContinueReadingCard extends StatelessWidget {
                         ),
                         child: Row(
                           children: [
-                            Text(context.l10n.libraryProgressPercent(percent)),
-                            const Spacer(),
+                            Flexible(
+                              child: Text(
+                                _progressLabel(context, book),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
                             if (lastReadDays != null)
                               Text(context.l10n.libraryLastRead(lastReadDays)),
                           ],
@@ -580,7 +583,13 @@ String _progressLabel(BuildContext context, BookEntity book) {
   return switch (book.progress) {
     <= 0 => l10n.libraryProgressNotStarted,
     >= 1 => l10n.libraryProgressFinished,
-    final progress => l10n.libraryProgressPercent((progress * 100).round()),
+    final progress => switch (book.currentChapterTitle) {
+      final chapter? => l10n.libraryProgressChapter(
+        chapter,
+        (progress * 100).round(),
+      ),
+      null => l10n.libraryProgressPercent((progress * 100).round()),
+    },
   };
 }
 

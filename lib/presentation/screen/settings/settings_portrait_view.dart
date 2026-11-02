@@ -9,6 +9,7 @@ import 'package:gap/gap.dart';
 import 'package:lingua_pages/core/constants/app_constant.dart';
 import 'package:lingua_pages/core/injector/injector.dart';
 import 'package:lingua_pages/domain/entity/settings/settings_entity.dart';
+import 'package:lingua_pages/domain/exceptions/backup_exception.dart';
 import 'package:lingua_pages/domain/repository/backup/backup_repository.dart';
 import 'package:lingua_pages/domain/repository/settings/settings_repository.dart';
 import 'package:lingua_pages/domain/use_cases/backup/create_backup_use_case.dart';
@@ -19,6 +20,7 @@ import 'package:lingua_pages/presentation/route/app_router.gr.dart';
 import 'package:lingua_pages/presentation/screen/premium/cubit/premium_cubit.dart';
 import 'package:lingua_pages/presentation/screen/premium/cubit/premium_state.dart';
 import 'package:lingua_pages/presentation/screen/premium/widgets/premium_paywall_sheet.dart';
+import 'package:lingua_pages/presentation/screen/settings/widgets/backup_dialogs.dart';
 import 'package:lingua_pages/presentation/theme/base/theme_extension.dart';
 import 'package:lingua_pages/presentation/theme/text/app_text.dart';
 import 'package:lingua_pages/presentation/widgets/app_bar/widgets.dart';
@@ -290,17 +292,25 @@ class _BackupManagerState extends State<_BackupManager> {
   Future<void> _export() async {
     final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
+    final options = await showBackupOptionsDialog(context);
+    if (options == null || !mounted) return;
     setState(() => _busy = true);
     try {
-      final sourcePath = await _createBackup.execute();
+      final sourcePath = await _createBackup.execute(
+        includeBookFiles: options.includeBookFiles,
+        includeDictionaryCache: options.includeDictionaryCache,
+        passphrase: options.passphrase,
+      );
       if (!mounted) return;
+      // shortcut: the save dialog takes bytes, so the whole zip is held in
+      // memory; move to a streamed share/save if libraries reach ~1 GB.
       final destinationUri = await FilePicker.saveFile(
         dialogTitle: l10n.settingsBackupCreate,
-        fileName: 'linguapages-backup.json',
+        fileName: 'linguapages-backup.zip',
         bytes: await File(sourcePath).readAsBytes(),
-        mimeType: 'application/json',
+        mimeType: 'application/zip',
         type: FileType.custom,
-        allowedExtensions: ['json'],
+        allowedExtensions: ['zip'],
       );
       if (destinationUri == null) return;
       if (mounted) {
@@ -327,7 +337,7 @@ class _BackupManagerState extends State<_BackupManager> {
       final result = await FilePicker.pickFiles(
         dialogTitle: l10n.settingsBackupRestore,
         type: FileType.custom,
-        allowedExtensions: ['json'],
+        allowedExtensions: ['zip', 'json'],
       );
       if (result.isEmpty) return;
       final pickedFile = result.single;
@@ -341,9 +351,13 @@ class _BackupManagerState extends State<_BackupManager> {
         await temporaryFile.writeAsBytes(await pickedFile.readAsBytes());
         filePath = temporaryFile.path;
       }
-      final summary = await _restoreBackup.execute(filePath);
-      await temporaryFile?.delete();
-      if (mounted) {
+      final BackupRestoreResult? summary;
+      try {
+        summary = await _restoreWithPassphrase(filePath);
+      } finally {
+        await temporaryFile?.delete();
+      }
+      if (summary != null && mounted) {
         messenger.showSnackBar(
           SnackBar(content: Text(_restoreMessage(l10n, summary))),
         );
@@ -356,6 +370,26 @@ class _BackupManagerState extends State<_BackupManager> {
       }
     } finally {
       if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  /// Restores [filePath], asking for the passphrase while an encrypted backup
+  /// needs one. Returns null when the user cancels.
+  Future<BackupRestoreResult?> _restoreWithPassphrase(String filePath) async {
+    String? passphrase;
+    while (true) {
+      try {
+        return await _restoreBackup.execute(filePath, passphrase: passphrase);
+      } on BackupException catch (error) {
+        if (!mounted) return null;
+        passphrase = await showBackupPassphraseDialog(
+          context,
+          errorText: error.kind == BackupFailureKind.passphraseIncorrect
+              ? context.l10n.settingsBackupPassphraseIncorrect
+              : null,
+        );
+        if (passphrase == null) return null;
+      }
     }
   }
 
