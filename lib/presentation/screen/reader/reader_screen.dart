@@ -399,10 +399,12 @@ class _ReaderScreenState extends State<ReaderScreen>
       ],
       if (_display.edgeBrightness)
         Positioned(
-          left: 0,
+          // Just inside the system back-gesture zone, which would otherwise
+          // take swipes along the very edge.
+          left: MediaQuery.systemGestureInsetsOf(context).left,
           top: 72,
           bottom: 72,
-          width: 24,
+          width: 32,
           child: LayoutBuilder(
             builder: (context, constraints) => GestureDetector(
               behavior: HitTestBehavior.translucent,
