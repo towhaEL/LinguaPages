@@ -23,6 +23,13 @@ class SettingsEntity {
     this.readerDirection = ReaderDirection.book,
     this.readerImageFilter = ReaderImageFilter.none,
     this.keepScreenAwake = false,
+    this.readerTapZones = ReaderTapZones.sides,
+    this.volumeKeyPaging = false,
+    this.fullScreenReading = false,
+    this.readerOrientation = ReaderOrientation.auto,
+    this.edgeBrightness = false,
+    this.readerProgressDisplay = ReaderProgressDisplay.none,
+    this.cornerShortcuts = false,
     this.onlineDictionary = true,
     this.libraryListView = false,
     this.librarySort = LibrarySort.recent,
@@ -64,6 +71,26 @@ class SettingsEntity {
   final ReaderImageFilter readerImageFilter;
   final bool keepScreenAwake;
 
+  /// How taps on a fallback page turn it; the native reader keeps its own
+  /// edge taps.
+  final ReaderTapZones readerTapZones;
+
+  /// Volume down turns forward and volume up back while reading.
+  final bool volumeKeyPaging;
+
+  /// Hide the status and navigation bars while reading.
+  final bool fullScreenReading;
+  final ReaderOrientation readerOrientation;
+
+  /// A vertical swipe on the left page edge sets a reader-only brightness.
+  final bool edgeBrightness;
+
+  /// What the page shows of the position while the chrome is hidden.
+  final ReaderProgressDisplay readerProgressDisplay;
+
+  /// Top-right corner adds a bookmark, top-left switches light/dark page.
+  final bool cornerShortcuts;
+
   /// When off, word lookups only use definitions already cached on device.
   final bool onlineDictionary;
 
@@ -92,6 +119,13 @@ class SettingsEntity {
     ReaderDirection? readerDirection,
     ReaderImageFilter? readerImageFilter,
     bool? keepScreenAwake,
+    ReaderTapZones? readerTapZones,
+    bool? volumeKeyPaging,
+    bool? fullScreenReading,
+    ReaderOrientation? readerOrientation,
+    bool? edgeBrightness,
+    ReaderProgressDisplay? readerProgressDisplay,
+    bool? cornerShortcuts,
     bool? onlineDictionary,
     bool? libraryListView,
     LibrarySort? librarySort,
@@ -117,6 +151,13 @@ class SettingsEntity {
       readerDirection: readerDirection ?? this.readerDirection,
       readerImageFilter: readerImageFilter ?? this.readerImageFilter,
       keepScreenAwake: keepScreenAwake ?? this.keepScreenAwake,
+      readerTapZones: readerTapZones ?? this.readerTapZones,
+      volumeKeyPaging: volumeKeyPaging ?? this.volumeKeyPaging,
+      fullScreenReading: fullScreenReading ?? this.fullScreenReading,
+      readerOrientation: readerOrientation ?? this.readerOrientation,
+      edgeBrightness: edgeBrightness ?? this.edgeBrightness,
+      readerProgressDisplay: readerProgressDisplay ?? this.readerProgressDisplay,
+      cornerShortcuts: cornerShortcuts ?? this.cornerShortcuts,
       onlineDictionary: onlineDictionary ?? this.onlineDictionary,
       libraryListView: libraryListView ?? this.libraryListView,
       librarySort: librarySort ?? this.librarySort,
@@ -153,3 +194,9 @@ enum ReaderColumns { auto, one, two }
 enum ReaderDirection { book, leftToRight, rightToLeft, vertical }
 
 enum ReaderImageFilter { none, dim, invert }
+
+enum ReaderTapZones { sides, topBottom, off }
+
+enum ReaderOrientation { auto, portrait, landscape }
+
+enum ReaderProgressDisplay { none, page, percent }

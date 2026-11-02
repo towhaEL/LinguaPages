@@ -182,6 +182,78 @@ class _ReadingSettingsState extends State<_ReadingSettings> {
                   (value ? ReaderMode.continuous : ReaderMode.paginated).name,
                 ),
         ),
+        _SettingsChoiceTile<ReaderTapZones>(
+          icon: Icons.touch_app_outlined,
+          title: l10n.settingsTapZones,
+          subtitle: l10n.settingsTapZonesSubtitle,
+          values: ReaderTapZones.values,
+          value: settings?.readerTapZones,
+          label: (value) => switch (value) {
+            ReaderTapZones.sides => l10n.settingsTapZonesSides,
+            ReaderTapZones.topBottom => l10n.settingsTapZonesTopBottom,
+            ReaderTapZones.off => l10n.settingsTapZonesOff,
+          },
+          onChanged: (value) => _update('readerTapZones', value.name),
+        ),
+        _SettingsSwitchTile(
+          icon: Icons.volume_down_outlined,
+          title: l10n.settingsVolumeKeys,
+          subtitle: l10n.settingsVolumeKeysSubtitle,
+          value: settings?.volumeKeyPaging ?? false,
+          onChanged: settings == null
+              ? null
+              : (value) => _update('volumeKeyPaging', value),
+        ),
+        _SettingsSwitchTile(
+          icon: Icons.fullscreen_rounded,
+          title: l10n.settingsFullScreen,
+          value: settings?.fullScreenReading ?? false,
+          onChanged: settings == null
+              ? null
+              : (value) => _update('fullScreenReading', value),
+        ),
+        _SettingsChoiceTile<ReaderOrientation>(
+          icon: Icons.screen_rotation_outlined,
+          title: l10n.settingsOrientation,
+          values: ReaderOrientation.values,
+          value: settings?.readerOrientation,
+          label: (value) => switch (value) {
+            ReaderOrientation.auto => l10n.settingsOrientationAuto,
+            ReaderOrientation.portrait => l10n.settingsOrientationPortrait,
+            ReaderOrientation.landscape => l10n.settingsOrientationLandscape,
+          },
+          onChanged: (value) => _update('readerOrientation', value.name),
+        ),
+        _SettingsSwitchTile(
+          icon: Icons.brightness_6_outlined,
+          title: l10n.settingsEdgeBrightness,
+          subtitle: l10n.settingsEdgeBrightnessSubtitle,
+          value: settings?.edgeBrightness ?? false,
+          onChanged: settings == null
+              ? null
+              : (value) => _update('edgeBrightness', value),
+        ),
+        _SettingsChoiceTile<ReaderProgressDisplay>(
+          icon: Icons.linear_scale_rounded,
+          title: l10n.settingsProgressDisplay,
+          values: ReaderProgressDisplay.values,
+          value: settings?.readerProgressDisplay,
+          label: (value) => switch (value) {
+            ReaderProgressDisplay.none => l10n.settingsProgressNone,
+            ReaderProgressDisplay.page => l10n.settingsProgressPage,
+            ReaderProgressDisplay.percent => l10n.settingsProgressPercent,
+          },
+          onChanged: (value) => _update('readerProgressDisplay', value.name),
+        ),
+        _SettingsSwitchTile(
+          icon: Icons.crop_free_rounded,
+          title: l10n.settingsCornerShortcuts,
+          subtitle: l10n.settingsCornerShortcutsSubtitle,
+          value: settings?.cornerShortcuts ?? false,
+          onChanged: settings == null
+              ? null
+              : (value) => _update('cornerShortcuts', value),
+        ),
       ],
     );
   }
@@ -536,6 +608,64 @@ class _SettingsTile extends StatelessWidget {
 }
 
 /// A settings row with a switch; the whole row toggles it.
+/// A setting with a few named values; tapping lists them in a dialog.
+class _SettingsChoiceTile<T> extends StatelessWidget {
+  const _SettingsChoiceTile({
+    required this.icon,
+    required this.title,
+    required this.values,
+    required this.value,
+    required this.label,
+    required this.onChanged,
+    this.subtitle,
+  });
+
+  final IconData icon;
+  final String title;
+  final String? subtitle;
+  final List<T> values;
+
+  /// Null while settings load; the row is then disabled.
+  final T? value;
+  final String Function(T value) label;
+  final ValueChanged<T> onChanged;
+
+  Future<void> _choose(BuildContext context) async {
+    final chosen = await showDialog<T>(
+      context: context,
+      builder: (dialogContext) => SimpleDialog(
+        title: Text(title),
+        children: [
+          for (final option in values)
+            SimpleDialogOption(
+              onPressed: () => Navigator.of(dialogContext).pop(option),
+              child: Row(
+                children: [
+                  Expanded(child: Text(label(option))),
+                  if (option == value) const Icon(Icons.check_rounded),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+    if (chosen != null && chosen != value) onChanged(chosen);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final current = value;
+    return _SettingsTile(
+      icon: icon,
+      title: title,
+      subtitle: current == null
+          ? subtitle
+          : [label(current), ?subtitle].join(' · '),
+      onTap: current == null ? null : () => _choose(context),
+    );
+  }
+}
+
 class _SettingsSwitchTile extends StatelessWidget {
   const _SettingsSwitchTile({
     required this.icon,

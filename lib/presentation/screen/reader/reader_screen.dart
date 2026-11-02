@@ -25,6 +25,8 @@ import 'package:lingua_pages/domain/repository/reader/highlight_repository.dart'
 import 'package:lingua_pages/domain/repository/settings/settings_repository.dart';
 import 'package:lingua_pages/domain/service/document_engine.dart';
 import 'package:lingua_pages/domain/service/document_engine_factory.dart';
+import 'package:lingua_pages/domain/service/screen_brightness_service.dart';
+import 'package:lingua_pages/domain/service/volume_key_service.dart';
 import 'package:lingua_pages/domain/service/annotation_markdown_exporter.dart';
 import 'package:lingua_pages/domain/use_cases/reader/save_reading_progress_use_case.dart';
 import 'package:lingua_pages/l10n/l10n.dart';
@@ -36,6 +38,7 @@ import 'package:lingua_pages/presentation/screen/reader/widgets/highlight_editor
 import 'package:lingua_pages/presentation/screen/reader/widgets/marked_text.dart';
 import 'package:lingua_pages/presentation/screen/reader/widgets/notes_sheet.dart';
 import 'package:lingua_pages/presentation/screen/reader/widgets/reader_chrome.dart';
+import 'package:lingua_pages/presentation/screen/reader/widgets/reader_tap_zones.dart';
 import 'package:lingua_pages/presentation/widgets/state_view.dart';
 import 'package:lingua_pages/presentation/theme/base/theme_extension.dart';
 
@@ -99,6 +102,17 @@ class _ReaderScreenState extends State<ReaderScreen>
   Future<void>? _progressFlush;
   StreamSubscription<ReadiumReaderStatus>? _readiumStatusSubscription;
   StreamSubscription<Locator>? _readiumLocatorSubscription;
+  late final VolumeKeyService _volumeKeys;
+  late final ScreenBrightnessService _brightness;
+  StreamSubscription<PageTurn>? _pageTurnSubscription;
+
+  /// The edge-swipe brightness, once the reader has set one.
+  double? _readerBrightness;
+  bool _adjustingBrightness = false;
+
+  /// Screen settings this reader changed and must undo on exit.
+  bool _changedSystemUi = false;
+  bool _changedOrientation = false;
 
   @override
   void initState() {
@@ -110,6 +124,9 @@ class _ReaderScreenState extends State<ReaderScreen>
     _highlightRepository = injector<HighlightRepository>();
     _settingsRepository = injector<SettingsRepository>();
     _premium = injector<PremiumCubit>();
+    _volumeKeys = injector<VolumeKeyService>();
+    _brightness = injector<ScreenBrightnessService>();
+    _pageTurnSubscription = _volumeKeys.pageTurns.listen(_turnPage);
     _chromeVisible.addListener(_rebuild);
     _premiumSubscription = _premium.stream.listen((_) {
       if (!mounted) return;
@@ -143,6 +160,20 @@ class _ReaderScreenState extends State<ReaderScreen>
     unawaited(_readiumStatusSubscription?.cancel());
     unawaited(_readiumLocatorSubscription?.cancel());
     unawaited(_premiumSubscription?.cancel());
+    unawaited(_pageTurnSubscription?.cancel());
+    unawaited(_volumeKeys.setEnabled(enabled: false));
+    if (_readerBrightness != null) unawaited(_brightness.reset());
+    if (_changedSystemUi) {
+      unawaited(
+        SystemChrome.setEnabledSystemUIMode(
+          SystemUiMode.manual,
+          overlays: SystemUiOverlay.values,
+        ),
+      );
+    }
+    if (_changedOrientation) {
+      unawaited(SystemChrome.setPreferredOrientations(const []));
+    }
     _chromeVisible.dispose();
     if (_usesReadium) {
       unawaited(_readiumSession.close());
@@ -195,6 +226,8 @@ class _ReaderScreenState extends State<ReaderScreen>
         body: Stack(
           children: [
             Positioned.fill(child: SafeArea(child: _buildBody(context, info))),
+            if (ready && _errorMessage == null && !chromeVisible)
+              ..._pageOverlays(context, info),
             Positioned(
               top: 0,
               left: 0,
@@ -231,6 +264,144 @@ class _ReaderScreenState extends State<ReaderScreen>
     );
   }
 
+  /// Paged fallback books turn pages with buttons and count pages.
+  bool _isPaged(DocumentInfo? info) =>
+      !_usesReadium &&
+      info != null &&
+      info.pageCount != null &&
+      !(_display.readerMode == ReaderMode.continuous &&
+          info.layout == DocumentLayout.reflowable);
+
+  double _currentProgress(DocumentInfo? info) {
+    if (_usesReadium) return _readiumProgress ?? widget.book.progress;
+    if (!_isPaged(info)) return _continuousProgress;
+    final pageCount = info!.pageCount!;
+    return pageCount <= 1 ? 1.0 : (_pageIndex + 1) / pageCount;
+  }
+
+  /// The quiet position label shown on the page while the chrome is hidden.
+  String? _progressCaption(BuildContext context, DocumentInfo? info) {
+    final l10n = context.l10n;
+    final percent = l10n.libraryProgressPercent(
+      (_currentProgress(info) * 100).round(),
+    );
+    return switch (_display.readerProgressDisplay) {
+      ReaderProgressDisplay.none => null,
+      ReaderProgressDisplay.percent => percent,
+      ReaderProgressDisplay.page when _isPaged(info) => l10n.readerPageOf(
+        _pageIndex + 1,
+        info!.pageCount!,
+      ),
+      // The native reader reports a position, not a page count.
+      ReaderProgressDisplay.page =>
+        _currentReadiumLocator?.locations?.position?.toString() ?? percent,
+    };
+  }
+
+  /// Progress caption, corner shortcuts and the brightness strip, shown on
+  /// the page while the chrome is hidden.
+  List<Widget> _pageOverlays(BuildContext context, DocumentInfo? info) {
+    final l10n = context.l10n;
+    final ink = Color(_display.readerTheme.textArgb);
+    final caption = _progressCaption(context, info);
+    Widget corner(String label, VoidCallback onTap) => Semantics(
+      button: true,
+      label: label,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: const SizedBox.square(dimension: 56),
+      ),
+    );
+    return [
+      if (caption != null)
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 4,
+          child: SafeArea(
+            top: false,
+            child: IgnorePointer(
+              child: Text(
+                caption,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: ink.withValues(alpha: .6),
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                ),
+              ),
+            ),
+          ),
+        ),
+      if (_display.cornerShortcuts) ...[
+        Positioned(
+          top: 0,
+          left: 0,
+          child: SafeArea(
+            child: corner(l10n.readerCornerTheme, _toggleDarkPage),
+          ),
+        ),
+        Positioned(
+          top: 0,
+          right: 0,
+          child: SafeArea(child: corner(l10n.readerBookmark, _createBookmark)),
+        ),
+      ],
+      if (_display.edgeBrightness)
+        Positioned(
+          left: 0,
+          top: 72,
+          bottom: 72,
+          width: 24,
+          child: LayoutBuilder(
+            builder: (context, constraints) => GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onVerticalDragStart: (_) => unawaited(_startBrightnessDrag()),
+              onVerticalDragUpdate: (details) =>
+                  _updateBrightness(details, constraints.maxHeight),
+              onVerticalDragEnd: (_) =>
+                  setState(() => _adjustingBrightness = false),
+              onVerticalDragCancel: () =>
+                  setState(() => _adjustingBrightness = false),
+            ),
+          ),
+        ),
+      if (_adjustingBrightness && _readerBrightness != null)
+        Center(
+          child: IgnorePointer(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: .7),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.brightness_6_outlined,
+                      color: Colors.white,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      l10n.libraryProgressPercent(
+                        (_readerBrightness! * 100).round(),
+                      ),
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+    ];
+  }
+
   Widget _buildBottomBar(BuildContext context, DocumentInfo? info) {
     final l10n = context.l10n;
     final pageCount = info?.pageCount;
@@ -242,11 +413,7 @@ class _ReaderScreenState extends State<ReaderScreen>
         !(_display.readerMode == ReaderMode.continuous &&
             info.layout == DocumentLayout.reflowable);
     final continuous = !_usesReadium && !paged;
-    final progress = _usesReadium
-        ? _readiumProgress ?? widget.book.progress
-        : paged
-        ? (pageCount <= 1 ? 1.0 : (_pageIndex + 1) / pageCount)
-        : _continuousProgress;
+    final progress = _currentProgress(info);
 
     return ReaderBottomBar(
       progress: progress,
@@ -425,7 +592,8 @@ class _ReaderScreenState extends State<ReaderScreen>
         Positioned.fill(child: page),
         if (!_usesReadium && _display.readerMode == ReaderMode.paginated)
           Positioned.fill(
-            child: _ReaderTapZones(
+            child: ReaderTapZonesOverlay(
+              scheme: _display.readerTapZones,
               previousLabel: context.l10n.readerPreviousPage,
               nextLabel: context.l10n.readerNextPage,
               onToggleControls: _toggleChrome,
@@ -1145,6 +1313,7 @@ class _ReaderScreenState extends State<ReaderScreen>
       if (!mounted) return;
       setState(() => _settings = settings);
       _applyWakeLock(settings.keepScreenAwake);
+      _applyScreenSettings(settings);
       if (_usesReadium && _publication != null) {
         await _readiumSession.applySettings(
           settings: _display,
@@ -1194,6 +1363,92 @@ class _ReaderScreenState extends State<ReaderScreen>
         previous.readerPdfMode != display.readerPdfMode) {
       unawaited(_renderPage(_pageIndex));
     }
+  }
+
+  /// Volume keys, full screen and orientation, set once when the reader
+  /// opens; only what differs from the app's normal state is touched.
+  void _applyScreenSettings(SettingsEntity settings) {
+    unawaited(_volumeKeys.setEnabled(enabled: settings.volumeKeyPaging));
+    if (settings.fullScreenReading) {
+      _changedSystemUi = true;
+      unawaited(
+        SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky),
+      );
+    }
+    final orientations = switch (settings.readerOrientation) {
+      ReaderOrientation.auto => null,
+      ReaderOrientation.portrait => [
+        DeviceOrientation.portraitUp,
+        DeviceOrientation.portraitDown,
+      ],
+      ReaderOrientation.landscape => [
+        DeviceOrientation.landscapeLeft,
+        DeviceOrientation.landscapeRight,
+      ],
+    };
+    if (orientations != null) {
+      _changedOrientation = true;
+      unawaited(SystemChrome.setPreferredOrientations(orientations));
+    }
+  }
+
+  /// One page forward or back, for the volume keys.
+  void _turnPage(PageTurn turn) {
+    final forward = turn == PageTurn.next;
+    if (_usesReadium) {
+      if (_publication == null) return;
+      unawaited(
+        forward ? _readiumSession.goForward() : _readiumSession.goBackward(),
+      );
+      return;
+    }
+    final info = _info;
+    if (info == null || _isRendering) return;
+    final pageCount = info.pageCount ?? 1;
+    if (info.layout == DocumentLayout.reflowable &&
+        _settings.readerMode == ReaderMode.continuous) {
+      final current = (_continuousProgress * (pageCount - 1)).round();
+      _continuousPageKey.currentState?.jumpToPage(
+        (current + (forward ? 1 : -1)).clamp(0, pageCount - 1),
+        pageCount: pageCount,
+      );
+      return;
+    }
+    final target = _pageIndex + (forward ? 1 : -1);
+    if (target < 0 || target >= pageCount) return;
+    _hideChrome();
+    unawaited(_renderPage(target));
+  }
+
+  /// Switches the page between the light and dark reading themes.
+  void _toggleDarkPage() {
+    final previous = _display;
+    final next = _settings.copyWith(
+      readerTheme: previous.readerTheme.isDarkPage
+          ? ReaderTheme.light
+          : ReaderTheme.dark,
+    );
+    setState(() => _settings = next);
+    unawaited(_persistReaderSettings(next));
+    _applyDisplay(previous);
+  }
+
+  Future<void> _startBrightnessDrag() async {
+    setState(() => _adjustingBrightness = true);
+    try {
+      _readerBrightness ??= await _brightness.current();
+    } catch (_) {
+      _readerBrightness ??= .5;
+    }
+  }
+
+  void _updateBrightness(DragUpdateDetails details, double height) {
+    final current = _readerBrightness;
+    if (current == null || height <= 0) return;
+    // A full-height swipe covers the whole range; up is brighter.
+    final next = (current - details.delta.dy / height).clamp(.02, 1.0);
+    setState(() => _readerBrightness = next);
+    unawaited(_brightness.set(next).catchError((Object _) {}));
   }
 
   void _applyWakeLock(bool enabled) {
@@ -1820,63 +2075,6 @@ class _PdfTextPage extends StatelessWidget {
               .merge(textTweaks),
         ),
       ),
-    );
-  }
-}
-
-class _ReaderTapZones extends StatelessWidget {
-  const _ReaderTapZones({
-    required this.previousLabel,
-    required this.nextLabel,
-    required this.onPrevious,
-    required this.onNext,
-    required this.onToggleControls,
-  });
-
-  final String previousLabel;
-  final String nextLabel;
-  final VoidCallback? onPrevious;
-  final VoidCallback? onNext;
-
-  /// A tap in the middle; long presses still reach the text for selection.
-  final VoidCallback onToggleControls;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: Semantics(
-            button: true,
-            label: previousLabel,
-            child: GestureDetector(
-              behavior: HitTestBehavior.translucent,
-              onTap: onPrevious,
-              child: const SizedBox.expand(),
-            ),
-          ),
-        ),
-        Expanded(
-          flex: 2,
-          child: GestureDetector(
-            behavior: HitTestBehavior.translucent,
-            onTap: onToggleControls,
-            excludeFromSemantics: true,
-            child: const SizedBox.expand(),
-          ),
-        ),
-        Expanded(
-          child: Semantics(
-            button: true,
-            label: nextLabel,
-            child: GestureDetector(
-              behavior: HitTestBehavior.translucent,
-              onTap: onNext,
-              child: const SizedBox.expand(),
-            ),
-          ),
-        ),
-      ],
     );
   }
 }

@@ -18,6 +18,10 @@ import 'package:shared_preferences/shared_preferences.dart' as _i460;
 
 import '../../data/billing/mock_billing_service.dart' as _i508;
 import '../../data/billing/play_billing_service.dart' as _i559;
+import '../../data/data_source/device/platform_volume_key_service.dart'
+    as _i761;
+import '../../data/data_source/device/plugin_screen_brightness_service.dart'
+    as _i9;
 import '../../data/data_source/dictionary/dictionary_data_source.dart'
     as _i1036;
 import '../../data/data_source/dictionary/mock/mock_dictionary_data_source.dart'
@@ -62,6 +66,8 @@ import '../../domain/service/document_engine_factory.dart' as _i304;
 import '../../domain/service/document_import_service.dart' as _i536;
 import '../../domain/service/document_metadata_extractor.dart' as _i47;
 import '../../domain/service/document_storage_service.dart' as _i824;
+import '../../domain/service/screen_brightness_service.dart' as _i905;
+import '../../domain/service/volume_key_service.dart' as _i43;
 import '../../domain/use_cases/backup/create_backup_use_case.dart' as _i590;
 import '../../domain/use_cases/backup/restore_backup_use_case.dart' as _i895;
 import '../../domain/use_cases/dictionary/clear_dictionary_cache_use_case.dart'
@@ -115,6 +121,12 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i211.LinguaPageDatabase>(() => databaseModule.database);
     gh.lazySingleton<_i749.HighlightRepository>(
       () => _i487.DriftHighlightRepository(gh<_i211.LinguaPageDatabase>()),
+    );
+    gh.lazySingleton<_i905.ScreenBrightnessService>(
+      () => _i9.PluginScreenBrightnessService(),
+    );
+    gh.lazySingleton<_i43.VolumeKeyService>(
+      () => _i761.PlatformVolumeKeyService(),
     );
     gh.lazySingleton<_i693.SecureStorageService>(
       () => _i693.SecureStorageService(gh<_i558.FlutterSecureStorage>()),

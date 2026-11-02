@@ -84,5 +84,31 @@ void main() {
       expect(settings.readerDirection, ReaderDirection.rightToLeft);
       expect(settings.readerImageFilter, ReaderImageFilter.dim);
     });
+
+    test('persists the page-turning and screen settings', () async {
+      await repository.saveSettings(
+        const SettingsEntity(
+          readerTapZones: ReaderTapZones.topBottom,
+          volumeKeyPaging: true,
+          fullScreenReading: true,
+          readerOrientation: ReaderOrientation.landscape,
+          edgeBrightness: true,
+          readerProgressDisplay: ReaderProgressDisplay.page,
+          cornerShortcuts: true,
+        ),
+      );
+
+      final settings = await repository.getSettings();
+
+      expect(settings.readerTapZones, ReaderTapZones.topBottom);
+      expect(settings.volumeKeyPaging, isTrue);
+      expect(settings.fullScreenReading, isTrue);
+      expect(settings.readerOrientation, ReaderOrientation.landscape);
+      expect(settings.edgeBrightness, isTrue);
+      expect(settings.readerProgressDisplay, ReaderProgressDisplay.page);
+      expect(settings.cornerShortcuts, isTrue);
+      // Volume keys are opt-in.
+      expect(const SettingsEntity().volumeKeyPaging, isFalse);
+    });
   });
 }

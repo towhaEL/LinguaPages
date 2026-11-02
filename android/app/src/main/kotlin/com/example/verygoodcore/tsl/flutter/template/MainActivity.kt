@@ -3,6 +3,7 @@ package com.linguapages.app
 import android.content.Intent
 import android.net.Uri
 import android.provider.OpenableColumns
+import android.view.KeyEvent
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -13,11 +14,16 @@ class MainActivity : FlutterFragmentActivity() {
         private const val incomingDocumentsChannel = "lingua_pages/incoming_documents"
         private const val getInitialDocumentMethod = "getInitialDocument"
         private const val incomingDocumentMethod = "incomingDocument"
+        private const val volumeKeysChannel = "lingua_pages/volume_keys"
     }
 
     private val pendingIntentLock = Any()
     private var pendingDocumentUri: Uri? = null
     private var incomingDocumentsChannelInstance: MethodChannel? = null
+    private var volumeKeysChannelInstance: MethodChannel? = null
+
+    // Set by the reader while it is open with volume-key paging on.
+    private var volumeKeyPaging = false
 
     override fun shouldHandleDeeplinking(): Boolean = false
 
@@ -36,7 +42,37 @@ class MainActivity : FlutterFragmentActivity() {
             }
         }
 
+        volumeKeysChannelInstance = MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            volumeKeysChannel,
+        ).also { channel ->
+            channel.setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "setEnabled" -> {
+                        volumeKeyPaging = call.arguments as? Boolean ?: false
+                        result.success(null)
+                    }
+                    else -> result.notImplemented()
+                }
+            }
+        }
+
         handleDocumentIntent(intent, emitDocument = false)
+    }
+
+    // Intercepted before any view, so it also works while the native Readium
+    // view has focus. Key up is consumed too, or the system volume panel shows.
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        val direction = when (event.keyCode) {
+            KeyEvent.KEYCODE_VOLUME_DOWN -> "next"
+            KeyEvent.KEYCODE_VOLUME_UP -> "previous"
+            else -> null
+        }
+        if (!volumeKeyPaging || direction == null) return super.dispatchKeyEvent(event)
+        if (event.action == KeyEvent.ACTION_DOWN) {
+            volumeKeysChannelInstance?.invokeMethod("pageTurn", direction)
+        }
+        return true
     }
 
     override fun onNewIntent(intent: Intent) {
