@@ -1,4 +1,5 @@
 import 'package:lingua_pages/domain/entity/library/book_entity.dart';
+import 'package:lingua_pages/domain/entity/library/collection_entity.dart';
 
 enum LibraryStatus { initial, loading, success, failure }
 
@@ -13,6 +14,19 @@ enum LibraryImportFeedback {
 
 enum LibraryViewMode { grid, list }
 
+/// Which part of the library the shelf shows.
+enum LibraryView {
+  all,
+  toRead,
+  reading,
+  finished,
+  favorites,
+  collection,
+  authors,
+  series,
+  trash,
+}
+
 class LibraryState {
   const LibraryState({
     this.status = LibraryStatus.initial,
@@ -24,6 +38,11 @@ class LibraryState {
     this.importMessage,
     this.viewMode = LibraryViewMode.grid,
     this.sort = LibrarySort.recent,
+    this.view = LibraryView.all,
+    this.viewKey,
+    this.collections = const [],
+    this.trash = const [],
+    this.duplicateBookId,
   });
 
   final LibraryStatus status;
@@ -35,6 +54,76 @@ class LibraryState {
   final String? importMessage;
   final LibraryViewMode viewMode;
   final LibrarySort sort;
+  final LibraryView view;
+
+  /// The collection id, author or series picked within [view]; null lists
+  /// the authors or series to pick from.
+  final String? viewKey;
+  final List<CollectionEntity> collections;
+  final List<BookEntity> trash;
+
+  /// The library book matching a rejected duplicate import.
+  final String? duplicateBookId;
+
+  CollectionEntity? get selectedCollection => view == LibraryView.collection
+      ? collections.where((c) => c.id == viewKey).firstOrNull
+      : null;
+
+  /// [books] narrowed to [view]. Authors and series without a pick show
+  /// their groups instead (see [authorGroups] and [seriesGroups]).
+  List<BookEntity> get visibleBooks {
+    final key = viewKey;
+    return switch (view) {
+      LibraryView.all => books,
+      LibraryView.toRead => _onShelf(BookShelf.toRead),
+      LibraryView.reading => _onShelf(BookShelf.reading),
+      LibraryView.finished => _onShelf(BookShelf.finished),
+      LibraryView.favorites => [
+        for (final book in books)
+          if (book.isFavorite) book,
+      ],
+      LibraryView.collection => [
+        for (final book in books)
+          if (selectedCollection?.bookIds.contains(book.id) ?? false) book,
+      ],
+      LibraryView.authors => [
+        for (final book in books)
+          if (key != null && book.authors.contains(key)) book,
+      ],
+      LibraryView.series => [
+        for (final book in books)
+          if (key != null && book.series == key) book,
+      ]..sort((a, b) => (a.seriesIndex ?? 1e9).compareTo(b.seriesIndex ?? 1e9)),
+      LibraryView.trash => trash,
+    };
+  }
+
+  /// Author names with their book counts, alphabetically.
+  List<(String, int)> get authorGroups =>
+      _groups([for (final book in books) ...book.authors]);
+
+  /// Series names with their book counts, alphabetically.
+  List<(String, int)> get seriesGroups =>
+      _groups([for (final book in books) ?book.series]);
+
+  /// Authors or series are listed rather than books.
+  bool get showsGroups =>
+      viewKey == null &&
+      (view == LibraryView.authors || view == LibraryView.series);
+
+  List<BookEntity> _onShelf(BookShelf shelf) => [
+    for (final book in books)
+      if (book.readingShelf == shelf) book,
+  ];
+
+  static List<(String, int)> _groups(List<String> names) {
+    final counts = <String, int>{};
+    for (final name in names) {
+      counts[name] = (counts[name] ?? 0) + 1;
+    }
+    return counts.entries.map((entry) => (entry.key, entry.value)).toList()
+      ..sort((a, b) => a.$1.toLowerCase().compareTo(b.$1.toLowerCase()));
+  }
 
   LibraryState copyWith({
     LibraryStatus? status,
@@ -46,6 +135,11 @@ class LibraryState {
     String? importMessage,
     LibraryViewMode? viewMode,
     LibrarySort? sort,
+    LibraryView? view,
+    String? Function()? viewKey,
+    List<CollectionEntity>? collections,
+    List<BookEntity>? trash,
+    String? duplicateBookId,
   }) {
     return LibraryState(
       status: status ?? this.status,
@@ -57,6 +151,12 @@ class LibraryState {
       importMessage: importMessage,
       viewMode: viewMode ?? this.viewMode,
       sort: sort ?? this.sort,
+      view: view ?? this.view,
+      viewKey: viewKey == null ? this.viewKey : viewKey(),
+      collections: collections ?? this.collections,
+      trash: trash ?? this.trash,
+      // Like the import feedback, it only lasts one emission.
+      duplicateBookId: duplicateBookId,
     );
   }
 }

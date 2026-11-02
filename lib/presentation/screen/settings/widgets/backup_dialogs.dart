@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lingua_pages/l10n/l10n.dart';
+import 'package:lingua_pages/presentation/theme/base/theme_extension.dart';
 
 class BackupOptions {
   const BackupOptions({
@@ -101,6 +102,7 @@ class _BackupOptionsDialogState extends State<_BackupOptionsDialog> {
                 autocorrect: false,
                 enableSuggestions: false,
                 decoration: InputDecoration(
+                  fillColor: context.colors.surfaceElevated,
                   labelText: l10n.settingsBackupPassphrase,
                   helperText: l10n.settingsBackupPassphraseHelper,
                   helperMaxLines: 2,
@@ -120,6 +122,7 @@ class _BackupOptionsDialogState extends State<_BackupOptionsDialog> {
                   autocorrect: false,
                   enableSuggestions: false,
                   decoration: InputDecoration(
+                    fillColor: context.colors.surfaceElevated,
                     labelText: l10n.settingsBackupPassphraseConfirm,
                   ),
                   validator: (value) => value != _passphrase.text
@@ -179,6 +182,7 @@ class _PassphraseDialogState extends State<_PassphraseDialog> {
         autocorrect: false,
         enableSuggestions: false,
         decoration: InputDecoration(
+          fillColor: context.colors.surfaceElevated,
           labelText: l10n.settingsBackupPassphraseLabel,
           errorText: widget.errorText,
         ),

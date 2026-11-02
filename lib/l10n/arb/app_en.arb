@@ -74,6 +74,63 @@
   "libraryProgressNotStarted": "Not started",
   "libraryProgressInProgress": "In progress",
   "libraryProgressFinished": "Finished",
+  "libraryViewAll": "All",
+  "libraryShelfToRead": "To read",
+  "libraryShelfReading": "Reading",
+  "libraryShelfFinished": "Finished",
+  "libraryShelfAutomatic": "Automatic (from progress)",
+  "libraryFavorites": "Favorites",
+  "libraryAuthors": "Authors",
+  "librarySeries": "Series",
+  "libraryTrash": "Trash",
+  "libraryTrashNote": "Books in Trash keep their notes and are removed after 30 days.",
+  "libraryEmptyTrash": "Empty Trash",
+  "libraryEmptyTrashTitle": "Empty Trash?",
+  "libraryEmptyTrashBody": "The book files are removed. Highlights, notes and bookmarks are kept and come back if you import a book again.",
+  "libraryViewEmptyTitle": "Nothing here yet",
+  "libraryViewEmptyBody": "Long-press a book to add it to a shelf or collection.",
+  "libraryTrashEmptyTitle": "Trash is empty",
+  "libraryFavorite": "Add to Favorites",
+  "libraryUnfavorite": "Remove from Favorites",
+  "libraryMoveToShelf": "Move to shelf",
+  "libraryCollections": "Collections",
+  "libraryNewCollection": "New collection",
+  "libraryRenameCollection": "Rename collection",
+  "libraryDeleteCollection": "Delete collection",
+  "libraryCollectionName": "Name",
+  "libraryEditDetails": "Edit details",
+  "libraryDetailTitle": "Title",
+  "libraryDetailTitleRequired": "A title is required",
+  "libraryDetailAuthors": "Authors",
+  "libraryDetailAuthorsHint": "Separate several authors with commas",
+  "libraryDetailSeries": "Series",
+  "libraryDetailSeriesNumber": "Number",
+  "libraryDetailNumberInvalid": "Not a number",
+  "libraryDetailLanguage": "Language",
+  "libraryDetailLanguageHint": "A code such as en or fr",
+  "libraryDetailReset": "Reset from file",
+  "libraryMoveToTrash": "Move to Trash",
+  "libraryMovedToTrash": "Moved {title} to Trash",
+  "@libraryMovedToTrash": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "libraryUndo": "Undo",
+  "libraryRestore": "Restore",
+  "libraryDeleteForever": "Delete permanently",
+  "libraryActionFailed": "That change could not be saved",
+  "libraryOpenExisting": "Open",
+  "libraryGroupCount": "{count, plural, =1{1 book} other{{count} books}}",
+  "@libraryGroupCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "libraryDelete": "Remove book",
   "libraryDeleteTitle": "Remove this book?",
   "libraryDeleteBody": "Choose whether to keep highlights, notes and bookmarks for {title}.",

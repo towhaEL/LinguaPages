@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lingua_pages/domain/entity/library/book_entity.dart';
-import 'package:lingua_pages/domain/repository/library/library_repository.dart';
 import 'package:lingua_pages/l10n/l10n.dart';
 import 'package:lingua_pages/presentation/route/app_router.gr.dart';
+import 'package:lingua_pages/presentation/screen/home/components/library_book_actions.dart';
 import 'package:lingua_pages/presentation/screen/home/cubits/library_cubit.dart';
 import 'package:lingua_pages/presentation/screen/home/cubits/library_state.dart';
 import 'package:lingua_pages/presentation/theme/base/theme_extension.dart';
@@ -57,13 +57,33 @@ class _LibraryContentState extends State<LibraryContent> {
             context.l10n.libraryFileUnavailable,
           LibraryImportFeedback.failure => context.l10n.libraryImportFailed,
         };
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(text)));
+        final duplicateId = state.duplicateBookId;
+        final cubit = context.read<LibraryCubit>();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            // Optional actions; the message still times out.
+            persist: false,
+            content: Text(text),
+            action: duplicateId == null
+                ? null
+                : SnackBarAction(
+                    label: context.l10n.libraryOpenExisting,
+                    onPressed: () async {
+                      final book = await cubit.bookById(duplicateId);
+                      if (book != null && context.mounted) {
+                        await _openBook(context, book);
+                      }
+                    },
+                  ),
+          ),
+        );
       },
       child: BlocBuilder<LibraryCubit, LibraryState>(
         builder: (context, state) {
-          if (state.status == LibraryStatus.loading && state.books.isEmpty) {
+          // Before the first load starts the status is still initial.
+          if ((state.status == LibraryStatus.initial ||
+                  state.status == LibraryStatus.loading) &&
+              state.books.isEmpty) {
             return const Center(child: CircularProgressIndicator());
           }
           if (state.status == LibraryStatus.failure) {
@@ -84,8 +104,12 @@ class _LibraryContentState extends State<LibraryContent> {
           }
 
           final hasQuery = state.query.trim().isNotEmpty;
-          final isEmptyLibrary = state.books.isEmpty && !hasQuery;
-          final current = hasQuery ? null : _continueReading(state.books);
+          final isEmptyLibrary =
+              state.books.isEmpty && state.trash.isEmpty && !hasQuery;
+          final current = hasQuery || state.view != LibraryView.all
+              ? null
+              : _continueReading(state.books);
+          final visible = state.visibleBooks;
 
           return RefreshIndicator(
             onRefresh: context.read<LibraryCubit>().load,
@@ -110,6 +134,7 @@ class _LibraryContentState extends State<LibraryContent> {
                           : () => setState(() => _searching = true),
                     ),
                   ),
+                  SliverToBoxAdapter(child: _ViewChips(state: state)),
                   if (_searching || hasQuery)
                     SliverPadding(
                       padding: const EdgeInsets.fromLTRB(
@@ -136,17 +161,42 @@ class _LibraryContentState extends State<LibraryContent> {
                       ),
                     ),
                 ],
-                if (state.books.isEmpty)
+                if (state.view == LibraryView.trash && visible.isNotEmpty)
+                  SliverToBoxAdapter(
+                    child: _TrashHeader(count: visible.length),
+                  ),
+                if (state.showsGroups)
+                  _GroupList(state: state)
+                else if (isEmptyLibrary)
                   SliverToBoxAdapter(
                     child: _LibraryEmpty(
                       query: state.query,
                       onClearSearch: _closeSearch,
                     ),
                   )
+                else if (visible.isEmpty)
+                  SliverToBoxAdapter(
+                    child: hasQuery
+                        ? _LibraryEmpty(
+                            query: state.query,
+                            onClearSearch: _closeSearch,
+                          )
+                        : StateView(
+                            icon: state.view == LibraryView.trash
+                                ? Icons.delete_outline_rounded
+                                : Icons.collections_bookmark_outlined,
+                            title: state.view == LibraryView.trash
+                                ? context.l10n.libraryTrashEmptyTitle
+                                : context.l10n.libraryViewEmptyTitle,
+                            body: state.view == LibraryView.trash
+                                ? context.l10n.libraryTrashNote
+                                : context.l10n.libraryViewEmptyBody,
+                          ),
+                  )
                 else if (state.viewMode == LibraryViewMode.list)
-                  _BookList(books: state.books)
+                  _BookList(books: visible)
                 else
-                  _BookGrid(books: state.books),
+                  _BookGrid(books: visible),
                 const SliverToBoxAdapter(child: SizedBox(height: 32)),
               ],
             ),
@@ -318,19 +368,24 @@ class _ShelfHeader extends StatelessWidget {
               TextSpan(
                 children: [
                   TextSpan(text: context.l10n.libraryShelf),
-                  const TextSpan(text: '  '),
-                  TextSpan(
-                    text: context.l10n.libraryBookCount(state.books.length),
-                    style: text.bodyMedium?.copyWith(
-                      color: colors.onSurfaceMuted,
-                      fontFeatures: _tabular,
+                  // Author and series lists count groups, not books.
+                  if (!state.showsGroups) ...[
+                    const TextSpan(text: '  '),
+                    TextSpan(
+                      text: context.l10n.libraryBookCount(
+                        state.visibleBooks.length,
+                      ),
+                      style: text.bodyMedium?.copyWith(
+                        color: colors.onSurfaceMuted,
+                        fontFeatures: _tabular,
+                      ),
                     ),
-                  ),
+                  ],
                 ],
               ),
               semanticsLabel:
                   '${context.l10n.libraryShelf}, '
-                  '${context.l10n.libraryBookCount(state.books.length)}',
+                  '${context.l10n.libraryBookCount(state.visibleBooks.length)}',
               style: text.titleMedium?.copyWith(fontWeight: FontWeight.w800),
             ),
           ),
@@ -431,12 +486,12 @@ class _GridBook extends StatelessWidget {
       onTap: () => _openBook(context, book),
       customSemanticsActions: {
         CustomSemanticsAction(label: context.l10n.libraryBookActions): () =>
-            _showBookActions(context, book),
+            showBookActions(context, book),
       },
       child: InkWell(
         borderRadius: BorderRadius.circular(6),
         onTap: () => _openBook(context, book),
-        onLongPress: () => _showBookActions(context, book),
+        onLongPress: () => showBookActions(context, book),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -490,7 +545,7 @@ class _ListBook extends StatelessWidget {
     final text = Theme.of(context).textTheme;
     return InkWell(
       onTap: () => _openBook(context, book),
-      onLongPress: () => _showBookActions(context, book),
+      onLongPress: () => showBookActions(context, book),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(_gutter, 12, 4, 12),
         child: Row(
@@ -550,7 +605,7 @@ class _ListBook extends StatelessWidget {
             IconButton(
               tooltip: context.l10n.libraryBookActions,
               icon: const Icon(Icons.more_vert_rounded),
-              onPressed: () => _showBookActions(context, book),
+              onPressed: () => showBookActions(context, book),
             ),
           ],
         ),
@@ -604,84 +659,269 @@ int? _daysSince(DateTime? date) {
 
 /// Opens the reader, then refreshes progress and the continue-reading card.
 Future<void> _openBook(BuildContext context, BookEntity book) async {
+  // A book in Trash is restored before it is read again.
+  if (book.isInTrash) return showBookActions(context, book);
   final cubit = context.read<LibraryCubit>();
   await context.router.push(ReaderRoute(book: book));
   await cubit.load();
 }
 
-Future<void> _showBookActions(BuildContext context, BookEntity book) async {
-  final remove = await showModalBottomSheet<bool>(
+/// Shelves, collections, authors, series and Trash as one chip row.
+class _ViewChips extends StatelessWidget {
+  const _ViewChips({required this.state});
+
+  final LibraryState state;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final cubit = context.read<LibraryCubit>();
+    Widget chip(String label, LibraryView view, {String? key}) => Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: ChoiceChip(
+        label: Text(label),
+        selected:
+            state.view == view &&
+            (key == null
+                ? view != LibraryView.collection
+                : state.viewKey == key),
+        onSelected: (_) => cubit.selectView(view, key: key),
+      ),
+    );
+    final picked = state.viewKey;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          height: 56,
+          child: ListView(
+            // Keeps the row where it was when the cards above come and go.
+            key: const PageStorageKey('library-views'),
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(
+              horizontal: _gutter,
+              vertical: 4,
+            ),
+            children: [
+              chip(l10n.libraryViewAll, LibraryView.all),
+              chip(l10n.libraryShelfToRead, LibraryView.toRead),
+              chip(l10n.libraryShelfReading, LibraryView.reading),
+              chip(l10n.libraryShelfFinished, LibraryView.finished),
+              chip(l10n.libraryFavorites, LibraryView.favorites),
+              for (final collection in state.collections)
+                GestureDetector(
+                  onLongPress: () => _collectionActions(
+                    context,
+                    collection.id,
+                    collection.name,
+                  ),
+                  child: chip(
+                    collection.name,
+                    LibraryView.collection,
+                    key: collection.id,
+                  ),
+                ),
+              Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: ActionChip(
+                  avatar: const Icon(Icons.add_rounded, size: 18),
+                  label: Text(l10n.libraryNewCollection),
+                  onPressed: () async {
+                    final name = await showCollectionNameDialog(context);
+                    if (name == null) return;
+                    final created = await cubit.createCollection(name);
+                    if (created != null) {
+                      cubit.selectView(LibraryView.collection, key: created.id);
+                    }
+                  },
+                ),
+              ),
+              chip(l10n.libraryAuthors, LibraryView.authors),
+              chip(l10n.librarySeries, LibraryView.series),
+              chip(l10n.libraryTrash, LibraryView.trash),
+            ],
+          ),
+        ),
+        // An author or series picked from its group list, with a way back.
+        if (picked != null &&
+            (state.view == LibraryView.authors ||
+                state.view == LibraryView.series))
+          Padding(
+            padding: const EdgeInsets.fromLTRB(_gutter, 0, _gutter, 4),
+            child: InputChip(
+              label: Text(picked),
+              onDeleted: () => cubit.selectView(state.view),
+              deleteButtonTooltipMessage: state.view == LibraryView.authors
+                  ? l10n.libraryAuthors
+                  : l10n.librarySeries,
+            ),
+          ),
+        if (state.selectedCollection case final collection?)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(_gutter, 0, 4, 0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    collection.name,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: context.colors.onSurfaceMuted,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  tooltip: l10n.libraryRenameCollection,
+                  icon: const Icon(Icons.more_horiz_rounded),
+                  onPressed: () => _collectionActions(
+                    context,
+                    collection.id,
+                    collection.name,
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+Future<void> _collectionActions(
+  BuildContext context,
+  String id,
+  String name,
+) async {
+  final l10n = context.l10n;
+  final cubit = context.read<LibraryCubit>();
+  final rename = await showModalBottomSheet<bool>(
     context: context,
     builder: (sheetContext) => SafeArea(
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
-            child: Text(
-              book.title,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(
-                sheetContext,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
-            ),
+          ListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+            leading: const Icon(Icons.edit_outlined),
+            title: Text(l10n.libraryRenameCollection),
+            onTap: () => Navigator.of(sheetContext).pop(true),
           ),
           ListTile(
             contentPadding: const EdgeInsets.symmetric(horizontal: 24),
             leading: const Icon(Icons.delete_outline_rounded),
-            title: Text(sheetContext.l10n.libraryDelete),
-            onTap: () => Navigator.of(sheetContext).pop(true),
+            title: Text(l10n.libraryDeleteCollection),
+            onTap: () => Navigator.of(sheetContext).pop(false),
           ),
           const SizedBox(height: 8),
         ],
       ),
     ),
   );
-  if (remove != true || !context.mounted) return;
-  await _showDeleteBookDialog(context, book);
+  if (rename == null || !context.mounted) return;
+  if (rename) {
+    final newName = await showCollectionNameDialog(context, initial: name);
+    if (newName != null) await cubit.renameCollection(id, newName);
+  } else {
+    // The books stay in the library; only the grouping goes.
+    await cubit.deleteCollection(id);
+  }
 }
 
-Future<void> _showDeleteBookDialog(
-  BuildContext context,
-  BookEntity book,
-) async {
-  final data = await showDialog<DeleteBookData>(
-    context: context,
-    builder: (dialogContext) => AlertDialog(
-      title: Text(context.l10n.libraryDeleteTitle),
-      content: Text(context.l10n.libraryDeleteBody(book.title)),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(dialogContext).pop(DeleteBookData.keep),
-          child: Text(context.l10n.libraryDeleteKeepData),
-        ),
-        TextButton(
-          style: TextButton.styleFrom(foregroundColor: context.colors.error),
-          onPressed: () =>
-              Navigator.of(dialogContext).pop(DeleteBookData.delete),
-          child: Text(context.l10n.libraryDeleteAllData),
-        ),
-      ],
-    ),
-  );
-  if (data == null || !context.mounted) return;
+/// Authors or series with their book counts; tapping one shows its books.
+class _GroupList extends StatelessWidget {
+  const _GroupList({required this.state});
 
-  final deleted = await context.read<LibraryCubit>().deleteBook(
-    book: book,
-    data: data,
-  );
-  if (!context.mounted) return;
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      content: Text(
-        deleted
-            ? context.l10n.libraryDeletedMessage(book.title)
-            : context.l10n.libraryDeleteFailed,
+  final LibraryState state;
+
+  @override
+  Widget build(BuildContext context) {
+    final groups = state.view == LibraryView.authors
+        ? state.authorGroups
+        : state.seriesGroups;
+    if (groups.isEmpty) {
+      return SliverToBoxAdapter(
+        child: StateView(
+          icon: Icons.collections_bookmark_outlined,
+          title: context.l10n.libraryViewEmptyTitle,
+          body: context.l10n.libraryViewEmptyBody,
+        ),
+      );
+    }
+    final cubit = context.read<LibraryCubit>();
+    return SliverList.separated(
+      itemCount: groups.length,
+      separatorBuilder: (_, _) =>
+          const Divider(indent: _gutter, endIndent: _gutter),
+      itemBuilder: (context, index) {
+        final (name, count) = groups[index];
+        return ListTile(
+          contentPadding: const EdgeInsets.symmetric(horizontal: _gutter + 4),
+          title: Text(
+            name,
+            style: const TextStyle(fontWeight: FontWeight.w700),
+          ),
+          subtitle: Text(context.l10n.libraryGroupCount(count)),
+          trailing: const Icon(Icons.chevron_right_rounded),
+          onTap: () => cubit.selectView(state.view, key: name),
+        );
+      },
+    );
+  }
+}
+
+class _TrashHeader extends StatelessWidget {
+  const _TrashHeader({required this.count});
+
+  final int count;
+
+  Future<void> _empty(BuildContext context) async {
+    final l10n = context.l10n;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.libraryEmptyTrashTitle),
+        content: Text(l10n.libraryEmptyTrashBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(l10n.cancel),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(
+              foregroundColor: dialogContext.colors.error,
+            ),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(l10n.libraryEmptyTrash),
+          ),
+        ],
       ),
-    ),
-  );
+    );
+    if (confirmed != true || !context.mounted) return;
+    await context.read<LibraryCubit>().emptyTrash();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(_gutter + 4, 0, _gutter, 4),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              context.l10n.libraryTrashNote,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: context.colors.onSurfaceMuted,
+              ),
+            ),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(foregroundColor: context.colors.error),
+            onPressed: () => _empty(context),
+            child: Text(context.l10n.libraryEmptyTrash),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _LibraryEmpty extends StatelessWidget {

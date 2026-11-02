@@ -233,17 +233,6 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i824.DocumentStorageService>(),
       ),
     );
-    gh.factory<_i655.LibraryCubit>(
-      () => _i655.LibraryCubit(
-        gh<_i879.GetLibraryBooksUseCase>(),
-        gh<_i486.DeleteLibraryBookUseCase>(),
-        gh<_i964.ImportDocumentUseCase>(),
-        gh<_i322.SearchLibraryUseCase>(),
-        gh<_i536.IncomingDocumentService>(),
-        gh<_i55.SettingsRepository>(),
-        gh<_i974.Logger>(),
-      ),
-    );
     gh.singleton<_i205.PurgeTrashUseCase>(
       () => _i205.PurgeTrashUseCase(
         gh<_i603.LibraryRepository>(),
@@ -271,6 +260,21 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.singleton<_i895.RestoreBackupUseCase>(
       () => _i895.RestoreBackupUseCase(gh<_i862.BackupRepository>()),
+    );
+    gh.factory<_i655.LibraryCubit>(
+      () => _i655.LibraryCubit(
+        gh<_i879.GetLibraryBooksUseCase>(),
+        gh<_i486.DeleteLibraryBookUseCase>(),
+        gh<_i964.ImportDocumentUseCase>(),
+        gh<_i322.SearchLibraryUseCase>(),
+        gh<_i536.IncomingDocumentService>(),
+        gh<_i55.SettingsRepository>(),
+        gh<_i603.LibraryRepository>(),
+        gh<_i949.CollectionRepository>(),
+        gh<_i205.PurgeTrashUseCase>(),
+        gh<_i110.ResetBookDetailsUseCase>(),
+        gh<_i974.Logger>(),
+      ),
     );
     gh.singleton<_i993.ClearDictionaryCacheUseCase>(
       () => _i993.ClearDictionaryCacheUseCase(gh<_i900.DictionaryRepository>()),

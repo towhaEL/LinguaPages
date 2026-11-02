@@ -2,6 +2,11 @@ import 'dart:async';
 
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:lingua_pages/domain/entity/library/collection_entity.dart';
+import 'package:lingua_pages/domain/repository/library/collection_repository.dart';
+import 'package:lingua_pages/domain/service/document_metadata_extractor.dart';
+import 'package:lingua_pages/domain/use_cases/library/purge_trash_use_case.dart';
+import 'package:lingua_pages/domain/use_cases/library/reset_book_details_use_case.dart';
 import 'package:lingua_pages/data/data_source/library/local/lingua_page_database.dart';
 import 'package:lingua_pages/data/repository_impl/settings/drift_settings_repository.dart';
 import 'package:logger/logger.dart';
@@ -65,6 +70,63 @@ void main() {
     expect(restarted.state.sort, LibrarySort.title);
     expect(repository.lastSort, LibrarySort.title);
     await restarted.close();
+  });
+
+  test('first load purges books trashed over 30 days ago', () async {
+    final old = _trashed(
+      _book('old'),
+      DateTime.now().subtract(const Duration(days: 31)),
+    );
+    final recent = _trashed(_book('recent'), DateTime.now());
+    repository.trash = [old, recent];
+
+    await cubit.load();
+
+    expect(repository.deletedBookId, 'old');
+    expect(repository.deletedData, DeleteBookData.keep);
+  });
+
+  test(
+    'moving to Trash hides the book and lists it in the Trash view',
+    () async {
+      final book = _book('trash-me');
+      repository.books = [book];
+      await cubit.load();
+
+      expect(await cubit.moveToTrash(book), isTrue);
+
+      expect(cubit.state.books, isEmpty);
+      cubit.selectView(LibraryView.trash);
+      expect(cubit.state.visibleBooks.single.id, 'trash-me');
+      expect(cubit.state.visibleBooks.single.isInTrash, isTrue);
+    },
+  );
+
+  test('views narrow the shelf to favorites and authors', () async {
+    final liked = _book('liked', title: 'Liked');
+    final other = BookEntity(
+      id: 'other',
+      title: 'Other',
+      author: 'Ann Lind, Bo Ek',
+      format: DocumentFormat.txt,
+      sourceUri: '/other.txt',
+      sourceFileName: 'other.txt',
+      contentFingerprint: 'other',
+      addedAt: DateTime(2026),
+    );
+    repository.books = [liked, other];
+    await cubit.load();
+    await cubit.toggleFavorite(liked);
+
+    cubit.selectView(LibraryView.favorites);
+    expect(cubit.state.visibleBooks.map((b) => b.id), ['liked']);
+
+    cubit.selectView(LibraryView.authors);
+    expect(cubit.state.showsGroups, isTrue);
+    expect(cubit.state.authorGroups, [('Ann Lind', 1), ('Bo Ek', 1)]);
+
+    cubit.selectView(LibraryView.authors, key: 'Bo Ek');
+    expect(cubit.state.visibleBooks.map((b) => b.id), ['other']);
   });
 
   test('load emits success with books from the repository', () async {
@@ -259,6 +321,13 @@ LibraryCubit _createCubit(
     SearchLibraryUseCase(repository),
     incomingService,
     settings,
+    repository,
+    _FakeCollectionRepository(),
+    PurgeTrashUseCase(
+      repository,
+      DeleteLibraryBookUseCase(repository, _FakeDocumentStorageService()),
+    ),
+    ResetBookDetailsUseCase(repository, _FakeMetadataExtractor()),
     Logger(level: Level.off),
   );
 }
@@ -296,6 +365,35 @@ class _FakeLibraryRepository implements LibraryRepository {
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
+  List<BookEntity> trash = [];
+
+  @override
+  Future<List<BookEntity>> getTrash() async => List<BookEntity>.from(trash);
+
+  @override
+  Future<List<BookEntity>> trashedBefore(DateTime cutoff) async => [
+    for (final book in trash)
+      if (book.deletedAt!.isBefore(cutoff)) book,
+  ];
+
+  @override
+  Future<void> moveToTrash(String bookId) async {
+    final book = books.firstWhere((item) => item.id == bookId);
+    books = [...books]..remove(book);
+    trash = [...trash, _trashed(book, DateTime.now())];
+  }
+
+  @override
+  Future<void> setFavorite({
+    required String bookId,
+    required bool favorite,
+  }) async {
+    books = [
+      for (final book in books)
+        book.id == bookId ? _withFavorite(book, favorite) : book,
+    ];
+  }
+
   List<BookEntity> books = [];
   List<BookEntity> searchResults = [];
   BookEntity? importedBook;
@@ -306,6 +404,7 @@ class _FakeLibraryRepository implements LibraryRepository {
   String? lastQuery;
   LibrarySort? lastSort;
   String? deletedBookId;
+  DeleteBookData? deletedData;
 
   @override
   Future<List<BookEntity>> getAll({
@@ -351,7 +450,9 @@ class _FakeLibraryRepository implements LibraryRepository {
     final error = deleteError;
     if (error != null) throw error;
     deletedBookId = bookId;
+    deletedData = data;
     books = books.where((book) => book.id != bookId).toList();
+    trash = trash.where((book) => book.id != bookId).toList();
   }
 
   @override
@@ -416,4 +517,39 @@ class _FakeIncomingDocumentService implements IncomingDocumentService {
   void add(IncomingDocument document) => _controller.add(document);
 
   Future<void> close() => _controller.close();
+}
+
+BookEntity _trashed(BookEntity book, DateTime deletedAt) => BookEntity(
+  id: book.id,
+  title: book.title,
+  format: book.format,
+  sourceUri: book.sourceUri,
+  sourceFileName: book.sourceFileName,
+  contentFingerprint: book.contentFingerprint,
+  addedAt: book.addedAt,
+  deletedAt: deletedAt,
+);
+
+BookEntity _withFavorite(BookEntity book, bool favorite) => BookEntity(
+  id: book.id,
+  title: book.title,
+  format: book.format,
+  sourceUri: book.sourceUri,
+  sourceFileName: book.sourceFileName,
+  contentFingerprint: book.contentFingerprint,
+  addedAt: book.addedAt,
+  isFavorite: favorite,
+);
+
+class _FakeCollectionRepository implements CollectionRepository {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  @override
+  Future<List<CollectionEntity>> getAll() async => const [];
+}
+
+class _FakeMetadataExtractor implements DocumentMetadataExtractor {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

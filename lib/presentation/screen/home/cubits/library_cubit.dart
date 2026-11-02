@@ -4,14 +4,18 @@ import 'package:bloc/bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:logger/logger.dart';
 import 'package:lingua_pages/domain/entity/library/book_entity.dart';
+import 'package:lingua_pages/domain/entity/library/collection_entity.dart';
 import 'package:lingua_pages/domain/exceptions/document_import_exception.dart';
 import 'package:lingua_pages/domain/exceptions/duplicate_document_exception.dart';
+import 'package:lingua_pages/domain/repository/library/collection_repository.dart';
 import 'package:lingua_pages/domain/repository/library/library_repository.dart';
 import 'package:lingua_pages/domain/repository/settings/settings_repository.dart';
 import 'package:lingua_pages/domain/service/document_import_service.dart';
 import 'package:lingua_pages/domain/use_cases/library/delete_library_book_use_case.dart';
 import 'package:lingua_pages/domain/use_cases/library/get_library_books_use_case.dart';
 import 'package:lingua_pages/domain/use_cases/library/import_document_use_case.dart';
+import 'package:lingua_pages/domain/use_cases/library/purge_trash_use_case.dart';
+import 'package:lingua_pages/domain/use_cases/library/reset_book_details_use_case.dart';
 import 'package:lingua_pages/domain/use_cases/library/search_library_use_case.dart';
 import 'package:lingua_pages/presentation/screen/home/cubits/library_state.dart';
 
@@ -24,6 +28,10 @@ class LibraryCubit extends Cubit<LibraryState> {
     this._searchLibraryUseCase,
     this._incomingDocumentService,
     this._settingsRepository,
+    this._libraryRepository,
+    this._collectionRepository,
+    this._purgeTrashUseCase,
+    this._resetBookDetailsUseCase,
     this._logger,
   ) : super(const LibraryState()) {
     _incomingSubscription = _incomingDocumentService.documents.listen(
@@ -37,13 +45,17 @@ class LibraryCubit extends Cubit<LibraryState> {
   final SearchLibraryUseCase _searchLibraryUseCase;
   final IncomingDocumentService _incomingDocumentService;
   final SettingsRepository _settingsRepository;
+  final LibraryRepository _libraryRepository;
+  final CollectionRepository _collectionRepository;
+  final PurgeTrashUseCase _purgeTrashUseCase;
+  final ResetBookDetailsUseCase _resetBookDetailsUseCase;
   final Logger _logger;
   late final StreamSubscription<IncomingDocument> _incomingSubscription;
 
   Future<void> load() async {
-    final shelf = state.status == LibraryStatus.initial
-        ? await _shelfPreferences()
-        : null;
+    final firstLoad = state.status == LibraryStatus.initial;
+    final shelf = firstLoad ? await _shelfPreferences() : null;
+    if (firstLoad) await _purgeOldTrash();
     emit(
       state.copyWith(
         status: LibraryStatus.loading,
@@ -53,7 +65,16 @@ class LibraryCubit extends Cubit<LibraryState> {
     );
     try {
       final books = await _getLibraryBooksUseCase.execute(sort: state.sort);
-      emit(state.copyWith(status: LibraryStatus.success, books: books));
+      final collections = await _collectionRepository.getAll();
+      final trash = await _libraryRepository.getTrash();
+      emit(
+        state.copyWith(
+          status: LibraryStatus.success,
+          books: books,
+          collections: collections,
+          trash: trash,
+        ),
+      );
     } catch (error, stackTrace) {
       _logger.e('Unable to load library', error: error, stackTrace: stackTrace);
       emit(
@@ -154,16 +175,141 @@ class LibraryCubit extends Cubit<LibraryState> {
     }
   }
 
+  /// Shows [view]; [key] picks a collection, author or series within it.
+  void selectView(LibraryView view, {String? key}) {
+    emit(state.copyWith(view: view, viewKey: () => key));
+  }
+
+  Future<bool> toggleFavorite(BookEntity book) => _change(
+    () => _libraryRepository.setFavorite(
+      bookId: book.id,
+      favorite: !book.isFavorite,
+    ),
+    'favorite',
+  );
+
+  /// Null puts the book back on the shelf its progress implies.
+  Future<bool> setShelf(BookEntity book, BookShelf? shelf) => _change(
+    () => _libraryRepository.setShelf(bookId: book.id, shelf: shelf),
+    'shelf',
+  );
+
+  Future<bool> setCollections(BookEntity book, Set<String> collectionIds) =>
+      _change(
+        () => _collectionRepository.setBookCollections(
+          bookId: book.id,
+          collectionIds: collectionIds,
+        ),
+        'collections',
+      );
+
+  Future<CollectionEntity?> createCollection(String name) async {
+    try {
+      final collection = await _collectionRepository.create(name);
+      await _refresh();
+      return collection;
+    } catch (error, stackTrace) {
+      _logger.e(
+        'Unable to create collection',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      return null;
+    }
+  }
+
+  Future<bool> renameCollection(String id, String name) => _change(
+    () => _collectionRepository.rename(id: id, name: name),
+    'collection name',
+  );
+
+  Future<bool> deleteCollection(String id) async {
+    final deleted = await _change(
+      () => _collectionRepository.delete(id),
+      'collection',
+    );
+    if (deleted && state.viewKey == id) selectView(LibraryView.all);
+    return deleted;
+  }
+
+  Future<bool> updateDetails(BookEntity book, BookDetails details) => _change(
+    () => _libraryRepository.updateDetails(bookId: book.id, details: details),
+    'book details',
+  );
+
+  /// The details read back from the file, or null when that failed.
+  Future<BookDetails?> resetDetails(BookEntity book) async {
+    try {
+      final details = await _resetBookDetailsUseCase.execute(book);
+      await _refresh();
+      return details;
+    } catch (error, stackTrace) {
+      _logger.e(
+        'Unable to reset details',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      return null;
+    }
+  }
+
+  Future<bool> moveToTrash(BookEntity book) =>
+      _change(() => _libraryRepository.moveToTrash(book.id), 'trash');
+
+  Future<bool> restoreFromTrash(BookEntity book) =>
+      _change(() => _libraryRepository.restoreFromTrash(book.id), 'restore');
+
+  /// Removes every file in Trash, keeping annotations archived.
+  Future<bool> emptyTrash() => _change(
+    () => _purgeTrashUseCase.execute(everything: true),
+    'empty trash',
+  );
+
+  /// The live library book with [id], for opening a duplicate import.
+  Future<BookEntity?> bookById(String id) => _libraryRepository.getById(id);
+
+  Future<void> _purgeOldTrash() async {
+    try {
+      await _purgeTrashUseCase.execute();
+    } catch (error) {
+      // Trash is purged again on the next start.
+      _logger.w('Unable to purge old trash', error: error);
+    }
+  }
+
+  /// Runs [change], then reloads books, collections and Trash.
+  Future<bool> _change(Future<Object?> Function() change, String what) async {
+    try {
+      await change();
+      await _refresh();
+      return true;
+    } catch (error, stackTrace) {
+      _logger.e('Unable to update $what', error: error, stackTrace: stackTrace);
+      return false;
+    }
+  }
+
+  Future<void> _refresh() async {
+    final books = state.query.trim().isEmpty
+        ? await _getLibraryBooksUseCase.execute(sort: state.sort)
+        : await _searchLibraryUseCase.execute(state.query, sort: state.sort);
+    emit(
+      state.copyWith(
+        status: LibraryStatus.success,
+        books: books,
+        collections: await _collectionRepository.getAll(),
+        trash: await _libraryRepository.getTrash(),
+      ),
+    );
+  }
+
   Future<bool> deleteBook({
     required BookEntity book,
     required DeleteBookData data,
   }) async {
     try {
       await _deleteLibraryBookUseCase.execute(book: book, data: data);
-      final books = state.query.trim().isEmpty
-          ? await _getLibraryBooksUseCase.execute(sort: state.sort)
-          : await _searchLibraryUseCase.execute(state.query, sort: state.sort);
-      emit(state.copyWith(status: LibraryStatus.success, books: books));
+      await _refresh();
       return true;
     } catch (error, stackTrace) {
       _logger.e('Unable to delete book', error: error, stackTrace: stackTrace);
@@ -196,6 +342,7 @@ class LibraryCubit extends Cubit<LibraryState> {
           isImporting: false,
           importFeedback: LibraryImportFeedback.duplicate,
           importMessage: error.fileName,
+          duplicateBookId: error.existingBookId,
         ),
       );
     } catch (error, stackTrace) {
@@ -226,6 +373,7 @@ class LibraryCubit extends Cubit<LibraryState> {
           isImporting: false,
           importFeedback: LibraryImportFeedback.duplicate,
           importMessage: error.fileName,
+          duplicateBookId: error.existingBookId,
         ),
       );
     } catch (error, stackTrace) {
