@@ -214,7 +214,7 @@ Exit criteria:
 
 ## Phase 6 — Library and backup completion ✅
 
-Done 2026-11-02. On a device: PDF cover rendering and encrypted backup export (zip with book files and covers) are verified; restoring that backup and the annotation share sheet still need a check. Backups are a zip (`backup.json` plus optional `books/` and `covers/`), optionally AES-encrypted with WinZip AES (PBKDF2-SHA1, 1000 iterations, passphrase of 8+ characters). Restore still reads the old JSON backups, matches books by content fingerprint and remaps their annotations. Chapter labels come from the saved Readium locator, so TXT/Markdown/HTML/FB2 cards still show only a percentage.
+Done 2026-11-02. Verified on a device: PDF cover rendering, encrypted backup export and restore (including a wrong passphrase), and the annotation share sheet. Backups are a zip (`backup.json` plus optional `books/` and `covers/`), optionally AES-encrypted with WinZip AES (PBKDF2-SHA1, 1000 iterations, passphrase of 8+ characters). Restore still reads the old JSON backups, matches books by content fingerprint and remaps their annotations. Chapter labels come from the saved Readium locator, so TXT/Markdown/HTML/FB2 cards still show only a percentage.
 
 - PDF cover rendering at import (render the first page with pdfrx and store it in cover storage).
 - Chapter-aware progress labels on library cards, using the stored TOC and locator.

@@ -175,6 +175,7 @@ class _ReaderScreenState extends State<ReaderScreen>
     WidgetsBinding.instance.removeObserver(this);
     unawaited(WakelockPlus.disable());
     _progressTimer?.cancel();
+    _relayoutTimer?.cancel();
     unawaited(_flushPendingProgress());
     unawaited(_readiumStatusSubscription?.cancel());
     unawaited(_readiumLocatorSubscription?.cancel());
@@ -203,6 +204,84 @@ class _ReaderScreenState extends State<ReaderScreen>
       unawaited(_engine?.close());
     }
     super.dispose();
+  }
+
+  /// The position held while the native reader reflows after a resize.
+  Locator? _relayoutLocator;
+  Locator? _lastRelayoutLocator;
+  Timer? _relayoutTimer;
+  var _relayoutAttempts = 0;
+  Size? _windowSize;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _windowSize ??= View.of(context).physicalSize;
+  }
+
+  @override
+  void didChangeMetrics() {
+    final size = View.of(context).physicalSize;
+    final previous = _windowSize;
+    _windowSize = size;
+    if (!_usesReadium || previous == null || previous == size) return;
+    final locator = _relayoutLocator ?? _currentReadiumLocator;
+    if (locator == null) return;
+    _relayoutLocator = locator;
+    _lastRelayoutLocator = null;
+    _relayoutAttempts = 0;
+    _scheduleRelayoutCheck();
+  }
+
+  /// Checks the position once the reader has gone quiet for a moment.
+  void _scheduleRelayoutCheck() {
+    _relayoutTimer?.cancel();
+    _relayoutTimer = Timer(
+      const Duration(milliseconds: 900),
+      () => unawaited(_settleRelayout()),
+    );
+  }
+
+  /// Releases the held position once the reader is back on it, or moves it
+  /// back there (up to three times) and waits again.
+  Future<void> _settleRelayout() async {
+    final held = _relayoutLocator;
+    if (!mounted || held == null) return;
+    final last = _lastRelayoutLocator;
+    final settled = last != null && _samePlace(last, held);
+    if (settled || _relayoutAttempts >= 3) {
+      _relayoutLocator = null;
+      _lastRelayoutLocator = null;
+      if (last != null && settled) unawaited(_handleReadiumLocator(last));
+      return;
+    }
+    _relayoutAttempts++;
+    _lastRelayoutLocator = null;
+    try {
+      await _readiumSession.goToLocator(held);
+    } catch (_) {
+      // Try again on the next check.
+    }
+    _scheduleRelayoutCheck();
+  }
+
+  /// Same resource and within about a page of it: page breaks move when
+  /// the width changes, the text read does not.
+  bool _samePlace(Locator a, Locator b) {
+    if (a.href != b.href) return false;
+    final pa = a.locations?.progression ?? 0;
+    final pb = b.locations?.progression ?? 0;
+    final pages = _resourcePages(a);
+    final tolerance = pages == null ? 0.02 : 1.5 / pages;
+    return (pa - pb).abs() <= tolerance;
+  }
+
+  /// The page count of [locator]'s resource, which flutter_readium adds to
+  /// its locations.
+  int? _resourcePages(Locator locator) {
+    final locations = locator.toJson()['locations'];
+    final pages = locations is Map ? locations['totalPages'] : null;
+    return pages is int && pages > 0 ? pages : null;
   }
 
   @override
@@ -855,6 +934,13 @@ class _ReaderScreenState extends State<ReaderScreen>
   }
 
   Future<void> _handleReadiumLocator(Locator locator) async {
+    // A rotation or resize reflows through other positions before settling;
+    // those are neither shown nor saved.
+    if (_relayoutLocator != null) {
+      _lastRelayoutLocator = locator;
+      _scheduleRelayoutCheck();
+      return;
+    }
     _currentReadiumLocator = locator;
     final totalProgression = locator.locations?.totalProgression;
     final progress = (totalProgression ?? widget.book.progress).clamp(0.0, 1.0);

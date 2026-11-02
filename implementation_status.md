@@ -390,7 +390,7 @@ See [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md#phase-7--reader-and-library-
 #### Backup and tests
 - [x] **Backup** includes shelves, favorites, series, Trash state and collections; pre-v9 backups restore with defaults
 - [x] **Tests**: migration, shelf/collection/trash, purge, duplicate, reader-settings mapping, tap-zone hit-testing, folder import, annotations (169 tests)
-- [~] **Verified on a physical device**: volume keys, tap zones, full screen, selection menu, library views, Trash, details, folder import and annotations; brightness level, orientation lock and tablet columns not yet checked
+- [x] **Verified on a physical device**: volume keys, tap zones, full screen, selection menu, library views, Trash, details, folder import, annotations, brightness swipe (window brightness 1168 → 58, restored on exit), orientation lock (phone), and two columns on a simulated 800×1280 dp tablet in landscape. On large screens Android 16 ignores app orientation locks (`ignoreOrientationRequest`), and Readium keeps one column in portrait
 
 ### 🟢 Plan Phase 8 — Read Aloud (Implemented 2026-11-02, gaps listed)
 
@@ -585,7 +585,7 @@ Surface brief: `.impeccable/surfaces/lib-presentation-screen-reader-reader-scree
 #### Exit criteria
 - [x] Every route uses the shared widgets and tokens
 - [x] Contrast: new colours measured (highlight tints ≥5:1 on dark pages, ≥7:1 on light); touch targets ≥48dp; TalkBack labels added for books, tools, swatches, sheets and the back button
-- [ ] Screenshots reviewed at phone size on the CPH2819; tablet-size review still pending
+- [x] Screenshots reviewed at phone size on the CPH2819 and at a simulated 800×1280 dp tablet size in both orientations (2026-11-02)
 
 #### Found on the phone, to fix in later surfaces
 
