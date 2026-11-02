@@ -992,7 +992,22 @@ class _ReaderScreenState extends State<ReaderScreen>
   Future<void> _goToReadiumContents(Link link) async {
     Navigator.of(context).pop();
     try {
-      await _readiumSession.goToLocator(link.toLocator());
+      var locator = link.toLocator();
+      // TOC links often lack a media type, which the navigator needs; take
+      // it from the reading order.
+      if (locator.type.isEmpty) {
+        final type = _publication?.readingOrder
+            .where((item) => item.href.split('#').first == locator.href)
+            .firstOrNull
+            ?.type;
+        if (type != null) locator = locator.copyWith(type: type);
+      }
+      // Without an anchor, Readium stays put when the chapter's file is the
+      // one already open; ask for its start explicitly.
+      if (locator.locations?.fragments.isEmpty ?? true) {
+        locator = locator.copyWithLocations(progression: 0.0);
+      }
+      await _readiumSession.goToLocator(locator);
     } catch (_) {
       // Navigation failures should not take down the open reader.
     }
