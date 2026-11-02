@@ -392,22 +392,22 @@ See [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md#phase-7--reader-and-library-
 - [x] **Tests**: migration, shelf/collection/trash, purge, duplicate, reader-settings mapping, tap-zone hit-testing, folder import, annotations (169 tests)
 - [~] **Verified on a physical device**: volume keys, tap zones, full screen, selection menu, library views, Trash, details, folder import and annotations; brightness level, orientation lock and tablet columns not yet checked
 
-### 🔴 Plan Phase 8 — Read Aloud (Not started, added 2026-11-01)
+### 🟢 Plan Phase 8 — Read Aloud (Implemented 2026-11-02, gaps listed)
 
-See [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md#phase-8--read-aloud). `flutter_readium` 0.6.2 already exposes `ttsEnable`, `ttsSetPreferences`, `ttsGetAvailableVoices`, `ttsSetVoice` and `play`/`pause`/`resume`/`stop`.
+See [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md#phase-8--read-aloud). Device checks on a CPH2819 (Android 16) with Google's offline voices.
 
-- [ ] **`ReadAloudService` domain interface** with Readium (EPUB/PDF) and `flutter_tts` (TXT/MD/HTML/FB2) implementations
-- [ ] **Spike: background playback** with the screen locked (Readium TTS navigator vs `audio_service`)
-- [ ] **Player controls**: play/pause, previous/next sentence
-- [ ] **Speed** 0.5×–3× and **voice per language** with a default
-- [ ] **Sleep timer** (15/30/60 minutes, end of chapter)
-- [ ] **Current-sentence highlight** on native and fallback engines
-- [ ] **Skip footnotes and page headers** option
-- [ ] **Media notification and lock-screen controls** (`FOREGROUND_SERVICE_MEDIA_PLAYBACK`)
-- [ ] **Empty states**: no TTS engine, no voice for the book's language
-- [ ] **Reading position follows playback**
-- [ ] **Tests**: service state machine, sleep timer, voice fallback
-- [ ] **Verified**: 30 minutes of locked-screen playback on a physical device
+- [x] **`ReadAloudService` domain interface** with Readium (EPUB/PDF) and `flutter_tts` (TXT/MD/HTML/FB2) implementations
+- [x] **Spike: background playback**: Readium's own media service (`PluginMediaService`, `FOREGROUND_SERVICE_MEDIA_PLAYBACK`) keeps speaking with the display off; no `audio_service` needed. `flutter_tts` also kept speaking with the display off, without a media notification
+- [x] **Player controls**: play/pause, previous/next sentence
+- [x] **Speed** 0.5×–3× and **voice per language** with a default (offline voices only)
+- [x] **Sleep timer** (15/30/60 minutes, end of chapter)
+- [x] **Current-sentence highlight** on native (Readium) and fallback engines; fallback pages scroll it into view
+- [~] **Skip page numbers** option (Readium `PageBreakBehavior.skip`); Readium exposes no footnote filter
+- [~] **Media notification and lock-screen controls**: provided by Readium for EPUB/PDF; none for the `flutter_tts` path
+- [x] **Empty states**: no offline voice, no voice for the book's language, with a link to the system TTS settings
+- [x] **Reading position follows playback** (verified on device for both engines)
+- [x] **Tests**: player state machine, sleep timer, voice fallback, sentence splitting
+- [~] **Verified**: about 4 minutes of display-off playback per engine; the 30-minute locked run is still to do
 
 ### 🟢 Plan Phase 3 — Online Dictionary (Implemented 2026-11-01, device check pending)
 
@@ -609,7 +609,7 @@ Surface brief: `.impeccable/surfaces/lib-presentation-screen-reader-reader-scree
 | Plan Phase 4 — Premium appearance | 🟢 ~85% (implemented and tested 2026-11-01; Play Console product, sandbox purchase and device checks pending) |
 | Phase 7 — Hardening & launch | 🟡 ~15% (analysis clean; the automated suite covers domain library contracts and LibraryCubit transitions/recovery alongside metadata/TOC import persistence, typed import failures, locator serialization and delete cleanup with 2 environment-skipped PDF tests; widget, integration, compatibility and performance coverage remain pending device access) |
 | Plan Phase 7 — Reader and library parity | 🟢 ~90% (2026-11-02; open: page-turn animation, PDF smart crop, time left in chapter, native tap-zone schemes) |
-| Plan Phase 8 — Read aloud | 🔴 0% (added 2026-11-01; Readium TTS API is available, background playback needs a spike) |
+| Plan Phase 8 — Read aloud | 🟢 ~90% (2026-11-02; open: 30-minute locked run, footnote skipping, lock-screen controls for TXT/MD/HTML/FB2) |
 
 > **Scope added 2026-11-01:** plan Phases 7 and 8 add about 5–6 weeks of work, so the overall figure below drops to roughly **55%** of the enlarged v1.0 scope (a rough estimate, not re-measured).
 >

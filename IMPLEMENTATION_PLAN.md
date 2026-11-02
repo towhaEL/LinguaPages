@@ -17,7 +17,7 @@ Target: Android-first v1.0 of a private ebook reader for every common DRM-free f
 
 ## Where we are
 
-Already built and verified (see the status doc): Drift foundation (schema v8), import with validation, metadata, covers and TOC, the library UI, the native Readium EPUB/PDF reader plus fallback engines, reader settings, search, bookmarks, highlights, notes, Markdown export, metadata backup/restore and a local entitlement cache. Phase 1 (cleanup and English-only), Phase 2 (design foundation, "Paperback Bands"), Phase 3 (online dictionary, physical-device check pending) Phase 4 (premium appearance, Play sandbox check pending) and Phase 5 (surface redesign, tablet hardware check pending) and Phase 6 (library and backup completion, device check pending) and Phase 7 (reader and library parity, gaps listed in its section) are done.
+Already built and verified (see the status doc): Drift foundation (schema v8), import with validation, metadata, covers and TOC, the library UI, the native Readium EPUB/PDF reader plus fallback engines, reader settings, search, bookmarks, highlights, notes, Markdown export, metadata backup/restore and a local entitlement cache. Phase 1 (cleanup and English-only), Phase 2 (design foundation, "Paperback Bands"), Phase 3 (online dictionary, physical-device check pending) Phase 4 (premium appearance, Play sandbox check pending) and Phase 5 (surface redesign, tablet hardware check pending) and Phase 6 (library and backup completion, device check pending) Phase 7 (reader and library parity, gaps listed in its section) and Phase 8 (read aloud, gaps listed in its section) are done.
 
 ## Architecture rules
 
@@ -39,7 +39,7 @@ Already built and verified (see the status doc): Drift foundation (schema v8), i
 | 5. Surface redesign (Impeccable) ✅ | 3–4 weeks | Library, reader chrome, sheets, settings, paywall, onboarding and splash rebuilt on the new design |
 | 6. Library and backup completion ✅ | 1.5 weeks | PDF covers, chapter progress, backup without study data, optional book files |
 | 7. Reader and library parity ✅ | 3–4 weeks | Typography and layout controls, page-turn controls, shelves, collections, trash, metadata editing, cross-book annotations |
-| 8. Read aloud | 2 weeks | Readium text-to-speech with voice, speed, sleep timer, sentence highlight and background playback |
+| 8. Read aloud ✅ | 2 weeks | Readium text-to-speech with voice, speed, sleep timer, sentence highlight and background playback |
 | 9. Hardening | 3 weeks | Corpus, performance, accessibility, failure testing |
 | 10. Beta and Android release | 1–2 weeks | Closed beta, store listing, Data Safety, release |
 
@@ -288,7 +288,9 @@ Exit criteria:
 - A deleted book can be restored from Trash with its annotations.
 - No new Android permission apart from what the brightness plugin needs (if any).
 
-## Phase 8 — Read aloud
+## Phase 8 — Read aloud ✅
+
+Done 2026-11-02 with gaps: footnote skipping (Readium has no filter; page numbers can be skipped), no media notification for TXT/Markdown/HTML/FB2, and the 30-minute locked-screen run is still to do. Details are in the status doc.
 
 Goal: listen to any EPUB (and PDFs with a text layer) using the device's own text-to-speech voices, fully offline.
 
