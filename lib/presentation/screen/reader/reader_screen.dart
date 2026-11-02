@@ -26,6 +26,7 @@ import 'package:lingua_pages/domain/repository/settings/settings_repository.dart
 import 'package:lingua_pages/domain/service/document_engine.dart';
 import 'package:lingua_pages/domain/service/document_engine_factory.dart';
 import 'package:lingua_pages/domain/service/screen_brightness_service.dart';
+import 'package:lingua_pages/domain/service/selection_text_service.dart';
 import 'package:lingua_pages/domain/service/volume_key_service.dart';
 import 'package:lingua_pages/domain/service/annotation_markdown_exporter.dart';
 import 'package:lingua_pages/domain/use_cases/reader/save_reading_progress_use_case.dart';
@@ -104,6 +105,7 @@ class _ReaderScreenState extends State<ReaderScreen>
   StreamSubscription<Locator>? _readiumLocatorSubscription;
   late final VolumeKeyService _volumeKeys;
   late final ScreenBrightnessService _brightness;
+  late final SelectionTextService _selectionText;
   StreamSubscription<PageTurn>? _pageTurnSubscription;
 
   /// The edge-swipe brightness, once the reader has set one.
@@ -126,6 +128,7 @@ class _ReaderScreenState extends State<ReaderScreen>
     _premium = injector<PremiumCubit>();
     _volumeKeys = injector<VolumeKeyService>();
     _brightness = injector<ScreenBrightnessService>();
+    _selectionText = injector<SelectionTextService>();
     _pageTurnSubscription = _volumeKeys.pageTurns.listen(_turnPage);
     _chromeVisible.addListener(_rebuild);
     _premiumSubscription = _premium.stream.listen((_) {
@@ -490,9 +493,13 @@ class _ReaderScreenState extends State<ReaderScreen>
         goForwardSemanticLabel: context.l10n.readerNextPage,
         toggleShowControlsSemanticLabel: context.l10n.readerToggleControls,
         loadingWidget: _buildLoading(context),
+        // On Android these replace the system menu, so Copy is listed too.
         selectionActions: [
-          SelectionAction(id: 'highlight', title: context.l10n.readerHighlight),
-          SelectionAction(id: 'lookup', title: context.l10n.readerLookup),
+          for (final action in _SelectionAction.values)
+            SelectionAction(
+              id: action.name,
+              title: _selectionActionLabel(context, action),
+            ),
         ],
         onSelectionAction: _handleReadiumSelectionAction,
       );
@@ -1151,12 +1158,85 @@ class _ReaderScreenState extends State<ReaderScreen>
   Future<void> _handleReadiumSelectionAction(SelectionActionEvent event) async {
     final selectedText = event.selectedText?.trim();
     if (selectedText == null || selectedText.isEmpty) return;
-    final locator = _documentLocatorFromReadium(event.locator);
-    if (event.actionId == 'highlight') {
-      await _showHighlightColorSheet(selectedText, locator);
-    } else if (event.actionId == 'lookup') {
-      await _showLookupSheet(selectedText, locator);
+    final action = _SelectionAction.values.asNameMap()[event.actionId];
+    if (action == null) return;
+    await _runSelectionAction(
+      action,
+      selectedText,
+      () => _documentLocatorFromReadium(event.locator),
+    );
+  }
+
+  String _selectionActionLabel(BuildContext context, _SelectionAction action) {
+    final l10n = context.l10n;
+    return switch (action) {
+      _SelectionAction.highlight => l10n.readerHighlight,
+      _SelectionAction.lookup => l10n.readerLookup,
+      _SelectionAction.copy => MaterialLocalizations.of(
+        context,
+      ).copyButtonLabel,
+      _SelectionAction.share => l10n.readerShareSelection,
+      _SelectionAction.searchWeb => l10n.readerSearchWeb,
+      _SelectionAction.sendToApp => l10n.readerSendToApp,
+    };
+  }
+
+  /// [locator] is only built for the actions that save a position.
+  Future<void> _runSelectionAction(
+    _SelectionAction action,
+    String text,
+    DocumentLocator Function() locator,
+  ) async {
+    switch (action) {
+      case _SelectionAction.highlight:
+        await _showHighlightColorSheet(text, locator());
+      case _SelectionAction.lookup:
+        await _showLookupSheet(text, locator());
+      case _SelectionAction.copy:
+        await Clipboard.setData(ClipboardData(text: text));
+      case _SelectionAction.share:
+        await SharePlus.instance.share(ShareParams(text: text));
+      case _SelectionAction.searchWeb:
+        await _selectionText.searchWeb(text);
+      case _SelectionAction.sendToApp:
+        await _showSendToApp(text);
     }
+  }
+
+  /// Lists the installed apps that take selected text, then hands it over.
+  Future<void> _showSendToApp(String text) async {
+    final apps = await _selectionText.textApps();
+    if (!mounted) return;
+    if (apps.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(context.l10n.readerSendToAppNone)));
+      return;
+    }
+    final app = await showModalBottomSheet<TextApp>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
+              child: Text(
+                context.l10n.readerSendToApp,
+                style: _sheetTitleStyle(sheetContext),
+              ),
+            ),
+            for (final app in apps)
+              ListTile(
+                title: Text(app.label),
+                onTap: () => Navigator.of(sheetContext).pop(app),
+              ),
+          ],
+        ),
+      ),
+    );
+    if (app != null) await _selectionText.sendToApp(app, text);
   }
 
   /// Highlight or Look up chosen from a fallback page's selection toolbar.
@@ -1171,18 +1251,17 @@ class _ReaderScreenState extends State<ReaderScreen>
     if (start < 0 || end > pageText.length || start == end) return;
     final selectedText = pageText.substring(start, end).trim();
     if (selectedText.isEmpty) return;
-    final locator = widget.book.format == DocumentFormat.pdf
-        ? PdfLocator(page: pageIndex + 1, textOffset: start)
-        : TextLocator(
-            offset: (_engine?.pageStartOffset(pageIndex) ?? 0) + start,
-          );
-    unawaited(switch (action) {
-      _SelectionAction.highlight => _showHighlightColorSheet(
+    unawaited(
+      _runSelectionAction(
+        action,
         selectedText,
-        locator,
+        () => widget.book.format == DocumentFormat.pdf
+            ? PdfLocator(page: pageIndex + 1, textOffset: start)
+            : TextLocator(
+                offset: (_engine?.pageStartOffset(pageIndex) ?? 0) + start,
+              ),
       ),
-      _SelectionAction.lookup => _showLookupSheet(selectedText, locator),
-    });
+    );
   }
 
   Future<void> _showHighlightColorSheet(
@@ -2880,7 +2959,9 @@ class _ReaderSearchHit {
   final Future<void> Function() onSelected;
 }
 
-enum _SelectionAction { highlight, lookup }
+/// Reader selection actions. Copy and Send to app only appear in the native
+/// reader's menu; fallback pages get them from the platform's own items.
+enum _SelectionAction { highlight, lookup, copy, share, searchWeb, sendToApp }
 
 /// [snippet] with every case-insensitive occurrence of [query] in bold.
 TextSpan _emphasize(String snippet, String query) {
@@ -2927,6 +3008,14 @@ EditableTextContextMenuBuilder _readerContextMenu(
       ContextMenuButtonItem(
         label: context.l10n.readerLookup,
         onPressed: () => run(_SelectionAction.lookup),
+      ),
+      ContextMenuButtonItem(
+        label: context.l10n.readerShareSelection,
+        onPressed: () => run(_SelectionAction.share),
+      ),
+      ContextMenuButtonItem(
+        label: context.l10n.readerSearchWeb,
+        onPressed: () => run(_SelectionAction.searchWeb),
       ),
       ...state.contextMenuButtonItems,
     ],

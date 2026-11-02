@@ -1,5 +1,7 @@
 package com.linguapages.app
 
+import android.app.SearchManager
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.provider.OpenableColumns
@@ -15,6 +17,7 @@ class MainActivity : FlutterFragmentActivity() {
         private const val getInitialDocumentMethod = "getInitialDocument"
         private const val incomingDocumentMethod = "incomingDocument"
         private const val volumeKeysChannel = "lingua_pages/volume_keys"
+        private const val textActionsChannel = "lingua_pages/text_actions"
     }
 
     private val pendingIntentLock = Any()
@@ -57,7 +60,25 @@ class MainActivity : FlutterFragmentActivity() {
             }
         }
 
+        MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            textActionsChannel,
+        ).setMethodCallHandler { call, result ->
+            when (call.method) {
+                "webSearch" -> result.success(webSearch(call.arguments as? String ?: ""))
+                else -> result.notImplemented()
+            }
+        }
+
         handleDocumentIntent(intent, emitDocument = false)
+    }
+
+    // The user's default search app handles the query; false when none does.
+    private fun webSearch(query: String): Boolean = try {
+        startActivity(Intent(Intent.ACTION_WEB_SEARCH).putExtra(SearchManager.QUERY, query))
+        true
+    } catch (_: ActivityNotFoundException) {
+        false
     }
 
     // Intercepted before any view, so it also works while the native Readium

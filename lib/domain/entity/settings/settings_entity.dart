@@ -156,7 +156,8 @@ class SettingsEntity {
       fullScreenReading: fullScreenReading ?? this.fullScreenReading,
       readerOrientation: readerOrientation ?? this.readerOrientation,
       edgeBrightness: edgeBrightness ?? this.edgeBrightness,
-      readerProgressDisplay: readerProgressDisplay ?? this.readerProgressDisplay,
+      readerProgressDisplay:
+          readerProgressDisplay ?? this.readerProgressDisplay,
       cornerShortcuts: cornerShortcuts ?? this.cornerShortcuts,
       onlineDictionary: onlineDictionary ?? this.onlineDictionary,
       libraryListView: libraryListView ?? this.libraryListView,

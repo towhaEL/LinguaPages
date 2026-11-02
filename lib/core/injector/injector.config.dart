@@ -18,6 +18,8 @@ import 'package:shared_preferences/shared_preferences.dart' as _i460;
 
 import '../../data/billing/mock_billing_service.dart' as _i508;
 import '../../data/billing/play_billing_service.dart' as _i559;
+import '../../data/data_source/device/platform_selection_text_service.dart'
+    as _i535;
 import '../../data/data_source/device/platform_volume_key_service.dart'
     as _i761;
 import '../../data/data_source/device/plugin_screen_brightness_service.dart'
@@ -67,6 +69,7 @@ import '../../domain/service/document_import_service.dart' as _i536;
 import '../../domain/service/document_metadata_extractor.dart' as _i47;
 import '../../domain/service/document_storage_service.dart' as _i824;
 import '../../domain/service/screen_brightness_service.dart' as _i905;
+import '../../domain/service/selection_text_service.dart' as _i664;
 import '../../domain/service/volume_key_service.dart' as _i43;
 import '../../domain/use_cases/backup/create_backup_use_case.dart' as _i590;
 import '../../domain/use_cases/backup/restore_backup_use_case.dart' as _i895;
@@ -133,6 +136,9 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i536.IncomingDocumentService>(
       () => _i222.PlatformIncomingDocumentService(),
+    );
+    gh.lazySingleton<_i664.SelectionTextService>(
+      () => _i535.PlatformSelectionTextService(),
     );
     gh.lazySingleton<_i363.PremiumEntitlementRepository>(
       () => _i514.LocalPremiumEntitlementRepository(
