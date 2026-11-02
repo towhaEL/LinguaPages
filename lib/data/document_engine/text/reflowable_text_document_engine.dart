@@ -64,6 +64,7 @@ abstract class ReflowableTextDocumentEngine implements DocumentEngine {
 
   ReflowableText parse(String source);
 
+  @override
   String get text {
     final value = _text;
     if (value == null) throw StateError('The document is not open.');

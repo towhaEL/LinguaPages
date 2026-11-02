@@ -15,6 +15,7 @@ import 'package:lingua_pages/core/document/document_locator.dart';
 import 'package:lingua_pages/core/injector/injector.dart';
 import 'package:lingua_pages/data/reader/readium/readium_document_session.dart';
 import 'package:lingua_pages/data/reader/readium/readium_read_aloud_service.dart';
+import 'package:lingua_pages/data/reader/tts/flutter_tts_read_aloud_service.dart';
 import 'package:lingua_pages/domain/entity/document/document_models.dart';
 import 'package:lingua_pages/domain/entity/library/book_entity.dart';
 import 'package:lingua_pages/domain/entity/premium/appearance_catalog.dart';
@@ -26,6 +27,7 @@ import 'package:lingua_pages/domain/repository/reader/highlight_repository.dart'
 import 'package:lingua_pages/domain/repository/settings/settings_repository.dart';
 import 'package:lingua_pages/domain/service/document_engine.dart';
 import 'package:lingua_pages/domain/service/document_engine_factory.dart';
+import 'package:lingua_pages/domain/service/read_aloud_service.dart';
 import 'package:lingua_pages/domain/service/screen_brightness_service.dart';
 import 'package:lingua_pages/domain/service/selection_text_service.dart';
 import 'package:lingua_pages/domain/service/volume_key_service.dart';
@@ -113,9 +115,13 @@ class _ReaderScreenState extends State<ReaderScreen>
   late final ScreenBrightnessService _brightness;
   late final SelectionTextService _selectionText;
 
-  /// Created on first use of Listen; native EPUB/PDF only for now.
+  /// Created on first use of Listen.
   ReadAloudCubit? _readAloud;
   StreamSubscription<ReadAloudState>? _readAloudSubscription;
+  StreamSubscription<ReadAloudRange>? _spokenSubscription;
+
+  /// The sentence the fallback engine is speaking, highlighted on its page.
+  ReadAloudRange? _spokenRange;
   StreamSubscription<PageTurn>? _pageTurnSubscription;
 
   /// The edge-swipe brightness, once the reader has set one.
@@ -175,6 +181,7 @@ class _ReaderScreenState extends State<ReaderScreen>
     unawaited(_premiumSubscription?.cancel());
     unawaited(_pageTurnSubscription?.cancel());
     unawaited(_readAloudSubscription?.cancel());
+    unawaited(_spokenSubscription?.cancel());
     unawaited(_readAloud?.close());
     unawaited(_volumeKeys.setEnabled(enabled: false));
     if (_readerBrightness != null) unawaited(_brightness.reset());
@@ -493,11 +500,13 @@ class _ReaderScreenState extends State<ReaderScreen>
           label: l10n.readerToolAppearance,
           onPressed: _showReaderSettings,
         ),
-        if (_usesReadium)
+        if (_usesReadium || info?.layout == DocumentLayout.reflowable)
           ReaderTool(
             icon: Icons.headphones_outlined,
             label: l10n.readerToolListen,
-            onPressed: _publication == null ? null : _startReadAloud,
+            onPressed: _publication == null && info == null
+                ? null
+                : _startReadAloud,
           ),
         if (!_usesReadium &&
             widget.book.format == DocumentFormat.pdf &&
@@ -632,6 +641,7 @@ class _ReaderScreenState extends State<ReaderScreen>
             textTweaks: _textTweaks,
             darkPage: _display.readerTheme.isDarkPage,
             marks: _textPageMarks(_pageIndex),
+            focusOffset: _spokenOffsetOnPage(_pageIndex),
             onSelectionAction: (selection, action) =>
                 _handleFallbackSelectionAction(
                   _pageIndex,
@@ -1396,6 +1406,21 @@ class _ReaderScreenState extends State<ReaderScreen>
 
   /// Highlights on fallback text page [pageIndex], relative to that page.
   List<PageMark> _textPageMarks(int pageIndex) => [
+    if ((_spokenRange, _engine) case (
+      final range?,
+      final engine?,
+    ) when engine.pageIndexForOffset(range.start) == pageIndex)
+      PageMark(
+        start: range.start - engine.pageStartOffset(pageIndex),
+        // Only the part on this page; marks are found by their text.
+        text: engine.text
+            .substring(
+              range.start,
+              math.min(range.end, _pageEndOffset(engine, pageIndex)),
+            )
+            .trim(),
+        color: HighlightColor.yellow,
+      ),
     for (final highlight in _highlights)
       if (highlight.locator case TextLocator(
         :final offset,
@@ -1547,9 +1572,74 @@ class _ReaderScreenState extends State<ReaderScreen>
     unawaited(_renderPage(target));
   }
 
-  late final _readAloudService = ReadiumReadAloudService(
-    currentLocator: () => _currentReadiumLocator ?? _savedLocator,
-  );
+  ReadAloudService? _readAloudEngine;
+
+  /// Readium reads native books itself; fallback text uses the platform's
+  /// text-to-speech one sentence at a time.
+  ReadAloudService get _readAloudService => _readAloudEngine ??= _usesReadium
+      ? ReadiumReadAloudService(
+          currentLocator: () => _currentReadiumLocator ?? _savedLocator,
+        )
+      : FlutterTtsReadAloudService(
+          text: _engine!.text,
+          startOffset: () => _engine!.pageStartOffset(_visiblePageIndex),
+          chapterAt: _chapterAt,
+        );
+
+  /// Where the spoken sentence starts within page [pageIndex], if it does.
+  int? _spokenOffsetOnPage(int pageIndex) {
+    final range = _spokenRange;
+    final engine = _engine;
+    if (range == null || engine == null) return null;
+    if (engine.pageIndexForOffset(range.start) != pageIndex) return null;
+    return range.start - engine.pageStartOffset(pageIndex);
+  }
+
+  int _pageEndOffset(DocumentEngine engine, int pageIndex) =>
+      pageIndex + 1 < (_info?.pageCount ?? 1)
+      ? engine.pageStartOffset(pageIndex + 1)
+      : engine.text.length;
+
+  /// The fallback page on screen, in either reading mode.
+  int get _visiblePageIndex {
+    final pageCount = _info?.pageCount ?? 1;
+    return _settings.readerMode == ReaderMode.continuous &&
+            _info?.layout == DocumentLayout.reflowable
+        ? (_continuousProgress * (pageCount - 1)).round()
+        : _pageIndex;
+  }
+
+  /// The table-of-contents entry containing text [offset].
+  String? _chapterAt(int offset) {
+    String? chapter;
+    for (final entry in _localTableOfContents) {
+      if (entry.locator case TextLocator(
+        offset: final start,
+      ) when start <= offset) {
+        chapter = entry.title;
+      }
+    }
+    return chapter;
+  }
+
+  /// Highlights the spoken sentence and keeps its page on screen.
+  void _followSpoken(ReadAloudRange range) {
+    final engine = _engine;
+    final info = _info;
+    if (!mounted || engine == null || info == null) return;
+    setState(() => _spokenRange = range);
+    final page = engine.pageIndexForOffset(range.start);
+    if (page == _visiblePageIndex) return;
+    if (info.layout == DocumentLayout.reflowable &&
+        _settings.readerMode == ReaderMode.continuous) {
+      _continuousPageKey.currentState?.jumpToPage(
+        page,
+        pageCount: info.pageCount ?? 1,
+      );
+    } else if (!_isRendering) {
+      unawaited(_renderPage(page));
+    }
+  }
 
   Future<void> _startReadAloud() async {
     final readAloud = _readAloud ??= ReadAloudCubit(
@@ -1560,6 +1650,9 @@ class _ReaderScreenState extends State<ReaderScreen>
           widget.book.languageCode,
     );
     _readAloudSubscription ??= readAloud.stream.listen(_onReadAloudChanged);
+    _spokenSubscription ??= _readAloudService.spokenRanges.listen(
+      _followSpoken,
+    );
     _hideChrome();
     await readAloud.open();
   }
@@ -1568,7 +1661,11 @@ class _ReaderScreenState extends State<ReaderScreen>
   /// that option is set.
   void _onReadAloudChanged(ReadAloudState state) {
     if (!mounted) return;
-    setState(() {});
+    setState(() {
+      if (!state.active || state.status == ReadAloudStatus.idle) {
+        _spokenRange = null;
+      }
+    });
     final keepOn =
         _settings.keepScreenAwake ||
         (state.isPlaying && _settings.readAloudKeepScreenOn);
@@ -2244,7 +2341,7 @@ class _PdfTextPage extends StatelessWidget {
   }
 }
 
-class _ReflowablePage extends StatelessWidget {
+class _ReflowablePage extends StatefulWidget {
   const _ReflowablePage({
     required this.bytes,
     required this.fontSize,
@@ -2258,6 +2355,7 @@ class _ReflowablePage extends StatelessWidget {
     required this.darkPage,
     required this.marks,
     required this.onSelectionAction,
+    this.focusOffset,
   });
 
   final Uint8List bytes;
@@ -2275,35 +2373,109 @@ class _ReflowablePage extends StatelessWidget {
   final List<PageMark> marks;
   final void Function(TextSelection, _SelectionAction) onSelectionAction;
 
+  /// A text offset on this page to keep in view, such as the sentence being
+  /// read aloud.
+  final int? focusOffset;
+
+  @override
+  State<_ReflowablePage> createState() => _ReflowablePageState();
+}
+
+class _ReflowablePageState extends State<_ReflowablePage> {
+  final _scrollController = ScrollController();
+
+  late String _text = utf8.decode(widget.bytes, allowMalformed: true);
+
+  @override
+  void didUpdateWidget(covariant _ReflowablePage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.bytes != widget.bytes) {
+      _text = utf8.decode(widget.bytes, allowMalformed: true);
+      if (_scrollController.hasClients) _scrollController.jumpTo(0);
+    }
+    if (widget.focusOffset != null &&
+        widget.focusOffset != oldWidget.focusOffset) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _reveal());
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  // The bars overlay the page, so the text starts below the top bar and can
+  // scroll clear of the bottom bar.
+  EdgeInsets get _padding => EdgeInsets.fromLTRB(
+    widget.margin,
+    widget.margin + 12 + readerTopBarHeight,
+    widget.margin,
+    widget.margin * 2.5 + readerBottomBarHeight,
+  );
+
+  TextStyle? _style(BuildContext context) => Theme.of(context)
+      .textTheme
+      .bodyLarge
+      ?.copyWith(
+        color: widget.textColor,
+        fontFamily: widget.fontFamily,
+        fontSize: widget.fontSize,
+        height: widget.lineSpacing,
+      )
+      .merge(widget.textTweaks);
+
+  /// Scrolls [_ReflowablePage.focusOffset] into the upper part of the view
+  /// when it is off screen, laying the text out as the page does.
+  void _reveal() {
+    final offset = widget.focusOffset;
+    final box = context.findRenderObject() as RenderBox?;
+    if (!mounted || offset == null || box == null) return;
+    if (!_scrollController.hasClients) return;
+    final painter = TextPainter(
+      text: TextSpan(text: _text, style: _style(context)),
+      textAlign: _readerTextAlign(widget.textAlignment),
+      textDirection: Directionality.of(context),
+      textScaler: MediaQuery.textScalerOf(context),
+    )..layout(maxWidth: box.size.width - _padding.horizontal);
+    final caret = painter.getOffsetForCaret(
+      TextPosition(offset: offset.clamp(0, _text.length)),
+      Rect.zero,
+    );
+    final lineHeight = painter.preferredLineHeight;
+    painter.dispose();
+    final position = _scrollController.position;
+    final top = caret.dy + _padding.top;
+    final visibleTop = position.pixels + readerTopBarHeight;
+    // Leave room for the read-aloud player over the bottom of the page.
+    final visibleBottom = position.pixels + position.viewportDimension - 120;
+    if (top >= visibleTop && top + lineHeight * 2 <= visibleBottom) return;
+    unawaited(
+      _scrollController.animateTo(
+        (top - position.viewportDimension / 4).clamp(
+          0,
+          position.maxScrollExtent,
+        ),
+        duration: MediaQuery.disableAnimationsOf(context)
+            ? Duration.zero
+            : const Duration(milliseconds: 300),
+        curve: Curves.easeOutCubic,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return ColoredBox(
-      color: backgroundColor,
+      color: widget.backgroundColor,
       child: SingleChildScrollView(
-        // The bars overlay the page, so the text starts below the top bar and
-        // can scroll clear of the bottom bar.
-        padding: EdgeInsets.fromLTRB(
-          margin,
-          margin + 12 + readerTopBarHeight,
-          margin,
-          margin * 2.5 + readerBottomBarHeight,
-        ),
+        controller: _scrollController,
+        padding: _padding,
         child: SelectableText.rich(
-          markedText(
-            utf8.decode(bytes, allowMalformed: true),
-            marks,
-            darkPage: darkPage,
-          ),
-          contextMenuBuilder: _readerContextMenu(onSelectionAction),
-          textAlign: _readerTextAlign(textAlignment),
-          style: Theme.of(context).textTheme.bodyLarge
-              ?.copyWith(
-                color: textColor,
-                fontFamily: fontFamily,
-                fontSize: fontSize,
-                height: lineSpacing,
-              )
-              .merge(textTweaks),
+          markedText(_text, widget.marks, darkPage: widget.darkPage),
+          contextMenuBuilder: _readerContextMenu(widget.onSelectionAction),
+          textAlign: _readerTextAlign(widget.textAlignment),
+          style: _style(context),
         ),
       ),
     );

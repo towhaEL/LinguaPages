@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lingua_pages/data/data_source/library/local/lingua_page_database.dart';
+import 'package:lingua_pages/data/reader/tts/flutter_tts_read_aloud_service.dart';
 import 'package:lingua_pages/data/repository_impl/settings/drift_settings_repository.dart';
 import 'package:lingua_pages/domain/service/read_aloud_service.dart';
 import 'package:lingua_pages/presentation/screen/reader/read_aloud/read_aloud_cubit.dart';
@@ -13,6 +14,27 @@ const _gb = ReadAloudVoice(id: 'gb', name: 'GB', language: 'en-GB');
 const _fr = ReadAloudVoice(id: 'fr', name: 'FR', language: 'fr-FR');
 
 void main() {
+  test('splits text into sentences with their offsets', () {
+    const text = 'Chapter 1\n\nIt rained. Did it stop? "Yes!" she said…\nEnd';
+
+    final sentences = splitSentences(text);
+
+    expect(sentences.map((s) => s.text), [
+      'Chapter 1',
+      'It rained.',
+      'Did it stop?',
+      '"Yes!"',
+      'she said…',
+      'End',
+    ]);
+    for (final sentence in sentences) {
+      expect(
+        text.substring(sentence.start, sentence.end).trim(),
+        sentence.text,
+      );
+    }
+  });
+
   group('pickReadAloudVoice', () {
     test('prefers the saved voice, then exact, then base language', () {
       const voices = [_fr, _gb, _us];
@@ -181,6 +203,9 @@ class _FakeService implements ReadAloudService {
 
   @override
   Stream<String> get chapterChanges => _chapters.stream;
+
+  @override
+  Stream<ReadAloudRange> get spokenRanges => const Stream.empty();
 
   @override
   Future<List<ReadAloudVoice>> voices() async => installed;

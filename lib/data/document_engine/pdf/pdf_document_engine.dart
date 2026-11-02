@@ -25,6 +25,7 @@ class PdfDocumentEngine implements DocumentEngine {
   List<_PdfOutlineEntry> _outline = const [];
   String? _text;
 
+  @override
   String get text {
     final value = _text;
     if (value == null) throw StateError('The PDF is not open.');

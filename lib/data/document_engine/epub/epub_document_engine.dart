@@ -22,6 +22,7 @@ class EpubDocumentEngine implements DocumentEngine {
   String? _author;
   String? _languageCode;
 
+  @override
   String get text {
     final value = _text;
     if (value == null) throw StateError('The EPUB is not open.');

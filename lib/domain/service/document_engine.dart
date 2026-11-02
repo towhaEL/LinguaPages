@@ -10,6 +10,9 @@ import 'package:lingua_pages/domain/entity/document/document_models.dart';
 abstract interface class DocumentEngine {
   Future<DocumentInfo> open();
 
+  /// The open document's readable text, which text locators index into.
+  String get text;
+
   Future<void> close();
 
   Future<List<String>> tableOfContents();

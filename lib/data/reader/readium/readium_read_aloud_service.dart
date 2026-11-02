@@ -46,6 +46,9 @@ class ReadiumReadAloudService implements ReadAloudService {
       );
 
   @override
+  Stream<ReadAloudRange> get spokenRanges => const Stream.empty();
+
+  @override
   Stream<String> get chapterChanges => _readium.onTimebasedPlayerStateChanged
       .map((state) => state.currentLocator?.href)
       .where((href) => href != null)

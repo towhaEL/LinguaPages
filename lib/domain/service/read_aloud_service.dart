@@ -32,9 +32,21 @@ class ReadAloudOptions {
   final bool skipPageNumbers;
 }
 
+/// A stretch of the document's text, by offsets into it.
+class ReadAloudRange {
+  const ReadAloudRange(this.start, this.end);
+
+  final int start;
+  final int end;
+}
+
 /// Reads the open book aloud with the device's own voices.
 abstract interface class ReadAloudService {
   Stream<ReadAloudStatus> get statusChanges;
+
+  /// The sentence being spoken, for engines that leave highlighting and page
+  /// turning to the reader. Readium does both itself and emits nothing.
+  Stream<ReadAloudRange> get spokenRanges;
 
   /// A stable id of the chapter being read, for the end-of-chapter timer.
   Stream<String> get chapterChanges;

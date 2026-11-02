@@ -50,6 +50,7 @@ dependencies:
   in_app_purchase_android: ^0.5.5
   share_plus: ^13.3.1
   screen_brightness: ^2.1.11
+  flutter_tts: ^4.2.5
 
 
 dev_dependencies:

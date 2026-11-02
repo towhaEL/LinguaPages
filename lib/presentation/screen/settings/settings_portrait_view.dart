@@ -254,6 +254,23 @@ class _ReadingSettingsState extends State<_ReadingSettings> {
               ? null
               : (value) => _update('cornerShortcuts', value),
         ),
+        _SettingsSwitchTile(
+          icon: Icons.headphones_outlined,
+          title: l10n.settingsReadAloudKeepScreenOn,
+          value: settings?.readAloudKeepScreenOn ?? false,
+          onChanged: settings == null
+              ? null
+              : (value) => _update('readAloudKeepScreenOn', value),
+        ),
+        _SettingsSwitchTile(
+          icon: Icons.format_list_numbered_rounded,
+          title: l10n.settingsReadAloudSkipPageNumbers,
+          subtitle: l10n.settingsReadAloudSkipPageNumbersSubtitle,
+          value: settings?.readAloudSkipPageNumbers ?? true,
+          onChanged: settings == null
+              ? null
+              : (value) => _update('readAloudSkipPageNumbers', value),
+        ),
       ],
     );
   }
