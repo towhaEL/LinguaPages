@@ -82,6 +82,10 @@ class DriftSettingsRepository implements SettingsRepository {
     'edgeBrightness': settings.edgeBrightness,
     'readerProgressDisplay': settings.readerProgressDisplay.name,
     'cornerShortcuts': settings.cornerShortcuts,
+    'readAloudSpeed': settings.readAloudSpeed,
+    'readAloudVoices': settings.readAloudVoices,
+    'readAloudSkipPageNumbers': settings.readAloudSkipPageNumbers,
+    'readAloudKeepScreenOn': settings.readAloudKeepScreenOn,
     'onlineDictionary': settings.onlineDictionary,
     'libraryListView': settings.libraryListView,
     'librarySort': settings.librarySort.name,
@@ -164,6 +168,15 @@ class DriftSettingsRepository implements SettingsRepository {
         ReaderProgressDisplay.none,
       ),
       cornerShortcuts: values['cornerShortcuts'] as bool? ?? false,
+      readAloudSpeed: (values['readAloudSpeed'] as num?)?.toDouble() ?? 1,
+      readAloudVoices: {
+        for (final MapEntry(:key, :value)
+            in (values['readAloudVoices'] as Map? ?? const {}).entries)
+          if (key is String && value is String) key: value,
+      },
+      readAloudSkipPageNumbers:
+          values['readAloudSkipPageNumbers'] as bool? ?? true,
+      readAloudKeepScreenOn: values['readAloudKeepScreenOn'] as bool? ?? false,
       onlineDictionary: values['onlineDictionary'] as bool? ?? true,
       libraryListView: values['libraryListView'] as bool? ?? false,
       librarySort: _enumValue(

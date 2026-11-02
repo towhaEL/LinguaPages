@@ -281,6 +281,36 @@
   "readerSearchWeb": "Search the web",
   "readerSendToApp": "Send to app",
   "readerSendToAppNone": "No installed app accepts selected text",
+  "readerToolListen": "Listen",
+  "readAloudPlay": "Read aloud",
+  "readAloudPause": "Pause",
+  "readAloudStop": "Stop reading aloud",
+  "readAloudPrevious": "Previous sentence",
+  "readAloudNext": "Next sentence",
+  "readAloudSpeed": "Speed",
+  "readAloudSpeedValue": "{speed}×",
+  "@readAloudSpeedValue": {
+    "placeholders": {
+      "speed": {
+        "type": "String"
+      }
+    }
+  },
+  "readAloudVoice": "Voice",
+  "readAloudSleep": "Sleep timer",
+  "readAloudSleepOff": "Off",
+  "readAloudSleepMinutes": "{minutes} minutes",
+  "@readAloudSleepMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "readAloudSleepEndOfChapter": "End of chapter",
+  "readAloudNoEngine": "No offline voice is installed on this device.",
+  "readAloudNoVoice": "No installed voice speaks this book's language.",
+  "readAloudOpenSettings": "Voice settings",
   "readerCornerTheme": "Switch light or dark page",
   "readerLayoutSection": "Layout",
   "readerHyphenation": "Hyphenation",

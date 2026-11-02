@@ -229,13 +229,17 @@ class _ToolButton extends StatelessWidget {
             children: [
               Icon(tool.icon, color: color),
               const SizedBox(height: 4),
-              Text(
-                tool.label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: enabled ? colors.onSurfaceMuted : colors.disabled,
-                  fontWeight: FontWeight.w700,
+              // Five tools on a narrow phone: shrink a long label rather
+              // than cut it.
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  tool.label,
+                  maxLines: 1,
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                    color: enabled ? colors.onSurfaceMuted : colors.disabled,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
             ],

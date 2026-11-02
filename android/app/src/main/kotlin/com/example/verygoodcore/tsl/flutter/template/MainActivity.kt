@@ -124,11 +124,20 @@ class MainActivity : FlutterFragmentActivity() {
         ).setMethodCallHandler { call, result ->
             when (call.method) {
                 "webSearch" -> result.success(webSearch(call.arguments as? String ?: ""))
+                "openTtsSettings" -> result.success(openTtsSettings())
                 else -> result.notImplemented()
             }
         }
 
         handleDocumentIntent(intent, emitDocument = false)
+    }
+
+    // Where voices are installed and the default engine is chosen.
+    private fun openTtsSettings(): Boolean = try {
+        startActivity(Intent("com.android.settings.TTS_SETTINGS"))
+        true
+    } catch (_: ActivityNotFoundException) {
+        false
     }
 
     // The user's default search app handles the query; false when none does.

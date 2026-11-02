@@ -30,6 +30,10 @@ class SettingsEntity {
     this.edgeBrightness = false,
     this.readerProgressDisplay = ReaderProgressDisplay.none,
     this.cornerShortcuts = false,
+    this.readAloudSpeed = 1,
+    this.readAloudVoices = const {},
+    this.readAloudSkipPageNumbers = true,
+    this.readAloudKeepScreenOn = false,
     this.onlineDictionary = true,
     this.libraryListView = false,
     this.librarySort = LibrarySort.recent,
@@ -91,6 +95,14 @@ class SettingsEntity {
   /// Top-right corner adds a bookmark, top-left switches light/dark page.
   final bool cornerShortcuts;
 
+  /// Read-aloud rate, 1 being the voice's normal speed.
+  final double readAloudSpeed;
+
+  /// The chosen voice id for each language tag.
+  final Map<String, String> readAloudVoices;
+  final bool readAloudSkipPageNumbers;
+  final bool readAloudKeepScreenOn;
+
   /// When off, word lookups only use definitions already cached on device.
   final bool onlineDictionary;
 
@@ -126,6 +138,10 @@ class SettingsEntity {
     bool? edgeBrightness,
     ReaderProgressDisplay? readerProgressDisplay,
     bool? cornerShortcuts,
+    double? readAloudSpeed,
+    Map<String, String>? readAloudVoices,
+    bool? readAloudSkipPageNumbers,
+    bool? readAloudKeepScreenOn,
     bool? onlineDictionary,
     bool? libraryListView,
     LibrarySort? librarySort,
@@ -159,6 +175,12 @@ class SettingsEntity {
       readerProgressDisplay:
           readerProgressDisplay ?? this.readerProgressDisplay,
       cornerShortcuts: cornerShortcuts ?? this.cornerShortcuts,
+      readAloudSpeed: readAloudSpeed ?? this.readAloudSpeed,
+      readAloudVoices: readAloudVoices ?? this.readAloudVoices,
+      readAloudSkipPageNumbers:
+          readAloudSkipPageNumbers ?? this.readAloudSkipPageNumbers,
+      readAloudKeepScreenOn:
+          readAloudKeepScreenOn ?? this.readAloudKeepScreenOn,
       onlineDictionary: onlineDictionary ?? this.onlineDictionary,
       libraryListView: libraryListView ?? this.libraryListView,
       librarySort: librarySort ?? this.librarySort,

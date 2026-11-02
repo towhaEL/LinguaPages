@@ -14,6 +14,7 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:lingua_pages/core/document/document_locator.dart';
 import 'package:lingua_pages/core/injector/injector.dart';
 import 'package:lingua_pages/data/reader/readium/readium_document_session.dart';
+import 'package:lingua_pages/data/reader/readium/readium_read_aloud_service.dart';
 import 'package:lingua_pages/domain/entity/document/document_models.dart';
 import 'package:lingua_pages/domain/entity/library/book_entity.dart';
 import 'package:lingua_pages/domain/entity/premium/appearance_catalog.dart';
@@ -38,6 +39,8 @@ import 'package:lingua_pages/presentation/screen/reader/widgets/dictionary_looku
 import 'package:lingua_pages/presentation/screen/reader/widgets/highlight_editor_sheet.dart';
 import 'package:lingua_pages/presentation/screen/reader/widgets/marked_text.dart';
 import 'package:lingua_pages/presentation/screen/reader/widgets/notes_sheet.dart';
+import 'package:lingua_pages/presentation/screen/reader/read_aloud/read_aloud_cubit.dart';
+import 'package:lingua_pages/presentation/screen/reader/read_aloud/read_aloud_player.dart';
 import 'package:lingua_pages/presentation/screen/reader/widgets/reader_chrome.dart';
 import 'package:lingua_pages/presentation/screen/reader/widgets/reader_tap_zones.dart';
 import 'package:lingua_pages/presentation/widgets/state_view.dart';
@@ -109,6 +112,10 @@ class _ReaderScreenState extends State<ReaderScreen>
   late final VolumeKeyService _volumeKeys;
   late final ScreenBrightnessService _brightness;
   late final SelectionTextService _selectionText;
+
+  /// Created on first use of Listen; native EPUB/PDF only for now.
+  ReadAloudCubit? _readAloud;
+  StreamSubscription<ReadAloudState>? _readAloudSubscription;
   StreamSubscription<PageTurn>? _pageTurnSubscription;
 
   /// The edge-swipe brightness, once the reader has set one.
@@ -167,6 +174,8 @@ class _ReaderScreenState extends State<ReaderScreen>
     unawaited(_readiumLocatorSubscription?.cancel());
     unawaited(_premiumSubscription?.cancel());
     unawaited(_pageTurnSubscription?.cancel());
+    unawaited(_readAloudSubscription?.cancel());
+    unawaited(_readAloud?.close());
     unawaited(_volumeKeys.setEnabled(enabled: false));
     if (_readerBrightness != null) unawaited(_brightness.reset());
     if (_changedSystemUi) {
@@ -262,6 +271,27 @@ class _ReaderScreenState extends State<ReaderScreen>
                   visible: chromeVisible,
                   edge: VerticalDirection.down,
                   child: _buildBottomBar(context, info),
+                ),
+              ),
+            if (_readAloud case final readAloud? when readAloud.state.active)
+              Positioned(
+                left: 0,
+                right: 0,
+                // Docked above the reader bar, or at the bottom without it.
+                bottom: chromeVisible
+                    ? readerBottomBarHeight +
+                          MediaQuery.paddingOf(context).bottom
+                    : 0,
+                child: MediaQuery.removePadding(
+                  context: context,
+                  removeBottom: chromeVisible,
+                  child: BlocProvider.value(
+                    value: readAloud,
+                    child: ReadAloudPlayer(
+                      onOpenVoiceSettings: () =>
+                          unawaited(_readAloudService.openVoiceSettings()),
+                    ),
+                  ),
                 ),
               ),
           ],
@@ -463,6 +493,12 @@ class _ReaderScreenState extends State<ReaderScreen>
           label: l10n.readerToolAppearance,
           onPressed: _showReaderSettings,
         ),
+        if (_usesReadium)
+          ReaderTool(
+            icon: Icons.headphones_outlined,
+            label: l10n.readerToolListen,
+            onPressed: _publication == null ? null : _startReadAloud,
+          ),
         if (!_usesReadium &&
             widget.book.format == DocumentFormat.pdf &&
             !continuous)
@@ -1509,6 +1545,34 @@ class _ReaderScreenState extends State<ReaderScreen>
     if (target < 0 || target >= pageCount) return;
     _hideChrome();
     unawaited(_renderPage(target));
+  }
+
+  late final _readAloudService = ReadiumReadAloudService(
+    currentLocator: () => _currentReadiumLocator ?? _savedLocator,
+  );
+
+  Future<void> _startReadAloud() async {
+    final readAloud = _readAloud ??= ReadAloudCubit(
+      _readAloudService,
+      _settingsRepository,
+      language:
+          _publication?.metadata.languages.firstOrNull ??
+          widget.book.languageCode,
+    );
+    _readAloudSubscription ??= readAloud.stream.listen(_onReadAloudChanged);
+    _hideChrome();
+    await readAloud.open();
+  }
+
+  /// Rebuilds for the player and keeps the screen on while it speaks, when
+  /// that option is set.
+  void _onReadAloudChanged(ReadAloudState state) {
+    if (!mounted) return;
+    setState(() {});
+    final keepOn =
+        _settings.keepScreenAwake ||
+        (state.isPlaying && _settings.readAloudKeepScreenOn);
+    _applyWakeLock(keepOn);
   }
 
   /// Switches the page between the light and dark reading themes.
