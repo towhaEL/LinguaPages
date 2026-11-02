@@ -6,6 +6,10 @@ import 'package:lingua_pages/domain/entity/document/document_models.dart';
 /// Import, database, and cloud-sync details remain in the data layer. This
 /// keeps reader and library UI independent of storage choices.
 abstract class LibraryRepository {
+  /// Fires after books or collections change, by this repository or
+  /// another writer such as a backup restore.
+  Stream<void> get changes;
+
   Future<List<BookEntity>> getAll({LibrarySort sort = LibrarySort.recent});
 
   Future<List<BookEntity>> search(

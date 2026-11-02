@@ -39,6 +39,15 @@ class LibraryCubit extends Cubit<LibraryState> {
     _incomingSubscription = _incomingDocumentService.documents.listen(
       (document) => unawaited(_importIncomingDocument(document)),
     );
+    // Writes from elsewhere (a restore, the reader) reach the shelf too.
+    _changesSubscription = _libraryRepository.changes.listen((_) {
+      _changeDebounce?.cancel();
+      _changeDebounce = Timer(const Duration(milliseconds: 300), () {
+        if (!isClosed && state.status == LibraryStatus.success) {
+          unawaited(_refresh().catchError((Object _) {}));
+        }
+      });
+    });
   }
 
   final GetLibraryBooksUseCase _getLibraryBooksUseCase;
@@ -54,6 +63,8 @@ class LibraryCubit extends Cubit<LibraryState> {
   final ImportFolderUseCase _importFolderUseCase;
   final Logger _logger;
   late final StreamSubscription<IncomingDocument> _incomingSubscription;
+  late final StreamSubscription<void> _changesSubscription;
+  Timer? _changeDebounce;
 
   Future<void> load() async {
     final firstLoad = state.status == LibraryStatus.initial;
@@ -437,6 +448,8 @@ class LibraryCubit extends Cubit<LibraryState> {
 
   @override
   Future<void> close() async {
+    _changeDebounce?.cancel();
+    await _changesSubscription.cancel();
     await _incomingSubscription.cancel();
     await super.close();
   }

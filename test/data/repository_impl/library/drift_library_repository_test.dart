@@ -219,6 +219,28 @@ void main() {
       expect(restored.isInTrash, isFalse);
       expect(await repository.getTrash(), isEmpty);
     });
+
+    test('reports changes made by another writer', () async {
+      final changed = repository.changes.first;
+
+      // Restore writes through the database directly, not this repository.
+      await database
+          .into(database.libraryBooks)
+          .insert(
+            LibraryBooksCompanion.insert(
+              id: 'restored',
+              title: 'Restored',
+              documentFormat: 'txt',
+              sourceUri: '/restored.txt',
+              sourceFileName: 'restored.txt',
+              contentFingerprint: 'restored',
+              fileSizeBytes: 1,
+              addedAt: DateTime(2026),
+            ),
+          );
+
+      await expectLater(changed, completes);
+    });
   });
 }
 

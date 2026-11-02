@@ -399,6 +399,9 @@ class _FakeLibraryRepository implements LibraryRepository {
     ];
   }
 
+  @override
+  Stream<void> get changes => const Stream.empty();
+
   List<BookEntity> books = [];
   List<BookEntity> searchResults = [];
   BookEntity? importedBook;

@@ -15,6 +15,17 @@ class DriftLibraryRepository implements LibraryRepository {
   final LinguaPageDatabase _database;
 
   @override
+  Stream<void> get changes => _database
+      .tableUpdates(
+        TableUpdateQuery.onAllTables([
+          _database.libraryBooks,
+          _database.collections,
+          _database.bookCollections,
+        ]),
+      )
+      .map((_) {});
+
+  @override
   Future<List<BookEntity>> getAll({
     LibrarySort sort = LibrarySort.recent,
   }) async {

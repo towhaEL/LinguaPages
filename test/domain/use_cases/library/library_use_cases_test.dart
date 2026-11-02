@@ -138,6 +138,9 @@ class _FakeLibraryRepository implements LibraryRepository {
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
+  @override
+  Stream<void> get changes => const Stream.empty();
+
   List<BookEntity> books = [];
   List<BookEntity> searchResults = [];
   BookEntity? importedBook;
