@@ -339,58 +339,58 @@ Bugs found while testing (not fixed in this phase):
 - The landscape `NavigationRail` has not been checked on a device.
 - Onboarding, splash (template copy), reader chrome and privacy still use the old layouts on the new tokens. They are redesigned in plan Phase 5.
 
-### 🔴 Plan Phase 7 — Reader and Library Parity (Not started, added 2026-11-01)
+### 🟢 Plan Phase 7 — Reader and Library Parity (Implemented 2026-11-02, gaps listed)
 
-See [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md#phase-7--reader-and-library-parity).
+See [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md#phase-7--reader-and-library-parity). Device checks were run on a CPH2819 (Android 16).
 
 #### Reader comfort
-- [ ] **Hyphenation** toggle (Readium `hyphens`)
-- [ ] **Paragraph spacing and indent** (`paragraphSpacing`, `paragraphIndent`)
-- [ ] **Letter and word spacing** (`letterSpacing`, `wordSpacing`)
-- [ ] **Font weight** (`fontWeight`)
-- [ ] **Use publisher styles** on/off (`publisherStyles`)
-- [ ] **Two columns / two pages in landscape** (`columnCount`, `spread`)
-- [ ] **Reading direction and vertical text** override (`readingProgression`, `verticalText`)
-- [ ] **Invert/dim images in dark themes** (`imageFilter`, plus fallback PDF pages)
-- [ ] **Fallback text engine parity** for the settings above
-- [ ] **Fix:** text pagination splits a word across pages
+- [x] **Hyphenation** toggle (Readium `hyphens`; native EPUB only)
+- [x] **Paragraph spacing and indent** (native EPUB only)
+- [x] **Letter and word spacing** (native EPUB and fallback text)
+- [x] **Font weight** (native EPUB and fallback text)
+- [x] **Use publisher styles** on/off
+- [x] **Two columns / two pages in landscape** (`columnCount`, `spread`; EPUB and PDF)
+- [x] **Reading direction and vertical text** override
+- [x] **Invert/dim images in dark themes** (native EPUB and fallback PDF pages)
+- [~] **Fallback text engine parity**: spacing and weight apply; paragraph spacing, indent and hyphenation have no Flutter text equivalent
+- [x] **Fix:** text pagination splits a word across pages (page edges move to the next word start)
 
 #### Page turning and screen
-- [ ] **Configurable tap-zone schemes** (left/right, top/bottom, off)
-- [ ] **Volume-key page turning** (opt-in; `MainActivity` key hook behind an interface)
-- [ ] **Page-turn animation** on/off
-- [ ] **Full-screen reading** (hide status and navigation bars)
-- [ ] **Orientation lock** (portrait, landscape, auto)
-- [ ] **Brightness by edge swipe** (reader-only, reset on exit; plugin behind an interface)
-- [ ] **Progress display choice** (page, percent, time left in chapter, none)
-- [ ] **Corner shortcuts** (top-right bookmark, top-left theme switch; optional)
-- [ ] **PDF smart crop** of blank margins
+- [~] **Configurable tap-zone schemes**: fallback reader only; Readium's native edge taps are not configurable without forking `flutter_readium` (decided 2026-11-02: leave as is)
+- [x] **Volume-key page turning** (opt-in; verified on device for TXT and native EPUB)
+- [ ] **Page-turn animation** on/off: neither engine exposes a page-turn animation to toggle
+- [x] **Full-screen reading** (verified on device)
+- [x] **Orientation lock**
+- [x] **Brightness by edge swipe** (`screen_brightness`, no permission; system brightness verified unchanged)
+- [~] **Progress display choice**: page, percent and none; "time left in chapter" needs a reading-speed estimate
+- [x] **Corner shortcuts**
+- [ ] **PDF smart crop**: Android/iOS PDFs use the native Readium reader, so crop would only reach the desktop fallback
 
 #### Selection menu
-- [ ] **Share** selected text
-- [ ] **Search the web** with the selection
-- [ ] **Send to app** via `ACTION_PROCESS_TEXT`
+- [x] **Share** selected text (plus Copy, which Readium's custom menu had dropped)
+- [x] **Search the web** (Android `ACTION_WEB_SEARCH`)
+- [x] **Send to app** via `ACTION_PROCESS_TEXT` (verified listing on device)
 
 #### Library organisation (schema v9)
-- [ ] **Drift v8 → v9 migration** with an upgrade test (books and annotations survive)
-- [ ] **Reading shelves**: To read, Reading, Finished, plus Favorites; auto-finish at 100%
-- [ ] **Collections**: create, rename, delete; a book can be in several
-- [ ] **Authors and Series views** from metadata (EPUB series/Calibre, FB2 `sequence`)
-- [ ] **Edit book details** (title, authors, series, number, language, reset from file)
-- [ ] **Fix:** FB2 title and author import (uses the first section heading; joins author names with no space)
-- [ ] **Trash** with restore, empty and 30-day auto-purge
-- [ ] **Duplicate detection** at import by content hash
-- [ ] **Folder import** through the Storage Access Framework (spike on Android 11+ first)
-- [ ] **Fix:** persist the grid/list view choice
+- [x] **Drift v8 → v9 migration** with upgrade tests from every earlier version
+- [x] **Reading shelves**: To read, Reading, Finished, plus Favorites; auto-finish at 100%
+- [x] **Collections**: create, rename, delete; a book can be in several
+- [x] **Authors and Series views** (EPUB 3, Calibre and FB2 series)
+- [x] **Edit book details** (title, authors, series, number, language, reset from file)
+- [x] **Fix:** FB2 title and author import (also reads the FB2 cover)
+- [x] **Trash** with restore, empty and 30-day auto-purge (purge keeps annotations)
+- [x] **Duplicate detection** at import offers to open the existing book
+- [x] **Folder import** through the system folder picker (`ACTION_OPEN_DOCUMENT_TREE`; verified on device)
+- [x] **Fix:** persist the grid/list view choice (already fixed before Phase 7)
 
 #### Annotations
-- [ ] **All annotations screen** across books, with colour/type/book filters and search
-- [ ] **Export the filtered selection** to Markdown
+- [x] **All annotations screen** across books, with type/colour/book filters and search; opens the reader at the annotation (verified on device)
+- [x] **Export the filtered selection** to Markdown (copy or share)
 
 #### Backup and tests
-- [ ] **Backup** includes shelves, collections, series and trash state; older backups restore with defaults
-- [ ] **Tests**: migration, shelf/collection/trash use cases, duplicate hash, reader-settings mapping, tap-zone hit-testing
-- [ ] **Verified on a physical device**: settings persist and apply on native and fallback engines; volume keys work
+- [x] **Backup** includes shelves, favorites, series, Trash state and collections; pre-v9 backups restore with defaults
+- [x] **Tests**: migration, shelf/collection/trash, purge, duplicate, reader-settings mapping, tap-zone hit-testing, folder import, annotations (169 tests)
+- [~] **Verified on a physical device**: volume keys, tap zones, full screen, selection menu, library views, Trash, details, folder import and annotations; brightness level, orientation lock and tablet columns not yet checked
 
 ### 🔴 Plan Phase 8 — Read Aloud (Not started, added 2026-11-01)
 
@@ -608,7 +608,7 @@ Surface brief: `.impeccable/surfaces/lib-presentation-screen-reader-reader-scree
 | Plan Phase 5 — Surface redesign | 🟢 ~95% (all eight surfaces rebuilt and checked on a phone 2026-11-01; tablet hardware review pending) |
 | Plan Phase 4 — Premium appearance | 🟢 ~85% (implemented and tested 2026-11-01; Play Console product, sandbox purchase and device checks pending) |
 | Phase 7 — Hardening & launch | 🟡 ~15% (analysis clean; the automated suite covers domain library contracts and LibraryCubit transitions/recovery alongside metadata/TOC import persistence, typed import failures, locator serialization and delete cleanup with 2 environment-skipped PDF tests; widget, integration, compatibility and performance coverage remain pending device access) |
-| Plan Phase 7 — Reader and library parity | 🔴 0% (added 2026-11-01; most reader-comfort items are existing Readium preferences that need controls) |
+| Plan Phase 7 — Reader and library parity | 🟢 ~90% (2026-11-02; open: page-turn animation, PDF smart crop, time left in chapter, native tap-zone schemes) |
 | Plan Phase 8 — Read aloud | 🔴 0% (added 2026-11-01; Readium TTS API is available, background playback needs a spike) |
 
 > **Scope added 2026-11-01:** plan Phases 7 and 8 add about 5–6 weeks of work, so the overall figure below drops to roughly **55%** of the enlarged v1.0 scope (a rough estimate, not re-measured).
