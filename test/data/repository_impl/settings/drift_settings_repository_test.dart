@@ -54,5 +54,35 @@ void main() {
       expect(updated.fontSize, 20);
       expect(updated.lineSpacing, 1.8);
     });
+
+    test('persists the reading comfort settings', () async {
+      await repository.saveSettings(
+        const SettingsEntity(
+          hyphenation: true,
+          paragraphSpacing: .5,
+          paragraphIndent: 1,
+          letterSpacing: .1,
+          wordSpacing: .2,
+          fontWeight: 1.25,
+          publisherStyles: true,
+          readerColumns: ReaderColumns.two,
+          readerDirection: ReaderDirection.rightToLeft,
+          readerImageFilter: ReaderImageFilter.dim,
+        ),
+      );
+
+      final settings = await repository.getSettings();
+
+      expect(settings.hyphenation, isTrue);
+      expect(settings.paragraphSpacing, .5);
+      expect(settings.paragraphIndent, 1);
+      expect(settings.letterSpacing, .1);
+      expect(settings.wordSpacing, .2);
+      expect(settings.fontWeight, 1.25);
+      expect(settings.publisherStyles, isTrue);
+      expect(settings.readerColumns, ReaderColumns.two);
+      expect(settings.readerDirection, ReaderDirection.rightToLeft);
+      expect(settings.readerImageFilter, ReaderImageFilter.dim);
+    });
   });
 }

@@ -351,6 +351,7 @@ class _ReaderScreenState extends State<ReaderScreen>
           backgroundColor: Color(_display.readerTheme.backgroundArgb),
           textColor: Color(_display.readerTheme.textArgb),
           fontFamily: _display.readerFont.family,
+          textTweaks: _textTweaks,
           darkPage: _display.readerTheme.isDarkPage,
           marksForPage: _textPageMarks,
           onSelectionAction: _handleFallbackSelectionAction,
@@ -374,6 +375,7 @@ class _ReaderScreenState extends State<ReaderScreen>
         backgroundColor: Color(_display.readerTheme.backgroundArgb),
         textColor: Color(_display.readerTheme.textArgb),
         fontFamily: _display.readerFont.family,
+        textTweaks: _textTweaks,
         darkPage: _display.readerTheme.isDarkPage,
         marks: _pdfTextPageMarks(_pageIndex),
         onSelectionAction: (selection, action) =>
@@ -394,6 +396,9 @@ class _ReaderScreenState extends State<ReaderScreen>
             isRendering: _isRendering,
             backgroundColor: Color(_display.readerTheme.backgroundArgb),
             fit: _display.readerPdfFit,
+            colorFilter: _display.readerTheme.isDarkPage
+                ? _pageColorFilter(_display.readerImageFilter)
+                : null,
           )
         : _ReflowablePage(
             bytes: _pageBytes!,
@@ -404,6 +409,7 @@ class _ReaderScreenState extends State<ReaderScreen>
             backgroundColor: Color(_display.readerTheme.backgroundArgb),
             textColor: Color(_display.readerTheme.textArgb),
             fontFamily: _display.readerFont.family,
+            textTweaks: _textTweaks,
             darkPage: _display.readerTheme.isDarkPage,
             marks: _textPageMarks(_pageIndex),
             onSelectionAction: (selection, action) =>
@@ -747,7 +753,7 @@ class _ReaderScreenState extends State<ReaderScreen>
     final locator = result.locator;
     final pageIndex = switch (locator) {
       PdfLocator(:final page) => page - 1,
-      TextLocator(:final offset) => offset ~/ 2400,
+      TextLocator(:final offset) => _engine?.pageIndexForOffset(offset) ?? 0,
       EpubLocator() => 0,
     };
     await _renderPage(pageIndex);
@@ -902,14 +908,25 @@ class _ReaderScreenState extends State<ReaderScreen>
     final pageIndex = _settings.readerMode == ReaderMode.continuous
         ? ((_continuousProgress * ((info.pageCount ?? 1) - 1)).round())
         : _pageIndex;
-    return TextLocator(offset: pageIndex * 2400);
+    return TextLocator(offset: _engine?.pageStartOffset(pageIndex) ?? 0);
   }
+
+  TextStyle get _textTweaks => TextStyle(
+    letterSpacing: _display.letterSpacing * _display.fontSize,
+    wordSpacing: _display.wordSpacing * _display.fontSize,
+    fontWeight: _display.fontWeight == 1
+        ? null
+        : FontWeight.values[((_display.fontWeight * 4).round() - 1).clamp(
+            0,
+            FontWeight.values.length - 1,
+          )],
+  );
 
   String _bookmarkTitle(DocumentLocator locator) {
     return switch (locator) {
       PdfLocator(:final page) => context.l10n.readerBookmarkPage(page),
       TextLocator(:final offset) => context.l10n.readerBookmarkProgress(
-        ((offset / 2400) + 1).round(),
+        (_engine?.pageIndexForOffset(offset) ?? 0) + 1,
       ),
       // Readium locators usually carry the chapter title.
       EpubLocator() =>
@@ -942,7 +959,7 @@ class _ReaderScreenState extends State<ReaderScreen>
     if (info == null || engine == null) return;
     final pageIndex = switch (locator) {
       PdfLocator(:final page) => page - 1,
-      TextLocator(:final offset) => offset ~/ 2400,
+      TextLocator(:final offset) => _engine?.pageIndexForOffset(offset) ?? 0,
       EpubLocator() => 0,
     };
     if (info.layout == DocumentLayout.reflowable &&
@@ -981,7 +998,9 @@ class _ReaderScreenState extends State<ReaderScreen>
     if (selectedText.isEmpty) return;
     final locator = widget.book.format == DocumentFormat.pdf
         ? PdfLocator(page: pageIndex + 1, textOffset: start)
-        : TextLocator(offset: pageIndex * 2400 + start);
+        : TextLocator(
+            offset: (_engine?.pageStartOffset(pageIndex) ?? 0) + start,
+          );
     unawaited(switch (action) {
       _SelectionAction.highlight => _showHighlightColorSheet(
         selectedText,
@@ -1085,9 +1104,9 @@ class _ReaderScreenState extends State<ReaderScreen>
     for (final highlight in _highlights)
       if (highlight.locator case TextLocator(
         :final offset,
-      ) when offset ~/ 2400 == pageIndex)
+      ) when _engine?.pageIndexForOffset(offset) == pageIndex)
         PageMark(
-          start: offset - pageIndex * 2400,
+          start: offset - _engine!.pageStartOffset(pageIndex),
           text: highlight.selectedText,
           color: highlight.color,
         ),
@@ -1204,6 +1223,7 @@ class _ReaderScreenState extends State<ReaderScreen>
         isPdf: widget.book.format == DocumentFormat.pdf,
         isFallbackPdf:
             !_usesReadium && widget.book.format == DocumentFormat.pdf,
+        usesReadium: _usesReadium,
         onChanged: _handleReaderSettingsChanged,
       ),
     );
@@ -1327,12 +1347,16 @@ class _FixedPage extends StatefulWidget {
     required this.isRendering,
     required this.backgroundColor,
     required this.fit,
+    this.colorFilter,
   });
 
   final Uint8List bytes;
   final bool isRendering;
   final Color backgroundColor;
   final ReaderPdfFit fit;
+
+  /// Dims or inverts the rendered page on dark reading themes.
+  final ColorFilter? colorFilter;
 
   @override
   State<_FixedPage> createState() => _FixedPageState();
@@ -1384,6 +1408,13 @@ class _FixedPageState extends State<_FixedPage> {
 
   void _resetZoom() => _setScale(_minScale);
 
+  Widget _filtered(Widget page) {
+    final filter = widget.colorFilter;
+    return filter == null
+        ? page
+        : ColorFiltered(colorFilter: filter, child: page);
+  }
+
   @override
   Widget build(BuildContext context) {
     return ColoredBox(
@@ -1396,28 +1427,30 @@ class _FixedPageState extends State<_FixedPage> {
               minScale: _minScale,
               maxScale: _maxScale,
               child: Center(
-                child: widget.fit == ReaderPdfFit.width
-                    ? SizedBox(
-                        width: double.infinity,
-                        child: Image.memory(
+                child: _filtered(
+                  widget.fit == ReaderPdfFit.width
+                      ? SizedBox(
+                          width: double.infinity,
+                          child: Image.memory(
+                            widget.bytes,
+                            fit: BoxFit.fitWidth,
+                            gaplessPlayback: widget.isRendering,
+                            errorBuilder: (context, error, stackTrace) =>
+                                const Center(
+                                  child: Text('Unable to display this page.'),
+                                ),
+                          ),
+                        )
+                      : Image.memory(
                           widget.bytes,
-                          fit: BoxFit.fitWidth,
+                          fit: BoxFit.contain,
                           gaplessPlayback: widget.isRendering,
                           errorBuilder: (context, error, stackTrace) =>
                               const Center(
                                 child: Text('Unable to display this page.'),
                               ),
                         ),
-                      )
-                    : Image.memory(
-                        widget.bytes,
-                        fit: BoxFit.contain,
-                        gaplessPlayback: widget.isRendering,
-                        errorBuilder: (context, error, stackTrace) =>
-                            const Center(
-                              child: Text('Unable to display this page.'),
-                            ),
-                      ),
+                ),
               ),
             ),
           ),
@@ -1592,6 +1625,7 @@ class _ContinuousReflowablePage extends StatefulWidget {
     required this.backgroundColor,
     required this.textColor,
     required this.fontFamily,
+    required this.textTweaks,
     required this.darkPage,
     required this.marksForPage,
     required this.onSelectionAction,
@@ -1607,6 +1641,9 @@ class _ContinuousReflowablePage extends StatefulWidget {
   final Color backgroundColor;
   final Color textColor;
   final String? fontFamily;
+
+  /// Letter/word spacing and weight from the reader settings.
+  final TextStyle textTweaks;
   final bool darkPage;
   final List<PageMark> Function(int pageIndex) marksForPage;
   final void Function(
@@ -1677,12 +1714,14 @@ class _ContinuousReflowablePageState extends State<_ContinuousReflowablePage> {
 
   @override
   Widget build(BuildContext context) {
-    final textStyle = Theme.of(context).textTheme.bodyLarge?.copyWith(
-      color: widget.textColor,
-      fontFamily: widget.fontFamily,
-      fontSize: widget.fontSize,
-      height: widget.lineSpacing,
-    );
+    final textStyle = Theme.of(context).textTheme.bodyLarge
+        ?.copyWith(
+          color: widget.textColor,
+          fontFamily: widget.fontFamily,
+          fontSize: widget.fontSize,
+          height: widget.lineSpacing,
+        )
+        .merge(widget.textTweaks);
     return ColoredBox(
       color: widget.backgroundColor,
       child: ListView.separated(
@@ -1729,6 +1768,7 @@ class _PdfTextPage extends StatelessWidget {
     required this.backgroundColor,
     required this.textColor,
     required this.fontFamily,
+    required this.textTweaks,
     required this.darkPage,
     required this.marks,
     required this.onSelectionAction,
@@ -1742,6 +1782,9 @@ class _PdfTextPage extends StatelessWidget {
   final Color backgroundColor;
   final Color textColor;
   final String? fontFamily;
+
+  /// Letter/word spacing and weight from the reader settings.
+  final TextStyle textTweaks;
   final bool darkPage;
   final List<PageMark> marks;
   final void Function(TextSelection, _SelectionAction) onSelectionAction;
@@ -1767,12 +1810,14 @@ class _PdfTextPage extends StatelessWidget {
           ),
           contextMenuBuilder: _readerContextMenu(onSelectionAction),
           textAlign: _readerTextAlign(textAlignment),
-          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-            color: textColor,
-            fontFamily: fontFamily,
-            fontSize: fontSize,
-            height: lineSpacing,
-          ),
+          style: Theme.of(context).textTheme.bodyLarge
+              ?.copyWith(
+                color: textColor,
+                fontFamily: fontFamily,
+                fontSize: fontSize,
+                height: lineSpacing,
+              )
+              .merge(textTweaks),
         ),
       ),
     );
@@ -1846,6 +1891,7 @@ class _ReflowablePage extends StatelessWidget {
     required this.backgroundColor,
     required this.textColor,
     required this.fontFamily,
+    required this.textTweaks,
     required this.darkPage,
     required this.marks,
     required this.onSelectionAction,
@@ -1859,6 +1905,9 @@ class _ReflowablePage extends StatelessWidget {
   final Color backgroundColor;
   final Color textColor;
   final String? fontFamily;
+
+  /// Letter/word spacing and weight from the reader settings.
+  final TextStyle textTweaks;
   final bool darkPage;
   final List<PageMark> marks;
   final void Function(TextSelection, _SelectionAction) onSelectionAction;
@@ -1884,12 +1933,14 @@ class _ReflowablePage extends StatelessWidget {
           ),
           contextMenuBuilder: _readerContextMenu(onSelectionAction),
           textAlign: _readerTextAlign(textAlignment),
-          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-            color: textColor,
-            fontFamily: fontFamily,
-            fontSize: fontSize,
-            height: lineSpacing,
-          ),
+          style: Theme.of(context).textTheme.bodyLarge
+              ?.copyWith(
+                color: textColor,
+                fontFamily: fontFamily,
+                fontSize: fontSize,
+                height: lineSpacing,
+              )
+              .merge(textTweaks),
         ),
       ),
     );
@@ -1938,12 +1989,17 @@ class _ReaderSettingsSheet extends StatefulWidget {
     required this.settings,
     required this.isPdf,
     required this.isFallbackPdf,
+    required this.usesReadium,
     required this.onChanged,
   });
 
   final SettingsEntity settings;
   final bool isPdf;
   final bool isFallbackPdf;
+
+  /// The native Readium reader is showing the book; some layout settings
+  /// only exist there.
+  final bool usesReadium;
   final ValueChanged<SettingsEntity> onChanged;
 
   @override
@@ -2023,6 +2079,173 @@ class _ReaderSettingsSheetState extends State<_ReaderSettingsSheet> {
         ReaderPdfMode.visual => context.l10n.readerPdfModeVisual,
         ReaderPdfMode.text => context.l10n.readerPdfModeText,
       };
+
+  Widget _choices<T>({
+    required String title,
+    required List<T> values,
+    required T selected,
+    required String Function(T value) label,
+    required SettingsEntity Function(T value) apply,
+  }) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const SizedBox(height: 20),
+      Text(title, style: _sheetSectionStyle(context)),
+      const SizedBox(height: 8),
+      Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          for (final value in values)
+            ChoiceChip(
+              label: Text(label(value)),
+              selected: selected == value,
+              onSelected: (_) => _update(apply(value)),
+            ),
+        ],
+      ),
+    ],
+  );
+
+  /// A slider whose lowest value means "keep the book's own setting".
+  Widget _bookSlider({
+    required String label,
+    required double value,
+    required double max,
+    required int divisions,
+    required String Function(double value) format,
+    required SettingsEntity Function(double value) apply,
+  }) {
+    final clamped = value.clamp(0.0, max).toDouble();
+    return _ReaderSlider(
+      label: label,
+      valueLabel: clamped == 0
+          ? context.l10n.readerBookDefault
+          : format(clamped),
+      value: clamped,
+      min: 0,
+      max: max,
+      divisions: divisions,
+      onChanged: (value) => _update(apply(value)),
+    );
+  }
+
+  /// Typography and layout settings, shown only where the active engine
+  /// applies them.
+  List<Widget> _comfortControls(BuildContext context) {
+    final l10n = context.l10n;
+    final nativeEpub = widget.usesReadium && !widget.isPdf;
+    final weight = _settings.fontWeight.clamp(.5, 2.0).toDouble();
+    return [
+      if (!widget.isPdf) ...[
+        const SizedBox(height: 20),
+        Text(l10n.readerTextSection, style: _sheetSectionStyle(context)),
+        const SizedBox(height: 8),
+        _ReaderSlider(
+          label: l10n.readerFontWeight,
+          valueLabel: weight == 1
+              ? l10n.readerBookDefault
+              : '${(weight * 400).round()}',
+          value: weight,
+          min: .5,
+          max: 2,
+          divisions: 6,
+          onChanged: (value) => _update(_settings.copyWith(fontWeight: value)),
+        ),
+        _bookSlider(
+          label: l10n.readerLetterSpacing,
+          value: _settings.letterSpacing,
+          max: .5,
+          divisions: 10,
+          format: (value) => '${value.toStringAsFixed(2)} em',
+          apply: (value) => _settings.copyWith(letterSpacing: value),
+        ),
+        _bookSlider(
+          label: l10n.readerWordSpacing,
+          value: _settings.wordSpacing,
+          max: 1,
+          divisions: 10,
+          format: (value) => value.toStringAsFixed(1),
+          apply: (value) => _settings.copyWith(wordSpacing: value),
+        ),
+      ],
+      if (nativeEpub) ...[
+        _bookSlider(
+          label: l10n.readerParagraphSpacing,
+          value: _settings.paragraphSpacing,
+          max: 2,
+          divisions: 8,
+          format: (value) => value.toStringAsFixed(2),
+          apply: (value) => _settings.copyWith(paragraphSpacing: value),
+        ),
+        _bookSlider(
+          label: l10n.readerParagraphIndent,
+          value: _settings.paragraphIndent,
+          max: 3,
+          divisions: 6,
+          format: (value) => value.toStringAsFixed(1),
+          apply: (value) => _settings.copyWith(paragraphIndent: value),
+        ),
+        SwitchListTile.adaptive(
+          contentPadding: EdgeInsets.zero,
+          value: _settings.hyphenation,
+          onChanged: (value) => _update(_settings.copyWith(hyphenation: value)),
+          title: Text(l10n.readerHyphenation),
+        ),
+        SwitchListTile.adaptive(
+          contentPadding: EdgeInsets.zero,
+          value: _settings.publisherStyles,
+          onChanged: (value) =>
+              _update(_settings.copyWith(publisherStyles: value)),
+          title: Text(l10n.readerPublisherStyles),
+          subtitle: Text(l10n.readerPublisherStylesHint),
+        ),
+      ],
+      if (widget.usesReadium) ...[
+        const SizedBox(height: 4),
+        Text(l10n.readerLayoutSection, style: _sheetTitleStyle(context)),
+        _choices(
+          title: l10n.readerColumns,
+          values: ReaderColumns.values,
+          selected: _settings.readerColumns,
+          label: (value) => switch (value) {
+            ReaderColumns.auto => l10n.readerColumnsAuto,
+            ReaderColumns.one => l10n.readerColumnsOne,
+            ReaderColumns.two => l10n.readerColumnsTwo,
+          },
+          apply: (value) => _settings.copyWith(readerColumns: value),
+        ),
+        _choices(
+          title: l10n.readerDirection,
+          // Vertical writing only exists for reflowable text.
+          values: [
+            for (final value in ReaderDirection.values)
+              if (!widget.isPdf || value != ReaderDirection.vertical) value,
+          ],
+          selected: _settings.readerDirection,
+          label: (value) => switch (value) {
+            ReaderDirection.book => l10n.readerDirectionBook,
+            ReaderDirection.leftToRight => l10n.readerDirectionLtr,
+            ReaderDirection.rightToLeft => l10n.readerDirectionRtl,
+            ReaderDirection.vertical => l10n.readerDirectionVertical,
+          },
+          apply: (value) => _settings.copyWith(readerDirection: value),
+        ),
+      ],
+      if (nativeEpub || widget.isFallbackPdf)
+        _choices(
+          title: l10n.readerImageFilter,
+          values: ReaderImageFilter.values,
+          selected: _settings.readerImageFilter,
+          label: (value) => switch (value) {
+            ReaderImageFilter.none => l10n.readerImageFilterNone,
+            ReaderImageFilter.dim => l10n.readerImageFilterDim,
+            ReaderImageFilter.invert => l10n.readerImageFilterInvert,
+          },
+          apply: (value) => _settings.copyWith(readerImageFilter: value),
+        ),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -2242,6 +2465,7 @@ class _ReaderSettingsSheetState extends State<_ReaderSettingsSheet> {
                 onChanged: (value) =>
                     _update(_settings.copyWith(margin: value)),
               ),
+              ..._comfortControls(context),
             ],
           ),
         ),
@@ -2249,6 +2473,23 @@ class _ReaderSettingsSheetState extends State<_ReaderSettingsSheet> {
     );
   }
 }
+
+/// A rendered page under [filter]: dimmed to 70 % or colour-inverted.
+ColorFilter? _pageColorFilter(ReaderImageFilter filter) => switch (filter) {
+  ReaderImageFilter.none => null,
+  ReaderImageFilter.dim => const ColorFilter.matrix([
+    .7, 0, 0, 0, 0, //
+    0, .7, 0, 0, 0, //
+    0, 0, .7, 0, 0, //
+    0, 0, 0, 1, 0, //
+  ]),
+  ReaderImageFilter.invert => const ColorFilter.matrix([
+    -1, 0, 0, 0, 255, //
+    0, -1, 0, 0, 255, //
+    0, 0, -1, 0, 255, //
+    0, 0, 0, 1, 0, //
+  ]),
+};
 
 /// Sheet titles use the Title style (15/800), as in DESIGN.md.
 TextStyle? _sheetTitleStyle(BuildContext context) => Theme.of(

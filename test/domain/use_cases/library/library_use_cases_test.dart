@@ -26,9 +26,9 @@ void main() {
     final books = [_book('recent')];
     repository.books = books;
 
-    final result = await GetLibraryBooksUseCase(repository).execute(
-      sort: LibrarySort.progress,
-    );
+    final result = await GetLibraryBooksUseCase(
+      repository,
+    ).execute(sort: LibrarySort.progress);
 
     expect(result, books);
     expect(repository.lastSort, LibrarySort.progress);
@@ -38,18 +38,16 @@ void main() {
     final books = [_book('match')];
     repository.searchResults = books;
 
-    final result = await SearchLibraryUseCase(repository).execute(
-      'language',
-      sort: LibrarySort.title,
-    );
+    final result = await SearchLibraryUseCase(
+      repository,
+    ).execute('language', sort: LibrarySort.title);
 
     expect(result, books);
     expect(repository.lastQuery, 'language');
     expect(repository.lastSort, LibrarySort.title);
   });
 
-  test('ImportDocumentUseCase returns null when picker is dismissed',
-      () async {
+  test('ImportDocumentUseCase returns null when picker is dismissed', () async {
     final result = await ImportDocumentUseCase(
       importService,
       repository,
@@ -74,33 +72,36 @@ void main() {
     expect(repository.importRequest, request);
   });
 
-  test('ImportDocumentUseCase converts an incoming file then imports it',
-      () async {
-    final request = _request('shared.epub');
-    final imported = _book('shared');
-    importService.externalRequest = request;
-    repository.importedBook = imported;
+  test(
+    'ImportDocumentUseCase converts an incoming file then imports it',
+    () async {
+      final request = _request('shared.epub');
+      final imported = _book('shared');
+      importService.externalRequest = request;
+      repository.importedBook = imported;
 
-    final result = await ImportDocumentUseCase(
-      importService,
-      repository,
-    ).executeIncoming(
-      const IncomingDocument(path: '/shared/shared.epub', fileName: 'shared.epub'),
-    );
+      final result = await ImportDocumentUseCase(importService, repository)
+          .executeIncoming(
+            const IncomingDocument(
+              path: '/shared/shared.epub',
+              fileName: 'shared.epub',
+            ),
+          );
 
-    expect(result, imported);
-    expect(importService.externalPath, '/shared/shared.epub');
-    expect(importService.externalFileName, 'shared.epub');
-    expect(repository.importRequest, request);
-  });
+      expect(result, imported);
+      expect(importService.externalPath, '/shared/shared.epub');
+      expect(importService.externalFileName, 'shared.epub');
+      expect(repository.importRequest, request);
+    },
+  );
 
   test('DeleteLibraryBookUseCase deletes metadata and stored files', () async {
     final book = _book('delete-me');
 
-    await DeleteLibraryBookUseCase(repository, storageService).execute(
-      book: book,
-      data: DeleteBookData.delete,
-    );
+    await DeleteLibraryBookUseCase(
+      repository,
+      storageService,
+    ).execute(book: book, data: DeleteBookData.delete);
 
     expect(repository.deletedBookId, book.id);
     expect(repository.deletedData, DeleteBookData.delete);
@@ -143,7 +144,9 @@ class _FakeLibraryRepository implements LibraryRepository {
   DeleteBookData? deletedData;
 
   @override
-  Future<List<BookEntity>> getAll({LibrarySort sort = LibrarySort.recent}) async {
+  Future<List<BookEntity>> getAll({
+    LibrarySort sort = LibrarySort.recent,
+  }) async {
     lastSort = sort;
     return books;
   }
@@ -221,14 +224,12 @@ class _FakeStorageService implements DocumentStorageService {
     required String contentFingerprint,
     String? sourcePath,
     Uint8List? bytes,
-  }) async =>
-      'file:///stored/$sourceFileName';
+  }) async => 'file:///stored/$sourceFileName';
 
   @override
   Future<String> storeCover({
     required String contentFingerprint,
     required String sourceFileName,
     required Uint8List bytes,
-  }) async =>
-      'cover://$contentFingerprint';
+  }) async => 'cover://$contentFingerprint';
 }

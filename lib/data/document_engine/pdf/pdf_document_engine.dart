@@ -107,6 +107,12 @@ class PdfDocumentEngine implements DocumentEngine {
   }
 
   @override
+  int pageStartOffset(int pageIndex) => 0;
+
+  @override
+  int pageIndexForOffset(int offset) => 0;
+
+  @override
   Future<Uint8List?> renderPage(int pageIndex) async {
     return _renderPageAtWidth(pageIndex, _renderWidth);
   }

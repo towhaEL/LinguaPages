@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:archive/archive.dart';
 import 'package:lingua_pages/core/document/document_locator.dart';
+import 'package:lingua_pages/data/document_engine/text/text_pages.dart';
 import 'package:lingua_pages/domain/entity/document/document_models.dart';
 import 'package:lingua_pages/domain/service/document_engine.dart';
 import 'package:xml/xml.dart';
@@ -12,12 +13,11 @@ import 'package:xml/xml.dart';
 class EpubDocumentEngine implements DocumentEngine {
   EpubDocumentEngine(this.file);
 
-  static const pageCharacterCount = 2400;
-
   final File file;
   Map<String, ArchiveFile> _files = const {};
   List<_EpubChapter> _chapters = const [];
   String? _text;
+  TextPages? _textPages;
   String? _title;
   String? _author;
   String? _languageCode;
@@ -96,6 +96,7 @@ class EpubDocumentEngine implements DocumentEngine {
     }
     _chapters = positionedChapters;
     _text = _chapters.map((chapter) => chapter.text).join('\n\n');
+    _textPages = null;
 
     return DocumentInfo(
       title: _title ?? _fileTitle,
@@ -112,6 +113,7 @@ class EpubDocumentEngine implements DocumentEngine {
     _files = const {};
     _chapters = const [];
     _text = null;
+    _textPages = null;
     _title = null;
     _author = null;
     _languageCode = null;
@@ -140,7 +142,7 @@ class EpubDocumentEngine implements DocumentEngine {
   Future<int?> pageIndexForLocator(DocumentLocator locator) async {
     _ensureOpen();
     return switch (locator) {
-      TextLocator(:final offset) => offset ~/ pageCharacterCount,
+      TextLocator(:final offset) => _pages.pageOf(offset),
       _ => null,
     };
   }
@@ -151,9 +153,7 @@ class EpubDocumentEngine implements DocumentEngine {
     if (pageIndex < 0 || pageIndex >= _pageCount) {
       throw RangeError.index(pageIndex, 'pageIndex');
     }
-    final start = pageIndex * pageCharacterCount;
-    final end = (start + pageCharacterCount).clamp(0, text.length);
-    return Uint8List.fromList(utf8.encode(text.substring(start, end)));
+    return Uint8List.fromList(utf8.encode(_pages.pageText(pageIndex)));
   }
 
   @override
@@ -166,9 +166,7 @@ class EpubDocumentEngine implements DocumentEngine {
     if (pageIndex < 0 || pageIndex >= _pageCount) {
       throw RangeError.index(pageIndex, 'pageIndex');
     }
-    final start = pageIndex * pageCharacterCount;
-    final end = (start + pageCharacterCount).clamp(0, text.length);
-    return text.substring(start, end);
+    return _pages.pageText(pageIndex);
   }
 
   @override
@@ -405,9 +403,15 @@ class EpubDocumentEngine implements DocumentEngine {
         .trim();
   }
 
-  int get _pageCount => text.isEmpty
-      ? 1
-      : (text.length + pageCharacterCount - 1) ~/ pageCharacterCount;
+  int get _pageCount => _pages.count;
+
+  TextPages get _pages => _textPages ??= TextPages(text);
+
+  @override
+  int pageStartOffset(int pageIndex) => _pages.start(pageIndex);
+
+  @override
+  int pageIndexForOffset(int offset) => _pages.pageOf(offset);
 
   void _ensureOpen() {
     if (_text == null) throw StateError('The EPUB is not open.');

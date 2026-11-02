@@ -143,9 +143,7 @@ class DarkColorTheme extends BaseColorTheme {
             fontFamily: fontFamily,
             fontSize: 12,
             fontWeight: FontWeight.w700,
-            color: states.contains(WidgetState.selected)
-                ? _paper
-                : _paperMuted,
+            color: states.contains(WidgetState.selected) ? _paper : _paperMuted,
           ),
         ),
       ),

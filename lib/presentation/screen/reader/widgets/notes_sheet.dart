@@ -436,6 +436,8 @@ String? locatorLabel(BuildContext context, DocumentLocator locator) {
     case PdfLocator(:final page):
       return l10n.readerBookmarkPage(page);
     case TextLocator(:final offset):
+      // Text pages start within a word of each 2400-character mark (see
+      // TextPages), so this matches the reader without opening the book.
       return l10n.readerBookmarkPage(offset ~/ 2400 + 1);
     case EpubLocator(:final locatorJson?):
       try {

@@ -12,6 +12,16 @@ class SettingsEntity {
     this.readerTextAlignment = ReaderTextAlignment.left,
     this.readerPdfFit = ReaderPdfFit.page,
     this.readerPdfMode = ReaderPdfMode.visual,
+    this.hyphenation = false,
+    this.paragraphSpacing = 0,
+    this.paragraphIndent = 0,
+    this.letterSpacing = 0,
+    this.wordSpacing = 0,
+    this.fontWeight = 1,
+    this.publisherStyles = false,
+    this.readerColumns = ReaderColumns.auto,
+    this.readerDirection = ReaderDirection.book,
+    this.readerImageFilter = ReaderImageFilter.none,
     this.keepScreenAwake = false,
     this.onlineDictionary = true,
     this.libraryListView = false,
@@ -27,6 +37,31 @@ class SettingsEntity {
   final ReaderTextAlignment readerTextAlignment;
   final ReaderPdfFit readerPdfFit;
   final ReaderPdfMode readerPdfMode;
+  final bool hyphenation;
+
+  /// Extra space between paragraphs in rem; 0 keeps the book's spacing.
+  final double paragraphSpacing;
+
+  /// First-line indent in rem; 0 keeps the book's indent.
+  final double paragraphIndent;
+
+  /// Extra letter spacing in em; 0 keeps the book's spacing.
+  final double letterSpacing;
+
+  /// Extra word spacing in rem; 0 keeps the book's spacing.
+  final double wordSpacing;
+
+  /// Weight relative to the book's text; 1 keeps it.
+  final double fontWeight;
+
+  /// Keep the book's own stylesheet. Theme colours and most text settings
+  /// then only partly apply.
+  final bool publisherStyles;
+  final ReaderColumns readerColumns;
+  final ReaderDirection readerDirection;
+
+  /// Applied to images on dark reading themes only.
+  final ReaderImageFilter readerImageFilter;
   final bool keepScreenAwake;
 
   /// When off, word lookups only use definitions already cached on device.
@@ -46,6 +81,16 @@ class SettingsEntity {
     ReaderTextAlignment? readerTextAlignment,
     ReaderPdfFit? readerPdfFit,
     ReaderPdfMode? readerPdfMode,
+    bool? hyphenation,
+    double? paragraphSpacing,
+    double? paragraphIndent,
+    double? letterSpacing,
+    double? wordSpacing,
+    double? fontWeight,
+    bool? publisherStyles,
+    ReaderColumns? readerColumns,
+    ReaderDirection? readerDirection,
+    ReaderImageFilter? readerImageFilter,
     bool? keepScreenAwake,
     bool? onlineDictionary,
     bool? libraryListView,
@@ -61,6 +106,16 @@ class SettingsEntity {
       readerTextAlignment: readerTextAlignment ?? this.readerTextAlignment,
       readerPdfFit: readerPdfFit ?? this.readerPdfFit,
       readerPdfMode: readerPdfMode ?? this.readerPdfMode,
+      hyphenation: hyphenation ?? this.hyphenation,
+      paragraphSpacing: paragraphSpacing ?? this.paragraphSpacing,
+      paragraphIndent: paragraphIndent ?? this.paragraphIndent,
+      letterSpacing: letterSpacing ?? this.letterSpacing,
+      wordSpacing: wordSpacing ?? this.wordSpacing,
+      fontWeight: fontWeight ?? this.fontWeight,
+      publisherStyles: publisherStyles ?? this.publisherStyles,
+      readerColumns: readerColumns ?? this.readerColumns,
+      readerDirection: readerDirection ?? this.readerDirection,
+      readerImageFilter: readerImageFilter ?? this.readerImageFilter,
       keepScreenAwake: keepScreenAwake ?? this.keepScreenAwake,
       onlineDictionary: onlineDictionary ?? this.onlineDictionary,
       libraryListView: libraryListView ?? this.libraryListView,
@@ -89,3 +144,12 @@ enum ReaderTextAlignment { left, center, justify }
 enum ReaderPdfFit { page, width }
 
 enum ReaderPdfMode { visual, text }
+
+/// Columns for reflowable text, and single or two-page spreads for fixed
+/// layouts. [auto] lets the reader decide from the screen width.
+enum ReaderColumns { auto, one, two }
+
+/// [book] follows the publication; the others override it.
+enum ReaderDirection { book, leftToRight, rightToLeft, vertical }
+
+enum ReaderImageFilter { none, dim, invert }

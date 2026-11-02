@@ -28,9 +28,7 @@ class LocalPremiumEntitlementRepository
       isPremium: _preferences.getBool(_premiumKey) ?? false,
       source: source,
       expiresAt: _dateFromMillis(_preferences.getInt(_expiresAtKey)),
-      lastVerifiedAt: _dateFromMillis(
-        _preferences.getInt(_lastVerifiedAtKey),
-      ),
+      lastVerifiedAt: _dateFromMillis(_preferences.getInt(_lastVerifiedAtKey)),
     );
   }
 

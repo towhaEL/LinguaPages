@@ -75,36 +75,86 @@ class ReadiumDocumentSession {
     required DocumentFormat format,
   }) async {
     if (format == DocumentFormat.epub) {
-      await _readium.setEPUBPreferences(
-        EPUBPreferences(
-          backgroundColor: Color(settings.readerTheme.backgroundArgb),
-          textColor: Color(settings.readerTheme.textArgb),
-          fontFamily: settings.readerFont.family,
-          // The reader's theme, spacing, alignment and margins only take
-          // effect over the book's stylesheet with publisher styles off; left
-          // on, a book's hard-coded black headings vanish on dark pages.
-          publisherStyles: false,
-          fontSize: settings.fontSize / 18,
-          lineHeight: settings.lineSpacing,
-          pageMargins: settings.margin / 16,
-          textAlign: _textAlignment(settings.readerTextAlignment),
-          scroll: settings.readerMode == ReaderMode.continuous,
-        ),
-      );
-      return;
+      await _readium.setEPUBPreferences(epubPreferences(settings));
+    } else if (format == DocumentFormat.pdf) {
+      await _readium.setPDFPreferences(pdfPreferences(settings));
     }
-    if (format == DocumentFormat.pdf) {
-      await _readium.setPDFPreferences(
-        PDFPreferences(
-          layout: settings.readerMode == ReaderMode.continuous
-              ? PDFLayout.scrollVertical
-              : PDFLayout.paginated,
-          fit: settings.readerPdfFit == ReaderPdfFit.width
-              ? PDFFit.width
-              : PDFFit.page,
-        ),
-      );
-    }
+  }
+
+  /// The EPUB navigator preferences for [settings]. A null value leaves the
+  /// book's own style; the navigator replaces, not merges, preferences.
+  static EPUBPreferences epubPreferences(SettingsEntity settings) {
+    double? unlessDefault(double value, double fallback) =>
+        value == fallback ? null : value;
+    final direction = settings.readerDirection;
+    return EPUBPreferences(
+      backgroundColor: Color(settings.readerTheme.backgroundArgb),
+      textColor: Color(settings.readerTheme.textArgb),
+      fontFamily: settings.readerFont.family,
+      // The reader's theme, spacing, alignment and margins only take effect
+      // over the book's stylesheet with publisher styles off; left on, a
+      // book's hard-coded black headings vanish on dark pages.
+      publisherStyles: settings.publisherStyles,
+      fontSize: settings.fontSize / 18,
+      lineHeight: settings.lineSpacing,
+      pageMargins: settings.margin / 16,
+      textAlign: _textAlignment(settings.readerTextAlignment),
+      scroll: settings.readerMode == ReaderMode.continuous,
+      hyphens: settings.hyphenation ? true : null,
+      paragraphSpacing: unlessDefault(settings.paragraphSpacing, 0),
+      paragraphIndent: unlessDefault(settings.paragraphIndent, 0),
+      letterSpacing: unlessDefault(settings.letterSpacing, 0),
+      wordSpacing: unlessDefault(settings.wordSpacing, 0),
+      fontWeight: unlessDefault(settings.fontWeight, 1),
+      columnCount: switch (settings.readerColumns) {
+        ReaderColumns.auto => null,
+        ReaderColumns.one => EpubColumnCount.one,
+        ReaderColumns.two => EpubColumnCount.two,
+      },
+      spread: switch (settings.readerColumns) {
+        ReaderColumns.auto => null,
+        ReaderColumns.one => 'never',
+        ReaderColumns.two => 'always',
+      },
+      readingProgression: switch (direction) {
+        ReaderDirection.book => null,
+        ReaderDirection.leftToRight => EpubReadingProgression.ltr,
+        // Vertical CJK text pages right to left.
+        ReaderDirection.rightToLeft ||
+        ReaderDirection.vertical => EpubReadingProgression.rtl,
+      },
+      verticalText: direction == ReaderDirection.book
+          ? null
+          : direction == ReaderDirection.vertical,
+      imageFilter: settings.readerTheme.isDarkPage
+          ? switch (settings.readerImageFilter) {
+              ReaderImageFilter.none => null,
+              ReaderImageFilter.dim => EpubImageFilter.darken,
+              ReaderImageFilter.invert => EpubImageFilter.invert,
+            }
+          : null,
+    );
+  }
+
+  static PDFPreferences pdfPreferences(SettingsEntity settings) {
+    return PDFPreferences(
+      layout: settings.readerMode == ReaderMode.continuous
+          ? PDFLayout.scrollVertical
+          : PDFLayout.paginated,
+      fit: settings.readerPdfFit == ReaderPdfFit.width
+          ? PDFFit.width
+          : PDFFit.page,
+      spread: switch (settings.readerColumns) {
+        ReaderColumns.auto => null,
+        ReaderColumns.one => PDFSpread.never,
+        ReaderColumns.two => PDFSpread.always,
+      },
+      readingProgression: switch (settings.readerDirection) {
+        ReaderDirection.book || ReaderDirection.vertical => null,
+        ReaderDirection.leftToRight => PDFReadingProgression.ltr,
+        ReaderDirection.rightToLeft => PDFReadingProgression.rtl,
+      },
+    );
   }
 
   /// Draws [highlights] on the page, replacing the previous set. Highlights
@@ -130,9 +180,7 @@ class ReadiumDocumentSession {
           locator: locator,
           style: ReaderDecorationStyle(
             style: DecorationStyle.highlight,
-            tint: Color(
-              highlight.color.tintArgb(darkPage: theme.isDarkPage),
-            ),
+            tint: Color(highlight.color.tintArgb(darkPage: theme.isDarkPage)),
           ),
         ),
       );
@@ -149,7 +197,7 @@ class ReadiumDocumentSession {
 
   Future<void> goForward() => _readium.goForward();
 
-  TextAlign _textAlignment(ReaderTextAlignment alignment) =>
+  static TextAlign _textAlignment(ReaderTextAlignment alignment) =>
       switch (alignment) {
         ReaderTextAlignment.left => TextAlign.left,
         ReaderTextAlignment.center => TextAlign.center,

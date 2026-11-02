@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:lingua_pages/core/document/document_locator.dart';
+import 'package:lingua_pages/data/document_engine/text/text_pages.dart';
 import 'package:lingua_pages/domain/entity/document/document_models.dart';
 import 'package:lingua_pages/domain/service/document_engine.dart';
 
@@ -54,10 +55,9 @@ class ReflowableText {
 abstract class ReflowableTextDocumentEngine implements DocumentEngine {
   ReflowableTextDocumentEngine(this.file);
 
-  static const pageCharacterCount = 2400;
-
   final File file;
   String? _text;
+  TextPages? _textPages;
   List<DocumentTocEntry> _headings = const [];
 
   DocumentFormat get format;
@@ -74,6 +74,7 @@ abstract class ReflowableTextDocumentEngine implements DocumentEngine {
   Future<DocumentInfo> open() async {
     final parsed = parse(decodeText(await file.readAsBytes()));
     _text = parsed.text;
+    _textPages = null;
     _headings = parsed.headings;
     return DocumentInfo(
       title: _title,
@@ -86,6 +87,7 @@ abstract class ReflowableTextDocumentEngine implements DocumentEngine {
   @override
   Future<void> close() async {
     _text = null;
+    _textPages = null;
     _headings = const [];
   }
 
@@ -105,7 +107,7 @@ abstract class ReflowableTextDocumentEngine implements DocumentEngine {
   Future<int?> pageIndexForLocator(DocumentLocator locator) async {
     _ensureOpen();
     return switch (locator) {
-      TextLocator(:final offset) => offset ~/ pageCharacterCount,
+      TextLocator(:final offset) => _pages.pageOf(offset),
       _ => null,
     };
   }
@@ -116,9 +118,7 @@ abstract class ReflowableTextDocumentEngine implements DocumentEngine {
     if (pageIndex < 0 || pageIndex >= _pageCount) {
       throw RangeError.index(pageIndex, 'pageIndex');
     }
-    final start = pageIndex * pageCharacterCount;
-    final end = (start + pageCharacterCount).clamp(0, text.length);
-    return Uint8List.fromList(utf8.encode(text.substring(start, end)));
+    return Uint8List.fromList(utf8.encode(_pages.pageText(pageIndex)));
   }
 
   @override
@@ -131,9 +131,7 @@ abstract class ReflowableTextDocumentEngine implements DocumentEngine {
     if (pageIndex < 0 || pageIndex >= _pageCount) {
       throw RangeError.index(pageIndex, 'pageIndex');
     }
-    final start = pageIndex * pageCharacterCount;
-    final end = (start + pageCharacterCount).clamp(0, text.length);
-    return text.substring(start, end);
+    return _pages.pageText(pageIndex);
   }
 
   @override
@@ -177,9 +175,15 @@ abstract class ReflowableTextDocumentEngine implements DocumentEngine {
     );
   }
 
-  int get _pageCount => text.isEmpty
-      ? 1
-      : (text.length + pageCharacterCount - 1) ~/ pageCharacterCount;
+  int get _pageCount => _pages.count;
+
+  TextPages get _pages => _textPages ??= TextPages(text);
+
+  @override
+  int pageStartOffset(int pageIndex) => _pages.start(pageIndex);
+
+  @override
+  int pageIndexForOffset(int offset) => _pages.pageOf(offset);
 
   String get _title {
     final name = file.uri.pathSegments.isEmpty
