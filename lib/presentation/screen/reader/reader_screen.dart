@@ -318,16 +318,23 @@ class _ReaderScreenState extends State<ReaderScreen>
         Positioned(
           left: 0,
           right: 0,
-          bottom: 4,
-          child: SafeArea(
-            top: false,
-            child: IgnorePointer(
-              child: Text(
-                caption,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: ink.withValues(alpha: .6),
-                  fontFeatures: const [FontFeature.tabularFigures()],
+          bottom: 0,
+          // A page-coloured strip, so the caption never sits on a text line.
+          child: IgnorePointer(
+            child: ColoredBox(
+              color: Color(_display.readerTheme.backgroundArgb),
+              child: SafeArea(
+                top: false,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Text(
+                    caption,
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: ink.withValues(alpha: .6),
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -668,8 +675,8 @@ class _ReaderScreenState extends State<ReaderScreen>
       final info = await _engine!.open();
       final contents = await _engine!.tableOfContentsEntries();
       final pageCount = info.pageCount ?? 1;
-      final initialPage = ((pageCount - 1) * widget.book.progress)
-          .round()
+      // Paged progress is saved as (page + 1) / pageCount; invert that.
+      final initialPage = ((pageCount * widget.book.progress).round() - 1)
           .clamp(0, pageCount - 1);
       if (!mounted) return;
       setState(() {
