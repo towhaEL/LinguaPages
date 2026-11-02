@@ -371,6 +371,9 @@ class _BackupManagerState extends State<_BackupManager> {
   late final RestoreBackupUseCase _restoreBackup;
   bool _busy = false;
 
+  /// Which row shows the progress indicator while [_busy].
+  bool _restoring = false;
+
   @override
   void initState() {
     super.initState();
@@ -421,7 +424,10 @@ class _BackupManagerState extends State<_BackupManager> {
   Future<void> _restore() async {
     final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
-    setState(() => _busy = true);
+    setState(() {
+      _busy = true;
+      _restoring = true;
+    });
     try {
       final result = await FilePicker.pickFiles(
         dialogTitle: l10n.settingsBackupRestore,
@@ -458,7 +464,12 @@ class _BackupManagerState extends State<_BackupManager> {
         );
       }
     } finally {
-      if (mounted) setState(() => _busy = false);
+      if (mounted) {
+        setState(() {
+          _busy = false;
+          _restoring = false;
+        });
+      }
     }
   }
 
@@ -503,13 +514,14 @@ class _BackupManagerState extends State<_BackupManager> {
           title: l10n.settingsBackupCreate,
           subtitle: l10n.settingsBackupCreateSubtitle,
           onTap: _busy ? null : _export,
-          trailing: _busy ? progress : null,
+          trailing: _busy && !_restoring ? progress : null,
         ),
         _SettingsTile(
           icon: Icons.download_outlined,
           title: l10n.settingsBackupRestore,
           subtitle: l10n.settingsBackupRestoreSubtitle,
           onTap: _busy ? null : _restore,
+          trailing: _restoring ? progress : null,
         ),
       ],
     );

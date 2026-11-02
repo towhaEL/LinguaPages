@@ -3088,14 +3088,19 @@ class _ThemeSwatch extends StatelessWidget {
                     width: selected ? 2.5 : 1,
                   ),
                 ),
+                // Fills the swatch so the lock sits in its corner, not on the
+                // "Aa".
                 child: Stack(
+                  fit: StackFit.expand,
                   alignment: Alignment.center,
                   children: [
-                    Text(
-                      'Aa',
-                      style: text.titleLarge?.copyWith(
-                        color: ink,
-                        fontWeight: FontWeight.w700,
+                    Center(
+                      child: Text(
+                        'Aa',
+                        style: text.titleLarge?.copyWith(
+                          color: ink,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
                     if (locked)

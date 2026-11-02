@@ -115,7 +115,9 @@ class _BackupOptionsDialogState extends State<_BackupOptionsDialog> {
                     ? l10n.settingsBackupPassphraseTooShort
                     : null,
               ),
-              if (_passphrase.text.isNotEmpty)
+              if (_passphrase.text.isNotEmpty) ...[
+                // Clears the helper text above.
+                const SizedBox(height: 12),
                 TextFormField(
                   controller: _confirm,
                   obscureText: true,
@@ -129,6 +131,7 @@ class _BackupOptionsDialogState extends State<_BackupOptionsDialog> {
                       ? l10n.settingsBackupPassphraseMismatch
                       : null,
                 ),
+              ],
             ],
           ),
         ),

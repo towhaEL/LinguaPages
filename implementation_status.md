@@ -438,7 +438,7 @@ See [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md#phase-3--online-dictionary).
 - [x] **Tests**: normalization cases, API mapper with a "hello" fixture, cache round trip, repository (cache hit across restarts, shared concurrent request, 404 + 7-day TTL, three offline cases, 500, malformed response, online-off, clear cache, URL encoding), Cubit states and retry, schema v1–v7 → v8 migration
 - [x] `flutter analyze` (no issues), `flutter test` (95 passed, 2 PDF skipped), staging debug APK builds
 - [x] Mapper checked against live API responses ("run", "serendipity"); the live 404 body matches the expected shape. The API returned intermittent HTTP 502s during the check, which show as "Lookup could not be completed" with Try again
-- [ ] **Device check**: an online lookup, the same lookup again in airplane mode, a missing word, and the attribution links on a physical phone (staging flavor)
+- [x] **Device check** (2026-11-02, CPH2819, staging): online lookup, the same word again in airplane mode (cached), an uncached word offline (offline state), a missing word ("No definition found"), and the license link opening the browser
 
 ### 🟢 Plan Phase 4 — Premium Appearance (Implemented 2026-11-01, Play sandbox check pending)
 
@@ -474,7 +474,7 @@ See [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md#phase-4--premium-appearance)
 - [x] `flutter analyze` (no issues), `flutter test` (113 passed, 2 PDF skipped), staging debug APK builds
 - [ ] **Play Console:** create the `premium_appearance` in-app product and price, upload a build to a test track, add licence testers
 - [ ] **Play sandbox check:** purchase, restore after reinstall, refund → relock, pending payment, airplane-mode launch with a cached purchase
-- [ ] **Device check:** each premium theme and font in a Readium EPUB and a TXT/Markdown book; preview and revert in the settings sheet
+- [~] **Device check:** locked theme preview and revert on close verified in a TXT book on the staging app (2026-11-02); every theme and font in a Readium EPUB not yet walked through. Fixed: the lock icon sat on top of the swatch's "Aa"
 
 ### 🟢 Plan Phase 5 — Surface Redesign (Done 2026-11-01, tablet check on hardware pending)
 
