@@ -45,9 +45,12 @@ import 'package:lingua_pages/presentation/theme/base/theme_extension.dart';
 
 @RoutePage()
 class ReaderScreen extends StatefulWidget {
-  const ReaderScreen({required this.book, super.key});
+  const ReaderScreen({required this.book, this.openAt, super.key});
 
   final BookEntity book;
+
+  /// Where to open instead of the saved position, such as an annotation.
+  final DocumentLocator? openAt;
 
   @override
   State<ReaderScreen> createState() => _ReaderScreenState();
@@ -486,7 +489,7 @@ class _ReaderScreenState extends State<ReaderScreen>
       }
       return ReadiumReaderWidget(
         publication: publication,
-        initialLocator: _savedLocator,
+        initialLocator: _openAtNative ?? _savedLocator,
         fontFamilyDeclarations: ReadiumDocumentSession.fontFamilies,
         shouldShowControls: _chromeVisible,
         goBackwardSemanticLabel: context.l10n.readerPreviousPage,
@@ -700,6 +703,8 @@ class _ReaderScreenState extends State<ReaderScreen>
       } else {
         await _renderPage(initialPage, saveProgress: false);
       }
+      final openAt = widget.openAt;
+      if (openAt != null) await _goToDocumentLocator(openAt);
     } catch (error) {
       if (!mounted) return;
       setState(() => _errorMessage = error.toString());
@@ -1664,6 +1669,16 @@ class _ReaderScreenState extends State<ReaderScreen>
             .where((entry) => path(entry.href) == currentPath)
             .length ==
         1;
+  }
+
+  /// [ReaderScreen.openAt] as a native locator, when it came from Readium.
+  Locator? get _openAtNative {
+    final json = switch (widget.openAt) {
+      EpubLocator(:final locatorJson) => locatorJson,
+      PdfLocator(:final locatorJson) => locatorJson,
+      _ => null,
+    };
+    return json == null ? null : Locator.fromJsonString(json);
   }
 
   Locator? get _savedLocator {

@@ -28,6 +28,14 @@ class DriftHighlightRepository implements HighlightRepository {
   }
 
   @override
+  Future<List<HighlightEntity>> getAll() async {
+    final rows = await (_database.select(
+      _database.highlights,
+    )..orderBy([(highlight) => OrderingTerm.desc(highlight.createdAt)])).get();
+    return rows.map(_toEntity).toList();
+  }
+
+  @override
   Future<HighlightEntity> create(HighlightEntity highlight) async {
     await _database.into(_database.highlights).insert(_toCompanion(highlight));
     return highlight;
@@ -93,18 +101,24 @@ class DriftBookmarkRepository implements BookmarkRepository {
               ..where((bookmark) => bookmark.bookId.equals(bookId))
               ..orderBy([(bookmark) => OrderingTerm.asc(bookmark.createdAt)]))
             .get();
-    return rows
-        .map(
-          (row) => BookmarkEntity(
-            id: row.id,
-            bookId: row.bookId,
-            title: row.title,
-            locator: _decodeLocator(row.locatorJson),
-            createdAt: row.createdAt,
-          ),
-        )
-        .toList();
+    return rows.map(_toBookmark).toList();
   }
+
+  @override
+  Future<List<BookmarkEntity>> getAll() async {
+    final rows = await (_database.select(
+      _database.bookmarks,
+    )..orderBy([(bookmark) => OrderingTerm.desc(bookmark.createdAt)])).get();
+    return rows.map(_toBookmark).toList();
+  }
+
+  BookmarkEntity _toBookmark(Bookmark row) => BookmarkEntity(
+    id: row.id,
+    bookId: row.bookId,
+    title: row.title,
+    locator: _decodeLocator(row.locatorJson),
+    createdAt: row.createdAt,
+  );
 
   @override
   Future<BookmarkEntity> create(BookmarkEntity bookmark) async {

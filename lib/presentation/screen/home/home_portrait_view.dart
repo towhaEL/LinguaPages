@@ -1,6 +1,8 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lingua_pages/l10n/l10n.dart';
+import 'package:lingua_pages/presentation/route/app_router.gr.dart';
 import 'package:lingua_pages/presentation/screen/home/components/library_content.dart';
 import 'package:lingua_pages/presentation/screen/home/cubits/library_cubit.dart';
 import 'package:lingua_pages/presentation/screen/home/cubits/library_state.dart';
@@ -16,6 +18,12 @@ class HomePortraitView extends StatelessWidget {
         titleSpacing: 20,
         toolbarHeight: 64,
         actions: [
+          IconButton(
+            tooltip: context.l10n.annotationsTitle,
+            icon: const Icon(Icons.sticky_note_2_outlined),
+            onPressed: () => context.router.push(const AnnotationsRoute()),
+          ),
+          const SizedBox(width: 4),
           BlocBuilder<LibraryCubit, LibraryState>(
             buildWhen: (previous, current) =>
                 previous.isImporting != current.isImporting,

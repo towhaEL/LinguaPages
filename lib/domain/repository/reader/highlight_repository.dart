@@ -4,6 +4,9 @@ import 'package:lingua_pages/domain/entity/reader/highlight_entity.dart';
 abstract interface class HighlightRepository {
   Future<List<HighlightEntity>> getByBookId(String bookId);
 
+  /// Every highlight in the library, newest first.
+  Future<List<HighlightEntity>> getAll();
+
   Future<HighlightEntity> create(HighlightEntity highlight);
 
   Future<void> update(HighlightEntity highlight);

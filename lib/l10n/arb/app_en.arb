@@ -455,6 +455,15 @@
   "readerOpenErrorBody": "This file couldn't be displayed. It may be damaged, or use something the reader doesn't support yet.",
   "dictionaryNotFoundBody": "The dictionary has no entry for this word. Inflected forms sometimes need their base form, such as \"run\" for \"ran\".",
   "readerHighlightChooseColor": "Choose a color to save",
+  "annotationsTitle": "Annotations",
+  "annotationsSearchHint": "Search highlights, notes and bookmarks",
+  "annotationsAll": "All",
+  "annotationsHighlights": "Highlights",
+  "annotationsNotes": "Notes",
+  "annotationsBookmarks": "Bookmarks",
+  "annotationsBook": "Book",
+  "annotationsAllBooks": "All books",
+  "annotationsLoadError": "Annotations could not be loaded",
   "readerNotesAll": "All {count}",
   "@readerNotesAll": {
     "placeholders": {

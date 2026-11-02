@@ -93,6 +93,8 @@ import '../../domain/use_cases/library/reset_book_details_use_case.dart'
 import '../../domain/use_cases/library/search_library_use_case.dart' as _i322;
 import '../../domain/use_cases/reader/save_reading_progress_use_case.dart'
     as _i214;
+import '../../presentation/screen/annotations/cubit/annotations_cubit.dart'
+    as _i891;
 import '../../presentation/screen/home/cubits/library_cubit.dart' as _i655;
 import '../../presentation/screen/premium/cubit/premium_cubit.dart' as _i887;
 import '../../presentation/screen/reader/cubit/dictionary_lookup_cubit.dart'
@@ -237,6 +239,14 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i486.DeleteLibraryBookUseCase(
         gh<_i603.LibraryRepository>(),
         gh<_i824.DocumentStorageService>(),
+      ),
+    );
+    gh.factory<_i891.AnnotationsCubit>(
+      () => _i891.AnnotationsCubit(
+        gh<_i603.LibraryRepository>(),
+        gh<_i749.HighlightRepository>(),
+        gh<_i798.BookmarkRepository>(),
+        gh<_i974.Logger>(),
       ),
     );
     gh.singleton<_i205.PurgeTrashUseCase>(
