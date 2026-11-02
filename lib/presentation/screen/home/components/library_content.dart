@@ -35,173 +35,190 @@ class _LibraryContentState extends State<LibraryContent> {
   @override
   Widget build(BuildContext context) {
     return BlocListener<LibraryCubit, LibraryState>(
-      listenWhen: (previous, current) =>
-          current.importFeedback != null &&
-          (current.importFeedback != previous.importFeedback ||
-              current.importMessage != previous.importMessage),
+      listenWhen: (previous, current) => current.folderResult != null,
       listener: (context, state) {
-        final feedback = state.importFeedback;
-        final message = state.importMessage;
-        if (feedback == null || message == null) return;
-        final text = switch (feedback) {
-          LibraryImportFeedback.imported => context.l10n.libraryImportedMessage(
-            message,
-          ),
-          LibraryImportFeedback.duplicate =>
-            context.l10n.libraryDuplicateMessage(message),
-          LibraryImportFeedback.unsupportedFormat =>
-            context.l10n.libraryUnsupportedFormat,
-          LibraryImportFeedback.corruptDocument =>
-            context.l10n.libraryCorruptDocument,
-          LibraryImportFeedback.unavailable =>
-            context.l10n.libraryFileUnavailable,
-          LibraryImportFeedback.failure => context.l10n.libraryImportFailed,
-        };
-        final duplicateId = state.duplicateBookId;
-        final cubit = context.read<LibraryCubit>();
+        final result = state.folderResult!;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            // Optional actions; the message still times out.
-            persist: false,
-            content: Text(text),
-            action: duplicateId == null
-                ? null
-                : SnackBarAction(
-                    label: context.l10n.libraryOpenExisting,
-                    onPressed: () async {
-                      final book = await cubit.bookById(duplicateId);
-                      if (book != null && context.mounted) {
-                        await _openBook(context, book);
-                      }
-                    },
-                  ),
+            content: Text(
+              result.imported + result.duplicates + result.failed == 0
+                  ? context.l10n.libraryFolderEmpty
+                  : context.l10n.libraryFolderImported(
+                      result.imported,
+                      result.duplicates + result.failed,
+                    ),
+            ),
           ),
         );
       },
-      child: BlocBuilder<LibraryCubit, LibraryState>(
-        builder: (context, state) {
-          // Before the first load starts the status is still initial.
-          if ((state.status == LibraryStatus.initial ||
-                  state.status == LibraryStatus.loading) &&
-              state.books.isEmpty) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (state.status == LibraryStatus.failure) {
-            return Center(
-              child: StateView(
-                icon: Icons.error_outline_rounded,
-                iconColor: context.colors.error,
-                title: context.l10n.libraryLoadError,
-                // The raw error is logged; the reader gets reassurance.
-                body: context.l10n.libraryLoadErrorBody,
-                action: FilledButton.icon(
-                  onPressed: context.read<LibraryCubit>().load,
-                  icon: const Icon(Icons.refresh_rounded),
-                  label: Text(context.l10n.retry),
+      child: BlocListener<LibraryCubit, LibraryState>(
+        listenWhen: (previous, current) =>
+            current.importFeedback != null &&
+            (current.importFeedback != previous.importFeedback ||
+                current.importMessage != previous.importMessage),
+        listener: (context, state) {
+          final feedback = state.importFeedback;
+          final message = state.importMessage;
+          if (feedback == null || message == null) return;
+          final text = switch (feedback) {
+            LibraryImportFeedback.imported =>
+              context.l10n.libraryImportedMessage(message),
+            LibraryImportFeedback.duplicate =>
+              context.l10n.libraryDuplicateMessage(message),
+            LibraryImportFeedback.unsupportedFormat =>
+              context.l10n.libraryUnsupportedFormat,
+            LibraryImportFeedback.corruptDocument =>
+              context.l10n.libraryCorruptDocument,
+            LibraryImportFeedback.unavailable =>
+              context.l10n.libraryFileUnavailable,
+            LibraryImportFeedback.failure => context.l10n.libraryImportFailed,
+          };
+          final duplicateId = state.duplicateBookId;
+          final cubit = context.read<LibraryCubit>();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              // Optional actions; the message still times out.
+              persist: false,
+              content: Text(text),
+              action: duplicateId == null
+                  ? null
+                  : SnackBarAction(
+                      label: context.l10n.libraryOpenExisting,
+                      onPressed: () async {
+                        final book = await cubit.bookById(duplicateId);
+                        if (book != null && context.mounted) {
+                          await _openBook(context, book);
+                        }
+                      },
+                    ),
+            ),
+          );
+        },
+        child: BlocBuilder<LibraryCubit, LibraryState>(
+          builder: (context, state) {
+            // Before the first load starts the status is still initial.
+            if ((state.status == LibraryStatus.initial ||
+                    state.status == LibraryStatus.loading) &&
+                state.books.isEmpty) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (state.status == LibraryStatus.failure) {
+              return Center(
+                child: StateView(
+                  icon: Icons.error_outline_rounded,
+                  iconColor: context.colors.error,
+                  title: context.l10n.libraryLoadError,
+                  // The raw error is logged; the reader gets reassurance.
+                  body: context.l10n.libraryLoadErrorBody,
+                  action: FilledButton.icon(
+                    onPressed: context.read<LibraryCubit>().load,
+                    icon: const Icon(Icons.refresh_rounded),
+                    label: Text(context.l10n.retry),
+                  ),
                 ),
-              ),
-            );
-          }
+              );
+            }
 
-          final hasQuery = state.query.trim().isNotEmpty;
-          final isEmptyLibrary =
-              state.books.isEmpty && state.trash.isEmpty && !hasQuery;
-          final current = hasQuery || state.view != LibraryView.all
-              ? null
-              : _continueReading(state.books);
-          final visible = state.visibleBooks;
+            final hasQuery = state.query.trim().isNotEmpty;
+            final isEmptyLibrary =
+                state.books.isEmpty && state.trash.isEmpty && !hasQuery;
+            final current = hasQuery || state.view != LibraryView.all
+                ? null
+                : _continueReading(state.books);
+            final visible = state.visibleBooks;
 
-          return RefreshIndicator(
-            onRefresh: context.read<LibraryCubit>().load,
-            child: CustomScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              slivers: [
-                if (current != null) ...[
-                  _SectionTitle(title: context.l10n.libraryContinueReading),
-                  SliverPadding(
-                    padding: const EdgeInsets.symmetric(horizontal: _gutter),
-                    sliver: SliverToBoxAdapter(
-                      child: _ContinueReadingCard(book: current),
-                    ),
-                  ),
-                ],
-                if (!isEmptyLibrary) ...[
-                  SliverToBoxAdapter(
-                    child: _ShelfHeader(
-                      state: state,
-                      onSearch: _searching || hasQuery
-                          ? null
-                          : () => setState(() => _searching = true),
-                    ),
-                  ),
-                  SliverToBoxAdapter(child: _ViewChips(state: state)),
-                  if (_searching || hasQuery)
+            return RefreshIndicator(
+              onRefresh: context.read<LibraryCubit>().load,
+              child: CustomScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                slivers: [
+                  if (current != null) ...[
+                    _SectionTitle(title: context.l10n.libraryContinueReading),
                     SliverPadding(
-                      padding: const EdgeInsets.fromLTRB(
-                        _gutter,
-                        4,
-                        _gutter,
-                        8,
-                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: _gutter),
                       sliver: SliverToBoxAdapter(
-                        child: TextField(
-                          autofocus: _searching && !hasQuery,
-                          onChanged: context.read<LibraryCubit>().search,
-                          textInputAction: TextInputAction.search,
-                          decoration: InputDecoration(
-                            hintText: context.l10n.librarySearchHint,
-                            prefixIcon: const Icon(Icons.search_rounded),
-                            suffixIcon: IconButton(
-                              tooltip: context.l10n.librarySearchClose,
-                              icon: const Icon(Icons.close_rounded),
-                              onPressed: _closeSearch,
+                        child: _ContinueReadingCard(book: current),
+                      ),
+                    ),
+                  ],
+                  if (!isEmptyLibrary) ...[
+                    SliverToBoxAdapter(
+                      child: _ShelfHeader(
+                        state: state,
+                        onSearch: _searching || hasQuery
+                            ? null
+                            : () => setState(() => _searching = true),
+                      ),
+                    ),
+                    SliverToBoxAdapter(child: _ViewChips(state: state)),
+                    if (_searching || hasQuery)
+                      SliverPadding(
+                        padding: const EdgeInsets.fromLTRB(
+                          _gutter,
+                          4,
+                          _gutter,
+                          8,
+                        ),
+                        sliver: SliverToBoxAdapter(
+                          child: TextField(
+                            autofocus: _searching && !hasQuery,
+                            onChanged: context.read<LibraryCubit>().search,
+                            textInputAction: TextInputAction.search,
+                            decoration: InputDecoration(
+                              hintText: context.l10n.librarySearchHint,
+                              prefixIcon: const Icon(Icons.search_rounded),
+                              suffixIcon: IconButton(
+                                tooltip: context.l10n.librarySearchClose,
+                                icon: const Icon(Icons.close_rounded),
+                                onPressed: _closeSearch,
+                              ),
                             ),
                           ),
                         ),
                       ),
+                  ],
+                  if (state.view == LibraryView.trash && visible.isNotEmpty)
+                    SliverToBoxAdapter(
+                      child: _TrashHeader(count: visible.length),
                     ),
+                  if (state.showsGroups)
+                    _GroupList(state: state)
+                  else if (isEmptyLibrary)
+                    SliverToBoxAdapter(
+                      child: _LibraryEmpty(
+                        query: state.query,
+                        onClearSearch: _closeSearch,
+                      ),
+                    )
+                  else if (visible.isEmpty)
+                    SliverToBoxAdapter(
+                      child: hasQuery
+                          ? _LibraryEmpty(
+                              query: state.query,
+                              onClearSearch: _closeSearch,
+                            )
+                          : StateView(
+                              icon: state.view == LibraryView.trash
+                                  ? Icons.delete_outline_rounded
+                                  : Icons.collections_bookmark_outlined,
+                              title: state.view == LibraryView.trash
+                                  ? context.l10n.libraryTrashEmptyTitle
+                                  : context.l10n.libraryViewEmptyTitle,
+                              body: state.view == LibraryView.trash
+                                  ? context.l10n.libraryTrashNote
+                                  : context.l10n.libraryViewEmptyBody,
+                            ),
+                    )
+                  else if (state.viewMode == LibraryViewMode.list)
+                    _BookList(books: visible)
+                  else
+                    _BookGrid(books: visible),
+                  const SliverToBoxAdapter(child: SizedBox(height: 32)),
                 ],
-                if (state.view == LibraryView.trash && visible.isNotEmpty)
-                  SliverToBoxAdapter(
-                    child: _TrashHeader(count: visible.length),
-                  ),
-                if (state.showsGroups)
-                  _GroupList(state: state)
-                else if (isEmptyLibrary)
-                  SliverToBoxAdapter(
-                    child: _LibraryEmpty(
-                      query: state.query,
-                      onClearSearch: _closeSearch,
-                    ),
-                  )
-                else if (visible.isEmpty)
-                  SliverToBoxAdapter(
-                    child: hasQuery
-                        ? _LibraryEmpty(
-                            query: state.query,
-                            onClearSearch: _closeSearch,
-                          )
-                        : StateView(
-                            icon: state.view == LibraryView.trash
-                                ? Icons.delete_outline_rounded
-                                : Icons.collections_bookmark_outlined,
-                            title: state.view == LibraryView.trash
-                                ? context.l10n.libraryTrashEmptyTitle
-                                : context.l10n.libraryViewEmptyTitle,
-                            body: state.view == LibraryView.trash
-                                ? context.l10n.libraryTrashNote
-                                : context.l10n.libraryViewEmptyBody,
-                          ),
-                  )
-                else if (state.viewMode == LibraryViewMode.list)
-                  _BookList(books: visible)
-                else
-                  _BookGrid(books: visible),
-                const SliverToBoxAdapter(child: SizedBox(height: 32)),
-              ],
-            ),
-          );
-        },
+              ),
+            );
+          },
+        ),
       ),
     );
   }

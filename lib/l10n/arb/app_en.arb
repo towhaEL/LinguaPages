@@ -123,6 +123,21 @@
   "libraryDeleteForever": "Delete permanently",
   "libraryActionFailed": "That change could not be saved",
   "libraryOpenExisting": "Open",
+  "libraryImportFile": "Import files",
+  "libraryImportFolder": "Import a folder",
+  "libraryFolderEmpty": "No books found in that folder",
+  "libraryImportFolderSubtitle": "Adds every book in the folder and its subfolders",
+  "libraryFolderImported": "Imported {imported, plural, =1{1 book} other{{imported} books}}; skipped {skipped}",
+  "@libraryFolderImported": {
+    "placeholders": {
+      "imported": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      }
+    }
+  },
   "libraryGroupCount": "{count, plural, =1{1 book} other{{count} books}}",
   "@libraryGroupCount": {
     "placeholders": {

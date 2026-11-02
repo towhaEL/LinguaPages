@@ -14,6 +14,7 @@ import 'package:lingua_pages/domain/service/document_import_service.dart';
 import 'package:lingua_pages/domain/use_cases/library/delete_library_book_use_case.dart';
 import 'package:lingua_pages/domain/use_cases/library/get_library_books_use_case.dart';
 import 'package:lingua_pages/domain/use_cases/library/import_document_use_case.dart';
+import 'package:lingua_pages/domain/use_cases/library/import_folder_use_case.dart';
 import 'package:lingua_pages/domain/use_cases/library/purge_trash_use_case.dart';
 import 'package:lingua_pages/domain/use_cases/library/reset_book_details_use_case.dart';
 import 'package:lingua_pages/domain/use_cases/library/search_library_use_case.dart';
@@ -32,6 +33,7 @@ class LibraryCubit extends Cubit<LibraryState> {
     this._collectionRepository,
     this._purgeTrashUseCase,
     this._resetBookDetailsUseCase,
+    this._importFolderUseCase,
     this._logger,
   ) : super(const LibraryState()) {
     _incomingSubscription = _incomingDocumentService.documents.listen(
@@ -49,6 +51,7 @@ class LibraryCubit extends Cubit<LibraryState> {
   final CollectionRepository _collectionRepository;
   final PurgeTrashUseCase _purgeTrashUseCase;
   final ResetBookDetailsUseCase _resetBookDetailsUseCase;
+  final ImportFolderUseCase _importFolderUseCase;
   final Logger _logger;
   late final StreamSubscription<IncomingDocument> _incomingSubscription;
 
@@ -345,6 +348,24 @@ class LibraryCubit extends Cubit<LibraryState> {
           duplicateBookId: error.existingBookId,
         ),
       );
+    } catch (error, stackTrace) {
+      _emitImportFailure(error, stackTrace);
+    }
+  }
+
+  bool get canImportFolder => _importFolderUseCase.isAvailable;
+
+  Future<void> importFolder() async {
+    if (state.isImporting) return;
+    emit(state.copyWith(isImporting: true));
+    try {
+      final result = await _importFolderUseCase.execute();
+      if (result == null) {
+        emit(state.copyWith(isImporting: false));
+        return;
+      }
+      await _refresh();
+      emit(state.copyWith(isImporting: false, folderResult: result));
     } catch (error, stackTrace) {
       _emitImportFailure(error, stackTrace);
     }

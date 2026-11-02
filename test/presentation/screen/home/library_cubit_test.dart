@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:lingua_pages/domain/entity/library/collection_entity.dart';
 import 'package:lingua_pages/domain/repository/library/collection_repository.dart';
 import 'package:lingua_pages/domain/service/document_metadata_extractor.dart';
+import 'package:lingua_pages/domain/use_cases/library/import_folder_use_case.dart';
 import 'package:lingua_pages/domain/use_cases/library/purge_trash_use_case.dart';
 import 'package:lingua_pages/domain/use_cases/library/reset_book_details_use_case.dart';
 import 'package:lingua_pages/data/data_source/library/local/lingua_page_database.dart';
@@ -328,6 +329,10 @@ LibraryCubit _createCubit(
       DeleteLibraryBookUseCase(repository, _FakeDocumentStorageService()),
     ),
     ResetBookDetailsUseCase(repository, _FakeMetadataExtractor()),
+    ImportFolderUseCase(
+      _FakeFolderImportService(),
+      ImportDocumentUseCase(importService, repository),
+    ),
     Logger(level: Level.off),
   );
 }
@@ -550,6 +555,11 @@ class _FakeCollectionRepository implements CollectionRepository {
 }
 
 class _FakeMetadataExtractor implements DocumentMetadataExtractor {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _FakeFolderImportService implements FolderImportService {
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

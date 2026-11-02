@@ -28,3 +28,27 @@ class IncomingDocument {
   final String path;
   final String fileName;
 }
+
+/// A supported document found in a folder the person picked.
+class FolderDocument {
+  const FolderDocument({required this.uri, required this.fileName});
+
+  final String uri;
+  final String fileName;
+}
+
+/// Imports a whole folder through the system folder picker (Android).
+abstract interface class FolderImportService {
+  /// Whether this platform can pick folders.
+  bool get isAvailable;
+
+  /// Supported documents in the picked folder and its subfolders; null when
+  /// the picker was dismissed.
+  Future<List<FolderDocument>?> pickFolder();
+
+  /// Copies [document] to a temporary file that the importer can read.
+  Future<IncomingDocument?> copy(FolderDocument document);
+
+  /// Deletes a temporary copy once it has been imported.
+  Future<void> discard(IncomingDocument copy);
+}

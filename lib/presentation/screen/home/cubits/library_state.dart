@@ -1,5 +1,6 @@
 import 'package:lingua_pages/domain/entity/library/book_entity.dart';
 import 'package:lingua_pages/domain/entity/library/collection_entity.dart';
+import 'package:lingua_pages/domain/use_cases/library/import_folder_use_case.dart';
 
 enum LibraryStatus { initial, loading, success, failure }
 
@@ -43,6 +44,7 @@ class LibraryState {
     this.collections = const [],
     this.trash = const [],
     this.duplicateBookId,
+    this.folderResult,
   });
 
   final LibraryStatus status;
@@ -64,6 +66,9 @@ class LibraryState {
 
   /// The library book matching a rejected duplicate import.
   final String? duplicateBookId;
+
+  /// The outcome of a folder import, for one emission.
+  final FolderImportResult? folderResult;
 
   CollectionEntity? get selectedCollection => view == LibraryView.collection
       ? collections.where((c) => c.id == viewKey).firstOrNull
@@ -140,6 +145,7 @@ class LibraryState {
     List<CollectionEntity>? collections,
     List<BookEntity>? trash,
     String? duplicateBookId,
+    FolderImportResult? folderResult,
   }) {
     return LibraryState(
       status: status ?? this.status,
@@ -157,6 +163,7 @@ class LibraryState {
       trash: trash ?? this.trash,
       // Like the import feedback, it only lasts one emission.
       duplicateBookId: duplicateBookId,
+      folderResult: folderResult,
     );
   }
 }
