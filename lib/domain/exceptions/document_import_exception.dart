@@ -4,6 +4,7 @@ enum DocumentImportFailureKind {
   emptyFile,
   invalidSignature,
   corruptDocument,
+  drmProtected,
   storage,
   unknown,
 }
@@ -34,4 +35,9 @@ class DocumentUnavailableException extends DocumentImportException {
 class CorruptDocumentException extends DocumentImportException {
   const CorruptDocumentException(String message)
     : super(kind: DocumentImportFailureKind.corruptDocument, message: message);
+}
+
+class DrmProtectedDocumentException extends DocumentImportException {
+  const DrmProtectedDocumentException(String message)
+    : super(kind: DocumentImportFailureKind.drmProtected, message: message);
 }

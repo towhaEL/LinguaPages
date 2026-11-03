@@ -9,6 +9,7 @@ enum LibraryImportFeedback {
   duplicate,
   unsupportedFormat,
   corruptDocument,
+  drmProtected,
   unavailable,
   failure,
 }

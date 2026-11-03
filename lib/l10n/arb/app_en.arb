@@ -178,6 +178,7 @@
   "libraryImportFailed": "Could not import this document",
   "libraryUnsupportedFormat": "This file format is not supported",
   "libraryCorruptDocument": "This document is empty, invalid, or corrupt",
+  "libraryDrmProtected": "This book is DRM-protected. LinguaPages opens DRM-free books only",
   "libraryFileUnavailable": "This document is no longer available",
   "readerContents": "Table of contents",
   "readerSearch": "Search in book",

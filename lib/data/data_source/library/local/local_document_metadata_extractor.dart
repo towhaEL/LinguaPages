@@ -12,6 +12,16 @@ import 'package:xml/xml.dart';
 
 @LazySingleton(as: DocumentMetadataExtractor)
 class LocalDocumentMetadataExtractor implements DocumentMetadataExtractor {
+  static const _maxExpandedEpubBytes = 1024 * 1024 * 1024;
+  static const _ratioCheckFloorBytes = 64 * 1024 * 1024;
+  static const _maxExpansionRatio = 100;
+
+  /// Font obfuscation is the only encryption a DRM-free EPUB declares.
+  static const _fontObfuscation = {
+    'http://www.idpf.org/2008/embedding',
+    'http://ns.adobe.com/pdf/enc#RC',
+  };
+
   @override
   Future<void> validate({
     required DocumentFormat format,
@@ -130,6 +140,8 @@ class LocalDocumentMetadataExtractor implements DocumentMetadataExtractor {
         for (final entry in archive.files)
           if (entry.isFile) _normalizePath(entry.name): entry,
       };
+      _rejectZipBomb(files.values, bytes.length);
+      _rejectDrm(files);
       final container = _xmlFile(files, 'META-INF/container.xml');
       final rootFile = _firstElement(container, 'rootfile');
       final opfPath = _attribute(rootFile, 'full-path');
@@ -141,6 +153,39 @@ class LocalDocumentMetadataExtractor implements DocumentMetadataExtractor {
       rethrow;
     } on Object catch (error) {
       throw CorruptDocumentException('This EPUB file is corrupt: $error');
+    }
+  }
+
+  // shortcut: trusts each entry's declared size, so a forged ZIP header can
+  // still inflate more; switch to a size-counting decoder if that shows up.
+  void _rejectZipBomb(Iterable<ArchiveFile> entries, int compressedLength) {
+    final expanded = entries.fold<int>(0, (sum, entry) => sum + entry.size);
+    final suspicious =
+        expanded > _maxExpandedEpubBytes ||
+        (expanded > _ratioCheckFloorBytes &&
+            expanded > compressedLength * _maxExpansionRatio);
+    if (suspicious) {
+      throw const CorruptDocumentException(
+        'This EPUB expands to an unsafe size and may be malicious.',
+      );
+    }
+  }
+
+  void _rejectDrm(Map<String, ArchiveFile> files) {
+    final hasLicense =
+        files.containsKey('META-INF/rights.xml') ||
+        files.containsKey('META-INF/license.lcpl');
+    final encryption = files.containsKey('META-INF/encryption.xml')
+        ? _xmlFile(files, 'META-INF/encryption.xml')
+        : null;
+    final encryptsContent =
+        encryption != null &&
+        _elements(encryption, 'EncryptionMethod').any(
+          (method) =>
+              !_fontObfuscation.contains(_attribute(method, 'Algorithm')),
+        );
+    if (hasLicense || encryptsContent) {
+      throw const DrmProtectedDocumentException('This EPUB is DRM-protected.');
     }
   }
 

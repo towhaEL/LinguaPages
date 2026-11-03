@@ -69,6 +69,8 @@ class _LibraryContentState extends State<LibraryContent> {
               context.l10n.libraryUnsupportedFormat,
             LibraryImportFeedback.corruptDocument =>
               context.l10n.libraryCorruptDocument,
+            LibraryImportFeedback.drmProtected =>
+              context.l10n.libraryDrmProtected,
             LibraryImportFeedback.unavailable =>
               context.l10n.libraryFileUnavailable,
             LibraryImportFeedback.failure => context.l10n.libraryImportFailed,

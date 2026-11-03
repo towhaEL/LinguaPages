@@ -132,6 +132,62 @@ void main() {
     );
   });
 
+  test('rejects a DRM-protected EPUB', () async {
+    final extractor = LocalDocumentMetadataExtractor();
+
+    for (final drmFile in [
+      _encryptionXml('http://www.w3.org/2001/04/xmlenc#aes128-cbc'),
+      ArchiveFile.string('META-INF/rights.xml', '<rights/>'),
+      ArchiveFile.string('META-INF/license.lcpl', '{}'),
+    ]) {
+      await expectLater(
+        extractor.validate(
+          format: DocumentFormat.epub,
+          fileName: 'locked.epub',
+          bytes: _epubBytes(extraFiles: [drmFile]),
+        ),
+        throwsA(isA<DrmProtectedDocumentException>()),
+        reason: drmFile.name,
+      );
+    }
+  });
+
+  test('accepts an EPUB that only obfuscates its fonts', () async {
+    final extractor = LocalDocumentMetadataExtractor();
+
+    await extractor.validate(
+      format: DocumentFormat.epub,
+      fileName: 'fonts.epub',
+      bytes: _epubBytes(
+        extraFiles: [_encryptionXml('http://www.idpf.org/2008/embedding')],
+      ),
+    );
+  });
+
+  test('rejects an EPUB that expands to an unsafe size', () async {
+    final extractor = LocalDocumentMetadataExtractor();
+    // 100 MB of zeros deflates to about 100 KB, a 1000:1 ratio.
+    final bomb = ArchiveFile.bytes(
+      'OEBPS/padding.xhtml',
+      Uint8List(100 * 1024 * 1024),
+    );
+
+    expect(
+      extractor.validate(
+        format: DocumentFormat.epub,
+        fileName: 'bomb.epub',
+        bytes: _epubBytes(extraFiles: [bomb]),
+      ),
+      throwsA(
+        isA<CorruptDocumentException>().having(
+          (error) => error.message,
+          'message',
+          contains('unsafe size'),
+        ),
+      ),
+    );
+  });
+
   test('uses extracted metadata when importing an external EPUB', () async {
     final directory = await Directory.systemTemp.createTemp(
       'linguapages-metadata-import-',
@@ -207,7 +263,10 @@ void main() {
   });
 }
 
-Uint8List _epubBytes({String extraMeta = ''}) {
+Uint8List _epubBytes({
+  String extraMeta = '',
+  List<ArchiveFile> extraFiles = const [],
+}) {
   final archive = Archive()
     ..addFile(
       ArchiveFile.string(
@@ -256,8 +315,17 @@ Uint8List _epubBytes({String extraMeta = ''}) {
       ),
     )
     ..addFile(ArchiveFile.bytes('OEBPS/images/cover.png', [1, 2, 3, 4]));
+  extraFiles.forEach(archive.addFile);
   return Uint8List.fromList(ZipEncoder().encode(archive));
 }
+
+ArchiveFile _encryptionXml(String algorithm) => ArchiveFile.string(
+  'META-INF/encryption.xml',
+  '<encryption xmlns="urn:oasis:names:tc:opendocument:xmlns:container" '
+      'xmlns:enc="http://www.w3.org/2001/04/xmlenc#">'
+      '<enc:EncryptedData><enc:EncryptionMethod Algorithm="$algorithm"/>'
+      '</enc:EncryptedData></encryption>',
+);
 
 class _RecordingStorageService implements DocumentStorageService {
   Uint8List? coverBytes;

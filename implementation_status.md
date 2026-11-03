@@ -297,7 +297,7 @@ Already-built code for the dropped scope. Remove it completely; see [IMPLEMENTAT
 - [ ] **Encrypted backup** (optional)
 - [x] **Privacy screen** — explains local storage and user-controlled JSON backups; translation wording goes in Phase 5
 
-### 🟡 Phase 7 — Hardening & Android Launch (Partial)
+### 🟡 Phase 7 — Hardening & Android Launch (Partial; plan Phases 9 and 10, started 2026-11-03)
 
 - [x] **Domain unit tests** — `BookEntity` and library use cases are covered (review coverage goes away in Phase 5); broader domain boundary coverage remains.
 - [x] **BLoC/Cubit tests** — `LibraryCubit` load/search/sort/delete/import and failure-recovery paths are covered; reader Cubits remain.
@@ -307,7 +307,7 @@ Already-built code for the dropped scope. Remove it completely; see [IMPLEMENTAT
 - [ ] **Performance tests** (startup, import, first page, lookup, page turn)
 - [ ] **TalkBack and large-text accessibility testing**
 - [ ] **Offline and interrupted-import testing**
-- [ ] **Corrupt-file and malicious-archive testing**
+- [~] **Corrupt-file and malicious-archive testing** — import now rejects DRM-protected EPUBs (Adobe `rights.xml`, LCP `license.lcpl`, or `encryption.xml` declaring more than font obfuscation) with their own message, and EPUBs whose declared size passes 1 GB, or 64 MB at more than 100:1 compression. Covered by extractor tests. Open: forged ZIP size headers, encrypted/Adobe PDFs, a corrupt-file corpus
 - [ ] **Billing sandbox testing**
 - [ ] **All P0 release gate checks**
 
@@ -607,7 +607,7 @@ Surface brief: `.impeccable/surfaces/lib-presentation-screen-reader-reader-scree
 | Phase 6 — Onboarding, premium, backup | 🟡 ~60% (metadata backup/restore, privacy, premium appearance and Play Billing exist; onboarding rewrite, binary-file backup and encryption remain) |
 | Plan Phase 5 — Surface redesign | 🟢 ~95% (all eight surfaces rebuilt and checked on a phone 2026-11-01; tablet hardware review pending) |
 | Plan Phase 4 — Premium appearance | 🟢 ~85% (implemented and tested 2026-11-01; Play Console product, sandbox purchase and device checks pending) |
-| Phase 7 — Hardening & launch | 🟡 ~15% (analysis clean; the automated suite covers domain library contracts and LibraryCubit transitions/recovery alongside metadata/TOC import persistence, typed import failures, locator serialization and delete cleanup with 2 environment-skipped PDF tests; widget, integration, compatibility and performance coverage remain pending device access) |
+| Phase 7 — Hardening & launch | 🟡 ~20% (2026-11-03: DRM and zip-bomb import checks added; analysis clean; the automated suite covers domain library contracts and LibraryCubit transitions/recovery alongside metadata/TOC import persistence, typed import failures, locator serialization and delete cleanup with 2 environment-skipped PDF tests; widget, integration, compatibility and performance coverage remain pending device access) |
 | Plan Phase 7 — Reader and library parity | 🟢 ~90% (2026-11-02; open: page-turn animation, PDF smart crop, time left in chapter, native tap-zone schemes) |
 | Plan Phase 8 — Read aloud | 🟢 ~90% (2026-11-02; open: 30-minute locked run, footnote skipping, lock-screen controls for TXT/MD/HTML/FB2) |
 

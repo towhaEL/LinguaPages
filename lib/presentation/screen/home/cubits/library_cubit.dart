@@ -441,6 +441,8 @@ class LibraryCubit extends Cubit<LibraryState> {
       DocumentImportFailureKind.invalidSignature ||
       DocumentImportFailureKind.corruptDocument =>
         LibraryImportFeedback.corruptDocument,
+      DocumentImportFailureKind.drmProtected =>
+        LibraryImportFeedback.drmProtected,
       DocumentImportFailureKind.storage ||
       DocumentImportFailureKind.unknown => LibraryImportFeedback.failure,
     };

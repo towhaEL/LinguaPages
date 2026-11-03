@@ -285,6 +285,15 @@ void main() {
     expect(cubit.state.importMessage, 'broken document');
   });
 
+  test('importDocument reports DRM-protected books', () async {
+    importService.pickedDocument = _request('locked.epub');
+    repository.importError = const DrmProtectedDocumentException('locked');
+
+    await cubit.importDocument();
+
+    expect(cubit.state.importFeedback, LibraryImportFeedback.drmProtected);
+  });
+
   test(
     'incoming documents are imported through the same feedback path',
     () async {
