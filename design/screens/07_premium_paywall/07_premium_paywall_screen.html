@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>OpenPages - Premium Appearance Paywall</title>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Google Fonts: Newsreader & Inter -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-tertiary-fixed": "#301400",
+            "error-container": "#ffdad6",
+            "secondary": "#635d56",
+            "outline": "#747780",
+            "surface": "#fcf9f4",
+            "on-tertiary-container": "#eaad83",
+            "background": "#fcf9f4",
+            "tertiary-fixed": "#ffdcc5",
+            "secondary-fixed-dim": "#cec5bb",
+            "tertiary": "#502a0a",
+            "surface-container-lowest": "#ffffff",
+            "on-primary-container": "#a0bbf2",
+            "inverse-on-surface": "#f3f0eb",
+            "surface-tint": "#445e8f",
+            "on-secondary": "#ffffff",
+            "secondary-fixed": "#eae1d7",
+            "on-error": "#ffffff",
+            "outline-variant": "#c4c6d0",
+            "on-error-container": "#93000a",
+            "inverse-primary": "#acc7fe",
+            "tertiary-container": "#6b401e",
+            "on-tertiary-fixed-variant": "#673d1b",
+            "inverse-surface": "#31302d",
+            "surface-container-high": "#ebe8e3",
+            "on-primary-fixed-variant": "#2b4676",
+            "on-background": "#1c1c19",
+            "secondary-container": "#e7ded4",
+            "surface-variant": "#e5e2dd",
+            "primary": "#153362",
+            "surface-container": "#f0ede9",
+            "primary-fixed": "#d7e2ff",
+            "surface-bright": "#fcf9f4",
+            "on-surface": "#1c1c19",
+            "on-surface-variant": "#44474f",
+            "on-secondary-container": "#68625a",
+            "on-secondary-fixed-variant": "#4b463f",
+            "surface-dim": "#dcdad5",
+            "on-primary-fixed": "#001a40",
+            "on-primary": "#ffffff",
+            "error": "#ba1a1a",
+            "primary-container": "#2f4a7a",
+            "tertiary-fixed-dim": "#f7b98e",
+            "surface-container-low": "#f6f3ee",
+            "on-tertiary": "#ffffff",
+            "surface-container-highest": "#e5e2dd",
+            "on-secondary-fixed": "#1f1b15",
+            "primary-fixed-dim": "#acc7fe"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-xs": "0.25rem",
+            "space-sm": "0.5rem",
+            "space-md": "1rem",
+            "space-lg": "1.5rem",
+            "space-xl": "2.25rem",
+            "margin": "1.25rem",
+            "margin-tablet": "2rem",
+            "gutter-mobile": "0.75rem",
+            "gutter": "1rem"
+          },
+          "fontFamily": {
+            "label-sm": ["Inter"],
+            "label-md": ["Inter"],
+            "label-lg": ["Inter"],
+            "body-sm": ["Inter"],
+            "body-md": ["Inter"],
+            "body-lg": ["Newsreader"],
+            "headline-sm": ["Newsreader"],
+            "headline-md": ["Newsreader"],
+            "headline-lg": ["Newsreader"],
+            "display-lg": ["Newsreader"],
+            "display-lg-mobile": ["Newsreader"]
+          },
+          "fontSize": {
+            "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "500" }],
+            "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+            "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600" }],
+            "body-sm": ["13px", { "lineHeight": "18px", "fontWeight": "400" }],
+            "body-md": ["15px", { "lineHeight": "22px", "fontWeight": "400" }],
+            "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+            "headline-sm": ["19px", { "lineHeight": "26px", "fontWeight": "500" }],
+            "headline-md": ["22px", { "lineHeight": "28px", "fontWeight": "500" }],
+            "headline-lg": ["26px", { "lineHeight": "34px", "letterSpacing": "-0.01em", "fontWeight": "500" }],
+            "display-lg-mobile": ["30px", { "lineHeight": "38px", "letterSpacing": "-0.015em", "fontWeight": "400" }],
+            "display-lg": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "400" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      line-height: 1;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    /* Hide scrollbars gracefully for mobile theme carousels */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface antialiased min-h-screen flex justify-center selection:bg-secondary-fixed">
+<!-- Mobile Viewport Shell (412px max device container) -->
+<main class="w-full max-w-[412px] min-h-screen flex flex-col justify-between relative bg-background pb-32">
+<!-- 1. Top Bar (Close and Patron Edition) -->
+<header class="flex items-center justify-between px-5 pt-4 pb-2 z-20">
+<div class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed">
+<span class="material-symbols-outlined text-[15px]" data-icon="auto_stories">auto_stories</span>
+<span class="font-label-sm text-label-sm">Patron Edition</span>
+</div>
+<button aria-label="Dismiss" class="w-9 h-9 rounded-full flex items-center justify-center text-secondary hover:bg-surface-container-high transition-colors active:scale-95 duration-150" type="button">
+<span class="material-symbols-outlined text-[20px]" data-icon="close">close</span>
+</button>
+</header>
+<!-- Scrollable Editorial Content Container -->
+<div class="px-5 pt-2 flex flex-col space-y-6">
+<!-- Hero Header -->
+<section class="space-y-2">
+<h1 class="font-headline-lg text-headline-lg text-on-surface">Make every page yours</h1>
+<p class="font-body-md text-body-md text-secondary">
+          Unlock premium reading themes, handcrafted fonts, and visual style presets.
+        </p>
+</section>
+<!-- 2. Hero Visual Showcase: Overlapping / Carousel Theme Cards -->
+<section class="w-full overflow-hidden">
+<div class="flex space-x-3 overflow-x-auto no-scrollbar py-2 -mx-5 px-5 snap-x snap-mandatory">
+<!-- Theme Card 1: Warm Linen -->
+<article class="flex-shrink-0 w-[240px] snap-center rounded-2xl p-4 bg-[#F5EFEB] border border-[#E3DDD4] flex flex-col justify-between h-[210px] relative shadow-sm">
+<div>
+<div class="flex items-center justify-between mb-3">
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-[#E8E0D7] text-[#4A443E]">Linen</span>
+<span class="material-symbols-outlined text-[18px] text-[#A67C47]" data-icon="bookmark" data-weight="fill" style="font-variation-settings: 'FILL' 1;">bookmark</span>
+</div>
+<p class="font-body-lg text-[15px] leading-[22px] text-[#2D2A26] italic font-serif">
+                “I still remember the day that my father took me to the Cemetery of Forgotten Books…”
+              </p>
+</div>
+<div class="pt-2 border-t border-[#E3DDD4]/60 flex items-center justify-between text-[#736B63]">
+<span class="font-label-sm text-[10px]">Newsreader Serif</span>
+<span class="font-label-sm text-[10px]">Paper 100%</span>
+</div>
+</article>
+<!-- Theme Card 2: Midnight Blue -->
+<article class="flex-shrink-0 w-[240px] snap-center rounded-2xl p-4 bg-[#161E2E] border border-[#25324B] flex flex-col justify-between h-[210px] relative shadow-sm">
+<div>
+<div class="flex items-center justify-between mb-3">
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-[#222E46] text-[#AEC2E8]">Midnight Blue</span>
+<span class="material-symbols-outlined text-[18px] text-[#8EA7D8]" data-icon="nights_stay">nights_stay</span>
+</div>
+<p class="font-body-lg text-[15px] leading-[22px] text-[#FAF7F2] italic font-serif">
+                “I still remember the day that my father took me to the Cemetery of Forgotten Books…”
+              </p>
+</div>
+<div class="pt-2 border-t border-[#25324B]/70 flex items-center justify-between text-[#8292AF]">
+<span class="font-label-sm text-[10px]">Literata Book</span>
+<span class="font-label-sm text-[10px]">OLED Pure</span>
+</div>
+</article>
+<!-- Theme Card 3: Forest -->
+<article class="flex-shrink-0 w-[240px] snap-center rounded-2xl p-4 bg-[#1B2921] border border-[#283E32] flex flex-col justify-between h-[210px] relative shadow-sm">
+<div>
+<div class="flex items-center justify-between mb-3">
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-[#273B2F] text-[#B7D4C2]">Forest</span>
+<span class="material-symbols-outlined text-[18px] text-[#6E9E81]" data-icon="nature" data-weight="fill" style="font-variation-settings: 'FILL' 1;">nature</span>
+</div>
+<p class="font-body-lg text-[15px] leading-[22px] text-[#F3EFEA] italic font-serif">
+                “I still remember the day that my father took me to the Cemetery of Forgotten Books…”
+              </p>
+</div>
+<div class="pt-2 border-t border-[#283E32]/70 flex items-center justify-between text-[#8CA595]">
+<span class="font-label-sm text-[10px]">EB Garamond</span>
+<span class="font-label-sm text-[10px]">Calm Tint</span>
+</div>
+</article>
+</div>
+</section>
+<!-- 3. Feature List -->
+<section class="space-y-3 pt-1">
+<div class="flex items-start space-x-3">
+<div class="mt-0.5 w-5 h-5 rounded-full bg-primary-container text-on-primary flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-[13px]" data-icon="check">check</span>
+</div>
+<div class="flex-1">
+<p class="font-label-lg text-label-lg text-on-surface">12 handcrafted reading themes</p>
+<p class="font-body-sm text-body-sm text-secondary">Warm Linen, Midnight, Forest, Terracotta, Solar, and more.</p>
+</div>
+</div>
+<div class="flex items-start space-x-3">
+<div class="mt-0.5 w-5 h-5 rounded-full bg-primary-container text-on-primary flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-[13px]" data-icon="check">check</span>
+</div>
+<div class="flex-1">
+<p class="font-label-lg text-label-lg text-on-surface">8 editorial book fonts</p>
+<p class="font-body-sm text-body-sm text-secondary">Newsreader, Literata, Charter, Alegreya, EB Garamond.</p>
+</div>
+</div>
+<div class="flex items-start space-x-3">
+<div class="mt-0.5 w-5 h-5 rounded-full bg-primary-container text-on-primary flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-[13px]" data-icon="check">check</span>
+</div>
+<div class="flex-1">
+<p class="font-label-lg text-label-lg text-on-surface">Custom accent colors &amp; paper textures</p>
+<p class="font-body-sm text-body-sm text-secondary">Fine-tune margins, tactile paper grain, and tint saturation.</p>
+</div>
+</div>
+<div class="flex items-start space-x-3">
+<div class="mt-0.5 w-5 h-5 rounded-full bg-primary-container text-on-primary flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-[13px]" data-icon="check">check</span>
+</div>
+<div class="flex-1">
+<p class="font-label-lg text-label-lg text-on-surface">Reading statistics &amp; atmospheric soundscapes</p>
+<p class="font-body-sm text-body-sm text-secondary">Quiet pacing insights and gentle rain or fireplace audio.</p>
+</div>
+</div>
+</section>
+<!-- 4. Reassuring Ethos Note -->
+<section class="rounded-xl p-3.5 bg-surface-container-low border border-secondary-fixed flex items-center space-x-3">
+<span class="material-symbols-outlined text-secondary text-[22px] flex-shrink-0" data-icon="verified_user">verified_user</span>
+<p class="font-body-sm text-body-sm text-secondary leading-snug">
+<strong class="font-semibold text-on-surface">Reading, offline storage, dictionary, and search</strong> remain free forever. OpenPages is strictly DRM-free and private.
+        </p>
+</section>
+<!-- 5. Subscription & Purchase Options -->
+<section class="space-y-3 pt-1" id="pricing-options">
+<!-- Lifetime Card (Selected by Default) -->
+<label class="plan-option relative block cursor-pointer rounded-2xl p-4 bg-surface-container-lowest border-2 border-primary-container shadow-sm transition-all duration-150" for="plan-lifetime">
+<div class="flex items-start justify-between">
+<div class="flex items-center space-x-3">
+<input checked="" class="w-4 h-4 text-primary-container focus:ring-primary-container focus:ring-offset-0 border-secondary" id="plan-lifetime" name="plan_choice" type="radio" value="lifetime"/>
+<div>
+<div class="flex items-center space-x-2">
+<span class="font-label-lg text-label-lg text-on-surface">Lifetime</span>
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-primary-fixed text-on-primary-fixed-variant">Best Value</span>
+</div>
+<p class="font-body-sm text-body-sm text-secondary mt-0.5">Pay once. Own it forever.</p>
+</div>
+</div>
+<div class="text-right">
+<span class="font-headline-sm text-headline-sm text-on-surface font-serif">$14.99</span>
+<p class="font-label-sm text-label-sm text-secondary">one-time</p>
+</div>
+</div>
+</label>
+<!-- Yearly Card -->
+<label class="plan-option relative block cursor-pointer rounded-2xl p-4 bg-surface-container-lowest border border-secondary-fixed shadow-sm transition-all duration-150" for="plan-yearly">
+<div class="flex items-start justify-between">
+<div class="flex items-center space-x-3">
+<input class="w-4 h-4 text-primary-container focus:ring-primary-container focus:ring-offset-0 border-secondary" id="plan-yearly" name="plan_choice" type="radio" value="yearly"/>
+<div>
+<span class="font-label-lg text-label-lg text-on-surface">Yearly</span>
+<p class="font-body-sm text-body-sm text-secondary mt-0.5">~$0.42 / month • 7-day trial</p>
+</div>
+</div>
+<div class="text-right">
+<span class="font-headline-sm text-headline-sm text-on-surface font-serif">$4.99</span>
+<p class="font-label-sm text-label-sm text-secondary">/ year</p>
+</div>
+</div>
+</label>
+</section>
+</div>
+<!-- 6. Bottom Docked Action Area -->
+<footer class="fixed bottom-0 left-0 right-0 max-w-[412px] mx-auto px-5 pt-3 pb-6 bg-gradient-to-t from-background via-background/95 to-transparent z-30 flex flex-col items-center space-y-2">
+<!-- Primary Action CTA -->
+<button class="w-full h-12 rounded-full bg-primary-container text-on-primary font-label-lg text-label-lg flex items-center justify-center shadow-sm active:bg-on-primary-fixed-variant active:scale-[0.98] transition-all duration-150" type="button">
+        Unlock Premium
+      </button>
+<!-- Restore Purchases -->
+<div class="flex items-center justify-center pt-0.5">
+<button class="font-label-md text-label-md text-secondary hover:text-primary active:opacity-75 transition-colors duration-150" type="button">
+          Restore purchases
+        </button>
+</div>
+<!-- Legal / Reassurance -->
+<p class="font-label-sm text-[10px] leading-tight text-center text-secondary">
+        One-time purchase applies to all your Android devices. No account required.
+      </p>
+</footer>
+</main>
+<!-- Interactive script for plan toggle feedback -->
+<script>
+    const radioInputs = document.querySelectorAll('input[name="plan_choice"]');
+    const planLabels = document.querySelectorAll('.plan-option');
+
+    radioInputs.forEach(input => {
+      input.addEventListener('change', () => {
+        planLabels.forEach(label => {
+          const radio = label.querySelector('input[type="radio"]');
+          if (radio && radio.checked) {
+            label.classList.add('border-2', 'border-primary-container');
+            label.classList.remove('border-secondary-fixed');
+          } else {
+            label.classList.remove('border-2', 'border-primary-container');
+            label.classList.add('border', 'border-secondary-fixed');
+          }
+        });
+      });
+    });
+  </script>
+</body></html>

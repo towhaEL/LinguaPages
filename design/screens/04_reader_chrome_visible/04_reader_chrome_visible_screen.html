@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>OpenPages - Reader Chrome</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "inverse-primary": "#acc7fe",
+            "surface-bright": "#fcf9f4",
+            "secondary-fixed": "#eae1d7",
+            "on-surface-variant": "#44474f",
+            "primary-fixed-dim": "#acc7fe",
+            "on-secondary-container": "#68625a",
+            "on-tertiary-fixed": "#301400",
+            "surface-container-high": "#ebe8e3",
+            "surface-tint": "#445e8f",
+            "on-primary-container": "#a0bbf2",
+            "inverse-on-surface": "#f3f0eb",
+            "outline": "#747780",
+            "tertiary": "#502a0a",
+            "on-secondary-fixed": "#1f1b15",
+            "surface-variant": "#e5e2dd",
+            "on-secondary-fixed-variant": "#4b463f",
+            "on-primary-fixed-variant": "#2b4676",
+            "secondary-container": "#e7ded4",
+            "surface": "#fcf9f4",
+            "surface-container": "#f0ede9",
+            "on-tertiary": "#ffffff",
+            "on-primary": "#ffffff",
+            "on-surface": "#1c1c19",
+            "surface-container-highest": "#e5e2dd",
+            "tertiary-container": "#6b401e",
+            "background": "#fcf9f4",
+            "secondary": "#635d56",
+            "on-background": "#1c1c19",
+            "error-container": "#ffdad6",
+            "tertiary-fixed-dim": "#f7b98e",
+            "inverse-surface": "#31302d",
+            "on-primary-fixed": "#001a40",
+            "surface-container-lowest": "#ffffff",
+            "primary-container": "#2f4a7a",
+            "error": "#ba1a1a",
+            "on-tertiary-container": "#eaad83",
+            "tertiary-fixed": "#ffdcc5",
+            "on-secondary": "#ffffff",
+            "primary": "#153362",
+            "outline-variant": "#c4c6d0",
+            "on-error-container": "#93000a",
+            "on-error": "#ffffff",
+            "surface-dim": "#dcdad5",
+            "on-tertiary-fixed-variant": "#673d1b",
+            "primary-fixed": "#d7e2ff",
+            "secondary-fixed-dim": "#cec5bb",
+            "surface-container-low": "#f6f3ee"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-xl": "2.25rem",
+            "margin-tablet": "2rem",
+            "margin": "1.25rem",
+            "gutter": "1rem",
+            "space-md": "1rem",
+            "space-lg": "1.5rem",
+            "space-sm": "0.5rem",
+            "gutter-mobile": "0.75rem",
+            "space-xs": "0.25rem"
+          },
+          "fontFamily": {
+            "headline-md": ["Newsreader", "serif"],
+            "headline-sm": ["Newsreader", "serif"],
+            "headline-lg": ["Newsreader", "serif"],
+            "display-lg-mobile": ["Newsreader", "serif"],
+            "display-lg": ["Newsreader", "serif"],
+            "body-lg": ["Newsreader", "serif"],
+            "label-lg": ["Inter", "sans-serif"],
+            "label-md": ["Inter", "sans-serif"],
+            "label-sm": ["Inter", "sans-serif"],
+            "body-md": ["Inter", "sans-serif"],
+            "body-sm": ["Inter", "sans-serif"]
+          },
+          "fontSize": {
+            "headline-md": ["22px", { "lineHeight": "28px", "fontWeight": "500" }],
+            "headline-sm": ["19px", { "lineHeight": "26px", "fontWeight": "500" }],
+            "headline-lg": ["26px", { "lineHeight": "34px", "letterSpacing": "-0.01em", "fontWeight": "500" }],
+            "display-lg-mobile": ["30px", { "lineHeight": "38px", "letterSpacing": "-0.015em", "fontWeight": "400" }],
+            "display-lg": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "400" }],
+            "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+            "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600" }],
+            "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+            "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "500" }],
+            "body-md": ["15px", { "lineHeight": "22px", "fontWeight": "400" }],
+            "body-sm": ["13px", { "lineHeight": "18px", "fontWeight": "400" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-family: 'Material Symbols Outlined';
+      font-weight: normal;
+      font-style: normal;
+      font-size: 20px;
+      line-height: 1;
+      letter-spacing: normal;
+      text-transform: none;
+      display: inline-block;
+      white-space: nowrap;
+      word-wrap: normal;
+      direction: ltr;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+    .paper-canvas {
+      background-color: #F6F1E7;
+    }
+    .reading-text {
+      text-align: justify;
+      text-justify: inter-word;
+      hyphens: auto;
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface-dim text-on-surface antialiased flex justify-center items-center min-h-screen p-0 sm:p-4 selection:bg-secondary-fixed">
+<!-- Mobile Viewport Shell (412px x 915px) -->
+<div class="relative w-full max-w-[412px] h-[915px] max-h-[915px] overflow-hidden paper-canvas shadow-2xl flex flex-col justify-between sm:rounded-[36px] sm:ring-1 sm:ring-outline-variant/30 select-none">
+<!-- 1. UNDERLYING DIGITAL PAPER CANVAS -->
+<main class="absolute inset-0 px-6 pt-24 pb-48 overflow-hidden pointer-events-none flex flex-col justify-between">
+<div>
+<!-- Running Header Folio -->
+<header class="w-full text-center pb-8 opacity-65">
+<p class="font-body-sm text-body-sm text-secondary tracking-widest uppercase">
+            The Shadow of the Wind · Carlos Ruiz Zafón
+          </p>
+</header>
+<!-- Chapter Heading -->
+<div class="mb-7 text-center">
+<h1 class="font-headline-md text-headline-md italic text-on-surface font-normal tracking-wide">
+            Chapter Four: The Silent Harbour
+          </h1>
+<div class="w-8 h-[1px] bg-secondary-fixed-dim mx-auto mt-3"></div>
+</div>
+<!-- Literary Body Copy -->
+<article class="space-y-4 text-on-surface font-body-lg text-body-lg reading-text leading-[1.72] tracking-[0.01em]">
+<p class="first-letter:text-4xl first-letter:font-headline-lg first-letter:float-left first-letter:mr-2.5 first-letter:leading-none first-letter:text-primary-container">
+            I still remember the day that my father took me to the Cemetery of Forgotten Books for the first time. The early summer fog lingered in the cobblestones of Rambla de Santa Mónica like wet spun glass, veiling the gas lanterns in spectral halos.
+          </p>
+<p>
+            We stepped into the vaulted darkness, and my senses were enveloped by the intoxicating scent of ancient glue, damp parchment, and resting memories. Countless shelves ascended toward the skylights like cathedrals of untended wisdom, housing millions of discarded souls that waited for a living hand to bring their whispered lines back to wakefulness.
+          </p>
+<p>
+            "Every book you see here has a soul," my father spoke softly, resting a worn palm against my shoulder. "The soul of the person who wrote it and the souls of those who read it and dreamed with it."
+          </p>
+</article>
+</div>
+<!-- Bottom Folio Page -->
+<footer class="w-full text-center pt-4 opacity-75">
+<span class="font-label-md text-label-md text-secondary tracking-widest font-normal">142</span>
+</footer>
+</main>
+<!-- 2. FLOATING LEFT EDGE BRIGHTNESS CONTROL -->
+<aside class="absolute left-2.5 top-1/2 -translate-y-1/2 z-20 flex flex-col items-center gap-2 py-3 px-1.5 rounded-full bg-[#FAF7F2]/80 backdrop-blur-md border border-outline-variant/30 shadow-[0_4px_16px_rgba(28,27,26,0.06)]">
+<span class="material-symbols-outlined text-secondary text-[16px]" data-icon="brightness_5">brightness_5</span>
+<div class="w-1 h-24 bg-surface-container rounded-full relative overflow-hidden flex flex-col justify-end">
+<div class="w-full bg-primary-container rounded-full transition-all duration-300" style="height: 65%;"></div>
+</div>
+<span class="font-label-sm text-label-sm text-secondary text-[10px] scale-90">65</span>
+</aside>
+<!-- 3. TOP CHROME APP BAR (Translucent Overlay) -->
+<header class="relative z-30 w-full bg-[#F6F1E7]/90 backdrop-blur-md border-b border-outline-variant/30 pt-2 pb-2.5 px-4 shadow-sm">
+<!-- Android Status Bar -->
+<div class="flex justify-between items-center text-on-surface px-1 py-1 mb-1">
+<span class="font-label-md text-label-md font-semibold text-on-surface">9:41</span>
+<div class="flex items-center gap-1.5 text-on-surface">
+<span class="material-symbols-outlined text-[15px]" data-icon="wifi">wifi</span>
+<span class="material-symbols-outlined text-[15px]" data-icon="signal_cellular_alt">signal_cellular_alt</span>
+<span class="material-symbols-outlined text-[15px]" data-icon="battery_full">battery_full</span>
+</div>
+</div>
+<!-- Reader Navigation & Book Info -->
+<div class="flex items-center justify-between mt-0.5">
+<!-- Back Navigation Button -->
+<button aria-label="Return to library" class="w-9 h-9 flex items-center justify-center rounded-full text-on-surface hover:bg-secondary-container/40 active:bg-secondary-container/70 transition-colors" type="button">
+<span class="material-symbols-outlined" data-icon="arrow_back">arrow_back</span>
+</button>
+<!-- Center Metadata -->
+<div class="flex-1 text-center px-2">
+<h2 class="font-headline-sm text-headline-sm text-on-surface leading-tight truncate">
+            The Shadow of the Wind
+          </h2>
+<p class="font-label-sm text-label-sm text-secondary truncate mt-0.5">
+            Carlos Ruiz Zafón
+          </p>
+</div>
+<!-- Right Quick Actions -->
+<div class="flex items-center gap-0.5">
+<button aria-label="Search inside text" class="w-9 h-9 flex items-center justify-center rounded-full text-on-surface hover:bg-secondary-container/40 active:bg-secondary-container/70 transition-colors" type="button">
+<span class="material-symbols-outlined" data-icon="search">search</span>
+</button>
+<button aria-label="Bookmark page" class="w-9 h-9 flex items-center justify-center rounded-full text-primary-container hover:bg-secondary-container/40 active:bg-secondary-container/70 transition-colors" type="button">
+<span class="material-symbols-outlined" data-icon="bookmark_border">bookmark_border</span>
+</button>
+<button aria-label="Reader settings menu" class="w-9 h-9 flex items-center justify-center rounded-full text-on-surface hover:bg-secondary-container/40 active:bg-secondary-container/70 transition-colors" type="button">
+<span class="material-symbols-outlined" data-icon="more_vert">more_vert</span>
+</button>
+</div>
+</div>
+</header>
+<!-- 4. BOTTOM CHROME SHEET / PANEL (Docked Bottom, Rounded Top) -->
+<section class="relative z-30 w-full bg-[#FAF7F2]/95 backdrop-blur-lg rounded-t-[28px] border-t border-outline-variant/30 shadow-[0_-8px_28px_rgba(28,27,26,0.08)] px-5 pt-3 pb-3 flex flex-col gap-3">
+<!-- Top Grab Handle -->
+<div class="w-10 h-1 bg-outline-variant/60 rounded-full mx-auto mb-1"></div>
+<!-- Chapter Progress Status Row -->
+<div class="flex items-center justify-between">
+<div class="space-y-0.5">
+<h3 class="font-headline-sm text-headline-sm font-semibold text-on-surface">Chapter Four</h3>
+<p class="font-label-md text-label-md text-secondary">
+            Page 142 of 380 <span class="mx-1 text-outline-variant">·</span> 12 min left in chapter
+          </p>
+</div>
+<div class="px-2.5 py-1 rounded-full bg-primary-container text-surface-bright font-label-md text-label-md tracking-wide">
+          37%
+        </div>
+</div>
+<!-- Scrubber / Progress Slider -->
+<div class="flex items-center gap-2 pt-1">
+<button aria-label="Previous Chapter" class="w-8 h-8 flex items-center justify-center rounded-full text-secondary hover:text-primary-container hover:bg-secondary-container/50 active:scale-95 transition-all" type="button">
+<span class="material-symbols-outlined text-[22px]" data-icon="navigate_before">navigate_before</span>
+</button>
+<!-- Slider Bar with Chapter Ticks -->
+<div class="flex-1 relative flex items-center h-6 cursor-pointer group">
+<!-- Track Base -->
+<div class="w-full h-1.5 bg-secondary-fixed rounded-full relative overflow-hidden">
+<!-- Filled Progress -->
+<div class="h-full bg-primary-container rounded-full" style="width: 37%;"></div>
+</div>
+<!-- Delicate Chapter Ticks Along Track -->
+<div class="absolute inset-x-0 flex justify-between pointer-events-none px-1">
+<span class="w-[2px] h-2.5 bg-surface-container-lowest/80 rounded-full"></span>
+<span class="w-[2px] h-2.5 bg-surface-container-lowest/80 rounded-full"></span>
+<span class="w-[2px] h-2.5 bg-surface-container-lowest/80 rounded-full"></span>
+<span class="w-[2px] h-2.5 bg-surface-container-lowest/80 rounded-full"></span>
+<span class="w-[2px] h-2.5 bg-secondary-fixed-dim rounded-full"></span>
+<span class="w-[2px] h-2.5 bg-secondary-fixed-dim rounded-full"></span>
+<span class="w-[2px] h-2.5 bg-secondary-fixed-dim rounded-full"></span>
+</div>
+<!-- Scrubber Thumb -->
+<div class="absolute top-1/2 -translate-y-1/2 -ml-2.5 w-5 h-5 rounded-full bg-surface-container-lowest border-2 border-primary-container shadow-md group-active:scale-110 transition-transform" style="left: 37%;"></div>
+</div>
+<button aria-label="Next Chapter" class="w-8 h-8 flex items-center justify-center rounded-full text-secondary hover:text-primary-container hover:bg-secondary-container/50 active:scale-95 transition-all" type="button">
+<span class="material-symbols-outlined text-[22px]" data-icon="navigate_next">navigate_next</span>
+</button>
+</div>
+<!-- Bottom Action Control Grid (4 Balanced Labeled Outlined Icon Buttons) -->
+<nav aria-label="Reader tools" class="grid grid-cols-4 gap-2.5 pt-1.5">
+<!-- Tool 1: Contents -->
+<button class="flex flex-col items-center justify-center py-2 px-1 rounded-xl border border-outline-variant/40 bg-surface-container-lowest/60 hover:bg-surface-container-lowest active:bg-secondary-container/40 transition-colors" type="button">
+<span class="material-symbols-outlined text-secondary group-hover:text-primary" data-icon="format_list_bulleted">format_list_bulleted</span>
+<span class="font-label-sm text-label-sm text-on-surface mt-1 font-medium">Contents</span>
+</button>
+<!-- Tool 2: Appearance -->
+<button class="flex flex-col items-center justify-center py-2 px-1 rounded-xl border border-outline-variant/40 bg-surface-container-lowest/60 hover:bg-surface-container-lowest active:bg-secondary-container/40 transition-colors" type="button">
+<span class="material-symbols-outlined text-secondary" data-icon="text_fields">text_fields</span>
+<span class="font-label-sm text-label-sm text-on-surface mt-1 font-medium">Appearance</span>
+</button>
+<!-- Tool 3: Listen -->
+<button class="flex flex-col items-center justify-center py-2 px-1 rounded-xl border border-outline-variant/40 bg-surface-container-lowest/60 hover:bg-surface-container-lowest active:bg-secondary-container/40 transition-colors" type="button">
+<span class="material-symbols-outlined text-secondary" data-icon="headphones">headphones</span>
+<span class="font-label-sm text-label-sm text-on-surface mt-1 font-medium">Listen</span>
+</button>
+<!-- Tool 4: Notes -->
+<button class="flex flex-col items-center justify-center py-2 px-1 rounded-xl border border-outline-variant/40 bg-surface-container-lowest/60 hover:bg-surface-container-lowest active:bg-secondary-container/40 transition-colors" type="button">
+<span class="material-symbols-outlined text-secondary" data-icon="edit_note">edit_note</span>
+<span class="font-label-sm text-label-sm text-on-surface mt-1 font-medium">Notes</span>
+</button>
+</nav>
+<!-- Android System Navigation Gesture Pill Bar -->
+<footer class="w-full flex justify-center pt-2 pb-0.5">
+<div class="w-32 h-1 bg-on-surface/40 rounded-full"></div>
+</footer>
+</section>
+</div>
+</body></html>

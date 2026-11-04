@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>OpenPages - Text Selection &amp; Dictionary Definition</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-tertiary": "#ffffff",
+            "on-surface-variant": "#44474f",
+            "tertiary-fixed": "#ffdcc5",
+            "surface-container-low": "#f6f3ee",
+            "secondary-fixed-dim": "#cec5bb",
+            "surface-container-lowest": "#ffffff",
+            "surface-container": "#f0ede9",
+            "surface": "#fcf9f4",
+            "error-container": "#ffdad6",
+            "surface-tint": "#445e8f",
+            "on-secondary-fixed": "#1f1b15",
+            "inverse-on-surface": "#f3f0eb",
+            "on-primary-container": "#a0bbf2",
+            "secondary": "#635d56",
+            "outline": "#747780",
+            "inverse-primary": "#acc7fe",
+            "surface-container-high": "#ebe8e3",
+            "secondary-fixed": "#eae1d7",
+            "tertiary-container": "#6b401e",
+            "primary-fixed": "#d7e2ff",
+            "on-secondary-container": "#68625a",
+            "surface-container-highest": "#e5e2dd",
+            "surface-variant": "#e5e2dd",
+            "on-tertiary-fixed": "#301400",
+            "on-tertiary-container": "#eaad83",
+            "on-error": "#ffffff",
+            "error": "#ba1a1a",
+            "primary-fixed-dim": "#acc7fe",
+            "surface-dim": "#dcdad5",
+            "tertiary": "#502a0a",
+            "tertiary-fixed-dim": "#f7b98e",
+            "secondary-container": "#e7ded4",
+            "surface-bright": "#fcf9f4",
+            "on-secondary": "#ffffff",
+            "primary": "#153362",
+            "background": "#fcf9f4",
+            "on-secondary-fixed-variant": "#4b463f",
+            "on-primary-fixed": "#001a40",
+            "on-error-container": "#93000a",
+            "on-tertiary-fixed-variant": "#673d1b",
+            "inverse-surface": "#31302d",
+            "primary-container": "#2f4a7a",
+            "outline-variant": "#c4c6d0",
+            "on-primary-fixed-variant": "#2b4676",
+            "on-surface": "#1c1c19",
+            "on-background": "#1c1c19",
+            "on-primary": "#ffffff"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-xs": "0.25rem",
+            "gutter": "1rem",
+            "margin-tablet": "2rem",
+            "space-md": "1rem",
+            "space-lg": "1.5rem",
+            "margin": "1.25rem",
+            "space-sm": "0.5rem",
+            "space-xl": "2.25rem",
+            "gutter-mobile": "0.75rem"
+          },
+          "fontFamily": {
+            "display-lg-mobile": ["Newsreader", "serif"],
+            "headline-lg": ["Newsreader", "serif"],
+            "label-lg": ["Inter", "sans-serif"],
+            "display-lg": ["Newsreader", "serif"],
+            "body-sm": ["Inter", "sans-serif"],
+            "headline-sm": ["Newsreader", "serif"],
+            "headline-md": ["Newsreader", "serif"],
+            "label-md": ["Inter", "sans-serif"],
+            "body-md": ["Inter", "sans-serif"],
+            "body-lg": ["Newsreader", "serif"],
+            "label-sm": ["Inter", "sans-serif"]
+          },
+          "fontSize": {
+            "display-lg-mobile": ["30px", { "lineHeight": "38px", "letterSpacing": "-0.015em", "fontWeight": "400" }],
+            "headline-lg": ["26px", { "lineHeight": "34px", "letterSpacing": "-0.01em", "fontWeight": "500" }],
+            "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600" }],
+            "display-lg": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "400" }],
+            "body-sm": ["13px", { "lineHeight": "18px", "fontWeight": "400" }],
+            "headline-sm": ["19px", { "lineHeight": "26px", "fontWeight": "500" }],
+            "headline-md": ["22px", { "lineHeight": "28px", "fontWeight": "500" }],
+            "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+            "body-md": ["15px", { "lineHeight": "22px", "fontWeight": "400" }],
+            "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+            "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "500" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-family: 'Material Symbols Outlined';
+      font-weight: normal;
+      font-style: normal;
+      font-size: 20px;
+      line-height: 1;
+      display: inline-block;
+      text-transform: none;
+      letter-spacing: normal;
+      word-wrap: normal;
+      white-space: nowrap;
+      direction: ltr;
+      -webkit-font-smoothing: antialiased;
+    }
+    /* Custom selection teardrop pins */
+    .selection-handle-left::after {
+      content: '';
+      position: absolute;
+      bottom: -6px;
+      left: -4px;
+      width: 8px;
+      height: 8px;
+      background-color: #2F4A7A;
+      border-radius: 50% 0 50% 50%;
+      transform: rotate(45deg);
+    }
+    .selection-handle-right::after {
+      content: '';
+      position: absolute;
+      bottom: -6px;
+      right: -4px;
+      width: 8px;
+      height: 8px;
+      background-color: #2F4A7A;
+      border-radius: 0 50% 50% 50%;
+      transform: rotate(45deg);
+    }
+    /* Hide scrollbars elegantly */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-[#2D2A26] flex items-center justify-center min-h-screen p-0 sm:p-4 select-none">
+<!-- Mobile Viewport Frame (412x915 Standard Android M3 Canvas) -->
+<main class="w-[412px] h-[915px] max-w-full max-h-screen bg-[#F6F1E7] relative overflow-hidden shadow-2xl flex flex-col justify-between">
+<!-- 1. Top Android Status Bar -->
+<header class="w-full pt-3 px-6 pb-2 flex justify-between items-center z-10 text-on-surface/70 select-none">
+<div class="text-label-md font-label-md font-semibold tracking-tight">9:41</div>
+<div class="flex items-center space-x-2">
+<span class="material-symbols-outlined text-[16px]">signal_cellular_alt</span>
+<span class="material-symbols-outlined text-[16px]">wifi</span>
+<span class="material-symbols-outlined text-[18px]">battery_full</span>
+</div>
+</header>
+<!-- 2. Dimmed Reader Background Canvas -->
+<div class="flex-1 px-7 pt-2 pb-6 relative overflow-hidden flex flex-col justify-start">
+<!-- Chapter Running Head & Bookmark -->
+<div class="flex items-center justify-between pb-6 pt-1 text-secondary/80">
+<div class="flex flex-col">
+<span class="text-[10px] tracking-[0.16em] uppercase font-label-md font-semibold text-secondary">Chapter Four · The Silent Harbour</span>
+<span class="text-label-sm font-label-sm text-secondary/70 mt-0.5">The Shadow of the Wind · Carlos Ruiz Zafón</span>
+</div>
+<button class="w-8 h-8 rounded-full flex items-center justify-center text-secondary hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]">bookmark</span>
+</button>
+</div>
+<!-- Book Paragraph with Active Literary Text Selection -->
+<article class="relative mt-2 text-on-surface leading-[30px] font-body-lg text-body-lg text-justify tracking-normal">
+<p class="mb-4">
+<span class="float-left text-5xl font-headline-lg font-normal leading-[42px] pr-3 pt-1 text-primary">I</span>
+          never learned if the damp morning wind had swept across the cathedrals from the open sea, or if it had been exhaled by the stones themselves. In those hours, shadows clung to the iron balconies like damp cloth, and the salt mist hung low over the 
+          
+          <!-- Highlighted/Selected Target Word -->
+<span class="relative inline-block bg-primary-container/15 text-primary-container font-medium px-1 rounded-sm">
+<!-- Left Cursor Handle -->
+<span class="absolute -left-[1px] top-0 bottom-0 w-[2px] bg-primary-container selection-handle-left"></span>
+            littoral
+            <!-- Right Cursor Handle -->
+<span class="absolute -right-[1px] top-0 bottom-0 w-[2px] bg-primary-container selection-handle-right"></span>
+</span>
+          
+          stones where forgotten vessels lay dormant in the twilight. Everything seemed constructed of quiet dust and dried sea salt.
+        </p>
+<p class="text-secondary/75 mt-4">
+          The sound of the bell tower reached the docks muffled, as though the heavy air were swallowing every vibration before it could pierce the cemetery gates.
+        </p>
+</article>
+<!-- 3. Floating Selection Contextual Toolbar -->
+<!-- Positioned seamlessly above the selection area -->
+<div class="absolute left-6 right-6 top-[204px] z-30 flex flex-col items-center">
+<div class="bg-white/95 backdrop-blur-md rounded-2xl shadow-[0_10px_25px_-5px_rgba(28,27,26,0.12),0_4px_10px_rgba(28,27,26,0.06)] border border-[#E8E2D9] px-2.5 py-1.5 flex items-center space-x-1">
+<!-- Highlight Action with Color Dot Accents -->
+<button class="flex items-center space-x-1.5 px-2.5 py-1.5 rounded-xl hover:bg-surface-container transition-colors group" title="Highlight">
+<span class="material-symbols-outlined text-[19px] text-secondary group-hover:text-primary">brush</span>
+<div class="flex items-center space-x-0.5">
+<span class="w-2 h-2 rounded-full bg-[#FDE047]"></span>
+<span class="w-2 h-2 rounded-full bg-[#86EFAC]"></span>
+<span class="w-2 h-2 rounded-full bg-[#93C5FD]"></span>
+<span class="w-2 h-2 rounded-full bg-[#F472B6]"></span>
+<span class="w-2 h-2 rounded-full bg-[#FDBA74]"></span>
+</div>
+</button>
+<span class="w-[1px] h-4 bg-outline-variant/40 mx-0.5"></span>
+<!-- Add Note -->
+<button class="flex items-center px-2 py-1.5 rounded-xl hover:bg-surface-container text-secondary hover:text-primary transition-colors" title="Add Note">
+<span class="material-symbols-outlined text-[20px]">edit_note</span>
+</button>
+<!-- Define (Active Action State) -->
+<button class="flex items-center space-x-1 px-3 py-1.5 rounded-xl bg-primary text-white font-label-md text-label-md shadow-sm transition-all" title="Define">
+<span class="material-symbols-outlined text-[18px]">local_library</span>
+<span>Define</span>
+</button>
+<!-- Copy -->
+<button class="flex items-center px-2 py-1.5 rounded-xl hover:bg-surface-container text-secondary hover:text-primary transition-colors" title="Copy">
+<span class="material-symbols-outlined text-[19px]">content_copy</span>
+</button>
+<!-- Share -->
+<button class="flex items-center px-2 py-1.5 rounded-xl hover:bg-surface-container text-secondary hover:text-primary transition-colors" title="Share">
+<span class="material-symbols-outlined text-[19px]">share</span>
+</button>
+<!-- More options -->
+<button class="flex items-center px-1.5 py-1.5 rounded-xl hover:bg-surface-container text-secondary hover:text-primary transition-colors" title="More">
+<span class="material-symbols-outlined text-[20px]">more_horiz</span>
+</button>
+</div>
+<!-- Atmospheric subtle pointer indicator -->
+<div class="w-2.5 h-2.5 bg-white border-r border-b border-[#E8E2D9] rotate-45 -mt-1.5 shadow-sm"></div>
+</div>
+</div>
+<!-- Scrim Backdrop Overlay for Reader content when modal is elevated -->
+<div class="absolute inset-0 bg-[#1C1B1A]/20 pointer-events-none z-30 transition-opacity"></div>
+<!-- 4. Bottom Modal Dictionary Sheet -->
+<section class="relative z-40 bg-white rounded-t-[28px] shadow-[0_-8px_32px_rgba(28,27,26,0.14)] border-t border-[#E8E2D9] flex flex-col max-h-[510px] w-full animate-in slide-in-from-bottom duration-300">
+<!-- Drag Handle -->
+<div class="w-full flex justify-center pt-2.5 pb-1 cursor-grab">
+<div class="w-10 h-1 rounded-full bg-[#DCDAD5]"></div>
+</div>
+<!-- Sheet Header & Word Definition Identification -->
+<div class="px-6 pt-2 pb-3">
+<div class="flex items-start justify-between">
+<div>
+<div class="flex items-baseline space-x-2.5">
+<h2 class="text-3xl font-headline-lg font-semibold tracking-tight text-on-surface">littoral</h2>
+<span class="text-label-md font-label-md text-secondary font-normal tracking-wide">/ˈlɪt(ə)rəl/</span>
+<!-- Pronunciation Audio Button -->
+<button class="w-7 h-7 rounded-full bg-surface-container-low hover:bg-surface-container-high border border-[#E8E2D9] flex items-center justify-center text-primary transition-colors active:scale-95" title="Listen to pronunciation">
+<span class="material-symbols-outlined text-[16px]">volume_up</span>
+</button>
+</div>
+<!-- Etymology pill note -->
+<div class="flex items-center space-x-1.5 mt-1.5 text-secondary">
+<span class="material-symbols-outlined text-[15px] text-secondary">history_edu</span>
+<p class="text-label-sm font-label-sm italic text-secondary">Latin <span class="font-medium text-on-surface">littoralis</span>, from <span class="italic">litus</span> (‘shore’)</p>
+</div>
+</div>
+<!-- Actions: Star/Bookmark & Close Sheet -->
+<div class="flex items-center space-x-1.5 pt-0.5">
+<button class="w-8 h-8 rounded-full flex items-center justify-center text-secondary hover:text-primary hover:bg-surface-container transition-colors" title="Save word">
+<span class="material-symbols-outlined text-[20px]">bookmark_add</span>
+</button>
+<button class="w-8 h-8 rounded-full flex items-center justify-center text-secondary hover:text-on-surface hover:bg-surface-container transition-colors" title="Close dictionary">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+</div>
+<!-- Part-of-Speech Filter Chips -->
+<div class="flex items-center space-x-2 mt-3.5">
+<button class="px-3.5 py-1 rounded-full bg-primary-container text-white text-label-sm font-label-sm font-medium transition-all shadow-sm">
+            adjective
+          </button>
+<button class="px-3.5 py-1 rounded-full bg-surface-container-low text-secondary border border-[#E8E2D9] text-label-sm font-label-sm hover:bg-surface-container transition-all">
+            noun
+          </button>
+<div class="text-[11px] font-label-sm text-secondary/70 ml-auto flex items-center space-x-1">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+<span>Local Lexicon</span>
+</div>
+</div>
+</div>
+<!-- Hairline Division -->
+<div class="h-[1px] w-full bg-[#E8E2D9]/80"></div>
+<!-- Scrollable Definitions Content -->
+<div class="px-6 py-3.5 overflow-y-auto max-h-[250px] no-scrollbar space-y-3.5 text-left">
+<!-- Definition 1 -->
+<div class="space-y-1">
+<p class="text-body-md font-body-md text-on-surface leading-snug">
+<span class="font-semibold text-primary">1.</span> Relating to, or situated on the shore of the sea or a lake.
+          </p>
+<blockquote class="pl-3 border-l-2 border-primary-container/30 text-secondary italic font-body-lg text-[14px] leading-relaxed">
+            “The littoral zone teemed with ancient kelp and brine-crusted stones.”
+          </blockquote>
+</div>
+<!-- Definition 2 -->
+<div class="space-y-1 pt-1">
+<p class="text-body-md font-body-md text-on-surface leading-snug">
+<span class="font-semibold text-primary">2.</span> <span class="text-label-sm font-label-sm text-secondary uppercase tracking-wider font-semibold mr-1">(Ecology)</span> Of or pertaining to the biogeographic region between high and low tide marks.
+          </p>
+<blockquote class="pl-3 border-l-2 border-primary-container/30 text-secondary italic font-body-lg text-[14px] leading-relaxed">
+            “A delicate littoral ecosystem vulnerable to maritime surges.”
+          </blockquote>
+</div>
+<!-- Definition 3 -->
+<div class="space-y-1 pt-1">
+<p class="text-body-md font-body-md text-on-surface leading-snug">
+<span class="font-semibold text-secondary">3.</span> <span class="text-label-sm font-label-sm text-secondary uppercase tracking-wider font-semibold mr-1">(Noun)</span> A coastal region; shore zone.
+          </p>
+</div>
+<!-- Fast Action Row inside Sheet -->
+<div class="pt-2 flex items-center space-x-2">
+<button class="flex-1 py-2 px-3 rounded-full bg-surface-container-low hover:bg-surface-container border border-[#E8E2D9] text-on-surface font-label-sm text-label-sm flex items-center justify-center space-x-1.5 transition-colors">
+<span class="material-symbols-outlined text-[16px] text-primary">style</span>
+<span>Add to Flashcards</span>
+</button>
+<button class="py-2 px-3 rounded-full bg-surface-container-low hover:bg-surface-container border border-[#E8E2D9] text-secondary font-label-sm text-label-sm flex items-center justify-center space-x-1 transition-colors" title="Copy Full Definition">
+<span class="material-symbols-outlined text-[16px]">content_copy</span>
+<span>Copy</span>
+</button>
+<button class="py-2 px-3 rounded-full bg-surface-container-low hover:bg-surface-container border border-[#E8E2D9] text-secondary font-label-sm text-label-sm flex items-center justify-center space-x-1 transition-colors" title="Full entry">
+<span class="material-symbols-outlined text-[16px]">open_in_new</span>
+</button>
+</div>
+</div>
+<!-- Sheet Footer: Offline Provenance -->
+<footer class="mt-auto px-6 py-2.5 border-t border-[#E8E2D9] bg-surface-container-low/40 flex items-center justify-between text-secondary">
+<div class="flex items-center space-x-1.5 text-[11px] font-label-sm">
+<span class="material-symbols-outlined text-[14px] text-primary">verified_user</span>
+<span>From Wiktionary · CC BY-SA 3.0 · Offline Lexicon</span>
+</div>
+<div class="flex items-center space-x-1 text-[11px] font-label-sm font-medium text-secondary">
+<span class="material-symbols-outlined text-[13px] text-emerald-700">wifi_off</span>
+<span>0 B used</span>
+</div>
+</footer>
+<!-- Android System Gesture Pill Handle -->
+<div class="w-full flex justify-center pb-2 pt-1">
+<div class="w-32 h-1 rounded-full bg-[#1C1B1A]/30"></div>
+</div>
+</section>
+</main>
+</body></html>

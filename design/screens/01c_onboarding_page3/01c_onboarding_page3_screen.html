@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>OpenPages - Onboarding</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "secondary": "#635d56",
+            "on-secondary-fixed-variant": "#4b463f",
+            "surface-dim": "#dcdad5",
+            "surface-container-high": "#ebe8e3",
+            "surface-container-lowest": "#ffffff",
+            "on-error-container": "#93000a",
+            "outline-variant": "#c4c6d0",
+            "secondary-container": "#e7ded4",
+            "error-container": "#ffdad6",
+            "primary-fixed": "#d7e2ff",
+            "on-primary": "#ffffff",
+            "outline": "#747780",
+            "on-primary-fixed": "#001a40",
+            "tertiary-container": "#6b401e",
+            "surface-container-low": "#f6f3ee",
+            "on-background": "#1c1c19",
+            "on-surface": "#1c1c19",
+            "on-secondary-fixed": "#1f1b15",
+            "on-error": "#ffffff",
+            "on-surface-variant": "#44474f",
+            "secondary-fixed-dim": "#cec5bb",
+            "on-tertiary-fixed-variant": "#673d1b",
+            "background": "#fcf9f4",
+            "surface": "#fcf9f4",
+            "on-tertiary": "#ffffff",
+            "inverse-primary": "#acc7fe",
+            "tertiary": "#502a0a",
+            "on-secondary-container": "#68625a",
+            "error": "#ba1a1a",
+            "on-secondary": "#ffffff",
+            "secondary-fixed": "#eae1d7",
+            "tertiary-fixed": "#ffdcc5",
+            "on-tertiary-fixed": "#301400",
+            "inverse-surface": "#31302d",
+            "primary-container": "#2f4a7a",
+            "on-primary-container": "#a0bbf2",
+            "on-tertiary-container": "#eaad83",
+            "primary-fixed-dim": "#acc7fe",
+            "primary": "#153362",
+            "on-primary-fixed-variant": "#2b4676",
+            "surface-variant": "#e5e2dd",
+            "surface-container-highest": "#e5e2dd",
+            "inverse-on-surface": "#f3f0eb",
+            "tertiary-fixed-dim": "#f7b98e",
+            "surface-container": "#f0ede9",
+            "surface-tint": "#445e8f",
+            "surface-bright": "#fcf9f4"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-xs": "0.25rem",
+            "margin-tablet": "2rem",
+            "margin": "1.25rem",
+            "gutter": "1rem",
+            "gutter-mobile": "0.75rem",
+            "space-lg": "1.5rem",
+            "space-xl": "2.25rem",
+            "space-md": "1rem",
+            "space-sm": "0.5rem"
+          },
+          "fontFamily": {
+            "label-sm": ["Inter"],
+            "headline-lg": ["Newsreader"],
+            "body-md": ["Inter"],
+            "body-lg": ["Newsreader"],
+            "headline-sm": ["Newsreader"],
+            "display-lg-mobile": ["Newsreader"],
+            "body-sm": ["Inter"],
+            "headline-md": ["Newsreader"],
+            "display-lg": ["Newsreader"],
+            "label-lg": ["Inter"],
+            "label-md": ["Inter"]
+          },
+          "fontSize": {
+            "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "500" }],
+            "headline-lg": ["26px", { "lineHeight": "34px", "letterSpacing": "-0.01em", "fontWeight": "500" }],
+            "body-md": ["15px", { "lineHeight": "22px", "fontWeight": "400" }],
+            "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+            "headline-sm": ["19px", { "lineHeight": "26px", "fontWeight": "500" }],
+            "display-lg-mobile": ["30px", { "lineHeight": "38px", "letterSpacing": "-0.015em", "fontWeight": "400" }],
+            "body-sm": ["13px", { "lineHeight": "18px", "fontWeight": "400" }],
+            "headline-md": ["22px", { "lineHeight": "28px", "fontWeight": "500" }],
+            "display-lg": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "400" }],
+            "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600" }],
+            "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      display: inline-block;
+      vertical-align: middle;
+      line-height: 1;
+    }
+  </style>
+</head>
+<body class="bg-background text-on-surface antialiased selection:bg-secondary-fixed flex justify-center min-h-screen">
+<!-- Mobile Frame Container (412x915 Target Canvas) -->
+<main class="w-full max-w-[412px] min-h-screen bg-background flex flex-col justify-between relative shadow-sm overflow-x-hidden">
+<!-- Top Utility Bar (Shared TopAppBar Specs) -->
+<header class="bg-surface dark:bg-surface border-b border-outline-variant/30 dark:border-outline/20">
+<div class="flex justify-between items-center w-full px-5 py-3.5 max-w-2xl mx-auto">
+<!-- Logo / Brand anchor -->
+<div class="flex items-center gap-2 text-on-surface">
+<span class="material-symbols-outlined text-primary text-[22px]">local_library</span>
+<span class="font-headline-md text-headline-md font-medium text-on-surface tracking-tight">OpenPages</span>
+</div>
+<!-- Trailing action -->
+<button class="text-secondary hover:text-primary transition-colors duration-150 active:opacity-80 font-label-md text-label-md px-2 py-1 -mr-2" type="button">
+          Skip
+        </button>
+</div>
+</header>
+<!-- Content Stage (Upper and Middle Sections) -->
+<div class="flex-1 flex flex-col px-5 pt-3 pb-4">
+<!-- Hero Illustration Canvas -->
+<section class="w-full flex flex-col items-center">
+<div class="w-full aspect-[4/3.5] max-h-[310px] rounded-3xl overflow-hidden bg-surface-container-lowest border border-surface-variant flex items-center justify-center relative p-3">
+<img alt="OpenPages Audio Reading Illustration" class="w-full h-full object-contain mix-blend-multiply" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAefCiPk1eQYahH9InBKv8--0_ehBHPf0Rln8QZ24tiWmehD3wR-sL8mRM4zY0VfQxtMHW11L1C0rgRZ5ulpWScv7UOqc7dJvRostCImMqQzgVaub7VtVRf-h663FKqVsKUN_7y7F_OjhldvUVZeA5j5TZkHAhXbAXm_vRaHZ5265AFNq9Y3Yiof61eXe6EzG5T_-fOIcdIdqAZYqvtQO4yoQkDpOnbcn2oRLM3NraiyDLUXcwsE4ZuH26ZZBCybquVRHfv5eRs3Kw"/>
+</div>
+<!-- Pill Badges Group -->
+<div class="flex flex-wrap items-center justify-center gap-2 mt-4 px-1">
+<!-- Chip 1 -->
+<div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-container-lowest border border-surface-variant">
+<span class="material-symbols-outlined text-primary text-[17px]">record_voice_over</span>
+<span class="font-label-md text-label-md text-secondary">Natural Voices</span>
+</div>
+<!-- Chip 2 -->
+<div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-container-lowest border border-surface-variant">
+<span class="material-symbols-outlined text-primary text-[17px]">format_underlined</span>
+<span class="font-label-md text-label-md text-secondary">Sentence Tracking</span>
+</div>
+<!-- Chip 3 -->
+<div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-container-lowest border border-surface-variant">
+<span class="material-symbols-outlined text-primary text-[17px]">bedtime</span>
+<span class="font-label-md text-label-md text-secondary">Sleep Timer</span>
+</div>
+</div>
+</section>
+<!-- Headline & Descriptive Narrative -->
+<section class="mt-6 flex flex-col items-center text-center px-2">
+<h1 class="font-display-lg-mobile text-display-lg-mobile text-on-surface tracking-tight">
+          Listen when your eyes rest
+        </h1>
+<p class="font-body-md text-body-md text-secondary max-w-[290px] mx-auto mt-2 leading-relaxed">
+          Text-to-speech read aloud with natural voices, sentence tracking, and sleep timer, even when your screen is locked.
+        </p>
+</section>
+</div>
+<!-- Navigation & Bottom Actions Section -->
+<footer class="px-5 pb-7 pt-2 flex flex-col items-center w-full">
+<!-- Carousel Indicators (Page 3 of 4 Active) -->
+<div aria-label="Onboarding carousel pagination" class="flex items-center justify-center gap-2 mb-6">
+<span class="w-1.5 h-1.5 rounded-full bg-surface-dim transition-all"></span>
+<span class="w-1.5 h-1.5 rounded-full bg-surface-dim transition-all"></span>
+<span aria-current="true" class="w-6 h-1.5 rounded-full bg-primary-container transition-all"></span>
+<span class="w-1.5 h-1.5 rounded-full bg-surface-dim transition-all"></span>
+</div>
+<!-- Primary Action CTA -->
+<button class="w-full h-14 rounded-full bg-primary-container text-surface-container-lowest font-label-lg text-label-lg flex items-center justify-center gap-2 hover:bg-primary transition-all duration-150 active:scale-[0.99] shadow-sm cursor-pointer" type="button">
+<span>Next</span>
+<span class="material-symbols-outlined text-[19px]">arrow_forward</span>
+</button>
+<!-- Offline & Privacy Trust Assurance -->
+<div class="flex items-center justify-center gap-1.5 mt-4 text-secondary">
+<span class="material-symbols-outlined text-[15px] text-secondary">lock</span>
+<span class="font-label-sm text-label-sm text-secondary">
+          Offline-first &amp; zero telemetry · Background audio session
+        </span>
+</div>
+</footer>
+</main>
+</body></html>

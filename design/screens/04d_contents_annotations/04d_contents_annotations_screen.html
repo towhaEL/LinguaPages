@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>OpenPages - Table of Contents and Annotations</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "surface-container-low": "#f6f3ee",
+            "secondary-container": "#e7ded4",
+            "tertiary": "#502a0a",
+            "on-secondary-fixed": "#1f1b15",
+            "on-primary": "#ffffff",
+            "surface": "#fcf9f4",
+            "background": "#fcf9f4",
+            "on-primary-fixed-variant": "#2b4676",
+            "surface-container-high": "#ebe8e3",
+            "on-tertiary-fixed-variant": "#673d1b",
+            "inverse-on-surface": "#f3f0eb",
+            "secondary": "#635d56",
+            "secondary-fixed": "#eae1d7",
+            "outline-variant": "#c4c6d0",
+            "on-tertiary-fixed": "#301400",
+            "on-secondary-container": "#68625a",
+            "primary-fixed": "#d7e2ff",
+            "on-primary-fixed": "#001a40",
+            "on-error": "#ffffff",
+            "tertiary-container": "#6b401e",
+            "on-surface": "#1c1c19",
+            "primary-container": "#2f4a7a",
+            "primary-fixed-dim": "#acc7fe",
+            "on-surface-variant": "#44474f",
+            "error": "#ba1a1a",
+            "surface-container-highest": "#e5e2dd",
+            "on-background": "#1c1c19",
+            "surface-variant": "#e5e2dd",
+            "inverse-primary": "#acc7fe",
+            "on-tertiary-container": "#eaad83",
+            "tertiary-fixed-dim": "#f7b98e",
+            "surface-tint": "#445e8f",
+            "outline": "#747780",
+            "primary": "#153362",
+            "error-container": "#ffdad6",
+            "on-error-container": "#93000a",
+            "on-tertiary": "#ffffff",
+            "on-primary-container": "#a0bbf2",
+            "surface-dim": "#dcdad5",
+            "inverse-surface": "#31302d",
+            "surface-container": "#f0ede9",
+            "surface-bright": "#fcf9f4",
+            "surface-container-lowest": "#ffffff",
+            "tertiary-fixed": "#ffdcc5",
+            "on-secondary": "#ffffff",
+            "secondary-fixed-dim": "#cec5bb",
+            "on-secondary-fixed-variant": "#4b463f"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-xs": "0.25rem",
+            "space-sm": "0.5rem",
+            "space-md": "1rem",
+            "space-lg": "1.5rem",
+            "space-xl": "2.25rem",
+            "margin": "1.25rem",
+            "margin-tablet": "2rem",
+            "gutter-mobile": "0.75rem",
+            "gutter": "1rem"
+          },
+          "fontFamily": {
+            "headline-md": ["Newsreader", "serif"],
+            "headline-sm": ["Newsreader", "serif"],
+            "headline-lg": ["Newsreader", "serif"],
+            "display-lg": ["Newsreader", "serif"],
+            "display-lg-mobile": ["Newsreader", "serif"],
+            "body-lg": ["Newsreader", "serif"],
+            "label-lg": ["Inter", "sans-serif"],
+            "label-md": ["Inter", "sans-serif"],
+            "label-sm": ["Inter", "sans-serif"],
+            "body-md": ["Inter", "sans-serif"],
+            "body-sm": ["Inter", "sans-serif"]
+          },
+          "fontSize": {
+            "headline-md": ["22px", { "lineHeight": "28px", "fontWeight": "500" }],
+            "headline-sm": ["19px", { "lineHeight": "26px", "fontWeight": "500" }],
+            "headline-lg": ["26px", { "lineHeight": "34px", "letterSpacing": "-0.01em", "fontWeight": "500" }],
+            "display-lg": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "400" }],
+            "display-lg-mobile": ["30px", { "lineHeight": "38px", "letterSpacing": "-0.015em", "fontWeight": "400" }],
+            "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+            "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600" }],
+            "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+            "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "500" }],
+            "body-md": ["15px", { "lineHeight": "22px", "fontWeight": "400" }],
+            "body-sm": ["13px", { "lineHeight": "18px", "fontWeight": "400" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      font-size: 20px;
+      line-height: 1;
+    }
+    .material-symbols-outlined.fill-icon {
+      font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    /* Hide scrollbar for tabs */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-[#1C1B1A] text-on-surface flex justify-center items-center min-h-screen p-0 sm:p-4 selection:bg-secondary-container">
+<!-- Mobile Viewport Frame (412 x 915 Android standard) -->
+<main class="relative w-[412px] h-[915px] max-w-full max-h-screen overflow-hidden bg-surface shadow-2xl flex">
+<!-- UNDERLYING READER CANVAS (Dimmed Backdrop Layer ~15-20% exposed on right) -->
+<div aria-hidden="true" class="absolute inset-0 bg-surface flex flex-col justify-start px-7 pt-12 select-none pointer-events-none">
+<div class="flex justify-between items-center text-secondary border-b border-surface-container-high pb-3 mb-6">
+<span class="font-label-sm text-label-sm tracking-widest text-secondary">CHAPTER IV</span>
+<span class="font-label-sm text-label-sm text-secondary">p. 142</span>
+</div>
+<h1 class="font-headline-md text-headline-md text-on-surface mb-6 font-headline-md italic">The Silent Harbour</h1>
+<div class="space-y-5 text-on-surface/80 font-body-lg text-body-lg leading-relaxed">
+<p>The early summer fog lingered in the cobbles of Rambla de Santa Mónica like wet spun glass. I walked past the shuttered bookshops with the leather satchel clutched under my arm, still warm from the morning bread my father had handed me at dawn.</p>
+<p>In Barcelona, secrets have their own geography. They do not reside in church vaults or government safes; they slip between the loose bricks of courtyards, nestling inside the mold of seventeenth-century library shelves...</p>
+<p>"Every book you see here has been someone’s dearest secret, someone’s sleepless night," Isaac had murmured to me, leading the way into the labyrinth.</p>
+</div>
+<!-- Backdrop Scrim Shadow Tint -->
+<div class="absolute inset-0 bg-on-surface/40 backdrop-blur-[0.5px]"></div>
+</div>
+<!-- SIDE MODAL NAVIGATION DRAWER (Sliding in from Left, ~85% width = 350px) -->
+<section class="relative z-10 w-[350px] h-full bg-surface border-r border-surface-container-highest shadow-[8px_0_32px_-4px_rgba(28,27,26,0.18)] flex flex-col justify-between overflow-hidden">
+<!-- TOP COMPACT APP HEADER & BOOK METADATA -->
+<header class="shrink-0 bg-surface px-4 pt-3 pb-2 border-b border-surface-container-highest">
+<!-- Action Row -->
+<div class="flex items-center justify-between mb-2.5">
+<!-- Back / Dismiss Drawer -->
+<button aria-label="Collapse Table of Contents" class="w-9 h-9 rounded-full flex items-center justify-center text-secondary hover:text-on-surface hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined" data-icon="arrow_back">arrow_back</span>
+</button>
+<!-- Drawer Action Icons -->
+<div class="flex items-center space-x-1">
+<button aria-label="Search within contents" class="w-9 h-9 rounded-full flex items-center justify-center text-secondary hover:text-on-surface hover:bg-surface-container transition-colors" title="Search contents">
+<span class="material-symbols-outlined" data-icon="search">search</span>
+</button>
+<button aria-label="Export notes and highlights as Markdown" class="w-9 h-9 rounded-full flex items-center justify-center text-secondary hover:text-primary transition-colors" title="Export notes &amp; highlights as Markdown (.md)">
+<span class="material-symbols-outlined" data-icon="ios_share">ios_share</span>
+</button>
+</div>
+</div>
+<!-- Book Title & Author -->
+<div class="px-1 pb-1">
+<h2 class="font-headline-sm text-headline-sm text-on-surface leading-snug truncate italic">The Shadow of the Wind</h2>
+<p class="font-label-md text-label-md text-secondary tracking-normal mt-0.5">Carlos Ruiz Zafón <span class="text-outline-variant mx-1">·</span> 1945 Barcelona</p>
+</div>
+<!-- Segmented Tab Switcher -->
+<nav aria-label="Drawer Navigation Tabs" class="flex items-center gap-1.5 mt-3 pt-1 border-t border-surface-container-high">
+<!-- Contents Tab (Active) -->
+<button aria-current="page" class="flex-1 py-1.5 px-2 rounded-full bg-primary-container text-on-primary font-label-md text-label-md flex items-center justify-center gap-1.5 shadow-sm transition-all">
+<span>Contents</span>
+<span class="bg-primary/40 text-on-primary text-[10px] font-medium px-1.5 py-0.2 rounded-full leading-tight">18</span>
+</button>
+<!-- Bookmarks Tab -->
+<button class="flex-1 py-1.5 px-2 rounded-full text-secondary hover:text-on-surface font-label-md text-label-md flex items-center justify-center gap-1.5 transition-colors">
+<span>Bookmarks</span>
+<span class="text-secondary text-[11px]">3</span>
+</button>
+<!-- Highlights Tab -->
+<button class="flex-1 py-1.5 px-2 rounded-full text-secondary hover:text-on-surface font-label-md text-label-md flex items-center justify-center gap-1.5 transition-colors">
+<span>Highlights</span>
+<span class="bg-surface-container text-secondary text-[10px] font-medium px-1.5 py-0.2 rounded-full leading-tight">12</span>
+</button>
+</nav>
+</header>
+<!-- SCROLLABLE DRAWER BODY (Contents Hierarchy + Attached Preview Cards) -->
+<div class="flex-1 overflow-y-auto no-scrollbar px-3.5 py-3 space-y-4">
+<!-- Reading Progress Status Banner -->
+<div class="bg-surface-container-low border border-surface-container-highest rounded-xl p-3 flex items-center justify-between">
+<div class="flex items-center gap-2.5">
+<div class="w-7 h-7 rounded-full bg-surface-container-lowest border border-surface-container-highest flex items-center justify-center text-primary shrink-0">
+<span class="material-symbols-outlined text-base" data-icon="auto_stories">auto_stories</span>
+</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface font-medium">Chapter 4 · Page 142 of 380</p>
+<p class="font-label-sm text-label-sm text-secondary">37% completed · ~2h 14m left</p>
+</div>
+</div>
+<span class="font-label-sm text-label-sm font-semibold text-primary bg-primary-fixed/50 px-2 py-0.5 rounded-full">37%</span>
+</div>
+<!-- CHAPTER HIERARCHY TREE LIST -->
+<div class="space-y-1">
+<!-- Section: Front Matter -->
+<div class="pt-1 pb-1">
+<div class="flex items-center justify-between px-2 py-1 text-secondary">
+<span class="font-label-sm text-label-sm tracking-wider uppercase text-secondary/80 font-semibold">Front Matter</span>
+</div>
+<ul class="space-y-0.5 mt-0.5">
+<li>
+<a class="flex items-center justify-between px-2.5 py-1.5 rounded-lg text-secondary hover:text-on-surface hover:bg-surface-container-low transition-colors group" href="#title-page">
+<span class="font-body-md text-body-md text-on-surface/85 group-hover:text-on-surface">Title Page</span>
+<span class="font-label-sm text-label-sm text-secondary tabular-nums">p. 1</span>
+</a>
+</li>
+<li>
+<a class="flex items-center justify-between px-2.5 py-1.5 rounded-lg text-secondary hover:text-on-surface hover:bg-surface-container-low transition-colors group" href="#epigraph">
+<span class="font-body-md text-body-md text-on-surface/85 group-hover:text-on-surface">Epigraph</span>
+<span class="font-label-sm text-label-sm text-secondary tabular-nums">p. 3</span>
+</a>
+</li>
+</ul>
+</div>
+<!-- Section: Part I (Expanded) -->
+<div class="pt-2">
+<!-- Collapsible Group Header -->
+<button aria-expanded="true" class="w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-on-surface hover:bg-surface-container-low transition-colors text-left">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-secondary" data-icon="expand_more">expand_more</span>
+<span class="font-headline-sm text-headline-sm text-on-surface font-headline-sm">Part I: City of the Mist</span>
+</div>
+<span class="font-label-sm text-label-sm text-secondary tabular-nums">p. 7</span>
+</button>
+<!-- Nested Chapters in Part I -->
+<ul class="mt-1 space-y-1 pl-2">
+<!-- Chapter 1 -->
+<li>
+<a class="flex items-center justify-between px-2.5 py-2 rounded-lg text-on-surface hover:bg-surface-container-low transition-colors group" href="#ch1">
+<div class="flex items-baseline gap-2">
+<span class="font-label-sm text-label-sm text-secondary w-4 shrink-0">1</span>
+<span class="font-body-md text-body-md text-on-surface/90 group-hover:text-on-surface">The Cemetery of Forgotten Books</span>
+</div>
+<span class="font-label-sm text-label-sm text-secondary tabular-nums">p. 7</span>
+</a>
+</li>
+<!-- Chapter 2 -->
+<li>
+<a class="flex items-center justify-between px-2.5 py-2 rounded-lg text-on-surface hover:bg-surface-container-low transition-colors group" href="#ch2">
+<div class="flex items-baseline gap-2">
+<span class="font-label-sm text-label-sm text-secondary w-4 shrink-0">2</span>
+<span class="font-body-md text-body-md text-on-surface/90 group-hover:text-on-surface">The Bookshop on Santa Ana</span>
+</div>
+<span class="font-label-sm text-label-sm text-secondary tabular-nums">p. 42</span>
+</a>
+</li>
+<!-- Chapter 3 -->
+<li>
+<a class="flex items-center justify-between px-2.5 py-2 rounded-lg text-on-surface hover:bg-surface-container-low transition-colors group" href="#ch3">
+<div class="flex items-baseline gap-2">
+<span class="font-label-sm text-label-sm text-secondary w-4 shrink-0">3</span>
+<span class="font-body-md text-body-md text-on-surface/90 group-hover:text-on-surface">Barceloneta Bells</span>
+</div>
+<span class="font-label-sm text-label-sm text-secondary tabular-nums">p. 88</span>
+</a>
+</li>
+<!-- Chapter 4: ACTIVE CURRENT CHAPTER -->
+<li class="relative">
+<div class="flex items-center justify-between px-3 py-2.5 rounded-xl bg-surface-container-lowest border border-surface-container-highest shadow-sm relative overflow-hidden">
+<!-- Deep Ink Blue Vertical Accent Indicator -->
+<div class="absolute left-0 top-0 bottom-0 w-1.5 bg-primary-container"></div>
+<div class="flex items-center gap-2 pl-1.5">
+<span class="w-2 h-2 rounded-full bg-primary-container shrink-0"></span>
+<div>
+<div class="flex items-center gap-1.5">
+<span class="font-headline-sm text-headline-sm text-primary font-medium italic">Chapter Four: The Silent Harbour</span>
+<span class="bg-primary/10 text-primary font-label-sm text-[10px] font-semibold px-1.5 py-0.5 rounded-full">Current</span>
+</div>
+<span class="font-label-sm text-label-sm text-secondary">Reading now · Page 142</span>
+</div>
+</div>
+<span class="font-label-md text-label-md font-semibold text-primary tabular-nums">p. 142</span>
+</div>
+</li>
+<!-- Chapter 5 -->
+<li>
+<a class="flex items-center justify-between px-2.5 py-2 rounded-lg text-on-surface hover:bg-surface-container-low transition-colors group" href="#ch5">
+<div class="flex items-baseline gap-2">
+<span class="font-label-sm text-label-sm text-secondary w-4 shrink-0">5</span>
+<span class="font-body-md text-body-md text-on-surface/90 group-hover:text-on-surface">The Pen of Montfort</span>
+</div>
+<span class="font-label-sm text-label-sm text-secondary tabular-nums">p. 185</span>
+</a>
+</li>
+</ul>
+</div>
+<!-- Section: Part II (Collapsed) -->
+<div class="pt-2 border-t border-surface-container-high/60">
+<button aria-expanded="false" class="w-full flex items-center justify-between px-2 py-2 rounded-lg text-on-surface hover:bg-surface-container-low transition-colors text-left">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-secondary" data-icon="chevron_right">chevron_right</span>
+<span class="font-headline-sm text-headline-sm text-on-surface">Part II: Thirteen Years</span>
+</div>
+<span class="font-label-sm text-label-sm text-secondary tabular-nums">p. 240</span>
+</button>
+</div>
+</div>
+<!-- RECENT HIGHLIGHTS & NOTES IN THIS CHAPTER PREVIEW -->
+<div class="pt-3 border-t border-surface-container-highest space-y-2.5">
+<div class="flex items-center justify-between px-1">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-secondary font-semibold">Active Notes (Chapter 4)</span>
+<span class="font-label-sm text-label-sm text-primary font-medium hover:underline cursor-pointer">View all 12</span>
+</div>
+<!-- Highlight Card 1 (Blue Accent) -->
+<article class="bg-surface-container-lowest rounded-[16px] border border-surface-container-highest p-3.5 relative overflow-hidden shadow-[0_2px_8px_rgba(28,27,26,0.03)] hover:border-outline-variant/60 transition-colors">
+<!-- Left Color Strip -->
+<div class="absolute left-0 top-0 bottom-0 w-1.5 bg-primary-container"></div>
+<div class="pl-1.5 space-y-2">
+<blockquote class="font-headline-sm text-body-lg text-on-surface leading-snug italic">
+                “Every book you see here has been someone’s dearest secret, someone’s sleepless night...”
+              </blockquote>
+<!-- User Note Attached -->
+<div class="bg-surface-container-low rounded-lg p-2 border border-surface-container-high flex items-start gap-1.5">
+<span class="material-symbols-outlined text-secondary shrink-0 text-sm mt-0.5" data-icon="edit_note">edit_note</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-snug">Echoes the prologue theme of stewardship.</p>
+</div>
+<!-- Metadata footer -->
+<div class="flex items-center justify-between text-secondary pt-0.5">
+<span class="font-label-sm text-label-sm">Chapter 4 · Page 144</span>
+<span class="font-label-sm text-label-sm">Oct 18</span>
+</div>
+</div>
+</article>
+<!-- Highlight Card 2 (Amber Yellow Accent) -->
+<article class="bg-surface-container-lowest rounded-[16px] border border-surface-container-highest p-3.5 relative overflow-hidden shadow-[0_2px_8px_rgba(28,27,26,0.03)] hover:border-outline-variant/60 transition-colors">
+<!-- Left Color Strip (Amber) -->
+<div class="absolute left-0 top-0 bottom-0 w-1.5 bg-[#D99B26]"></div>
+<div class="pl-1.5 space-y-2">
+<blockquote class="font-headline-sm text-body-lg text-on-surface leading-snug italic">
+                “The early summer fog lingered in the cobbles of Rambla de Santa Mónica like wet spun glass...”
+              </blockquote>
+<!-- User Note Attached -->
+<div class="bg-surface-container-low rounded-lg p-2 border border-surface-container-high flex items-start gap-1.5">
+<span class="material-symbols-outlined text-secondary shrink-0 text-sm mt-0.5" data-icon="edit_note">edit_note</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-snug">Atmospheric sensory description.</p>
+</div>
+<!-- Metadata footer -->
+<div class="flex items-center justify-between text-secondary pt-0.5">
+<span class="font-label-sm text-label-sm">Chapter 4 · Page 143</span>
+<span class="font-label-sm text-label-sm">Oct 17</span>
+</div>
+</div>
+</article>
+</div>
+</div>
+<!-- DRAWER FOOTER (Quick Action Bar inside panel) -->
+<footer class="shrink-0 bg-surface border-t border-surface-container-highest p-3 space-y-2">
+<button class="w-full h-11 rounded-full border border-surface-container-highest bg-surface-container-lowest hover:bg-surface-container text-on-surface font-label-md text-label-md flex items-center justify-center gap-2 transition-all active:scale-[0.98]">
+<span class="material-symbols-outlined text-secondary" data-icon="download">download</span>
+<span>Export as Markdown (.md)</span>
+</button>
+<div class="flex items-center justify-between px-2 pt-0.5 text-secondary">
+<span class="font-label-sm text-label-sm text-secondary/80">Local Offline Vault</span>
+<span class="font-label-sm text-label-sm text-secondary/80">24.8 KB</span>
+</div>
+</footer>
+</section>
+<!-- RIGHT VISIBLE DIMMED TEXT STRIP (~62px width = ~15% right strip) -->
+<div aria-label="Dismiss drawer" class="flex-1 h-full cursor-pointer relative z-20 flex flex-col justify-center items-center group" title="Tap backdrop to close Table of Contents">
+<div class="w-8 h-8 rounded-full bg-surface-container-lowest/80 text-on-surface border border-surface-container-highest shadow-md flex items-center justify-center opacity-80 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined" data-icon="close">close</span>
+</div>
+</div>
+</main>
+</body></html>

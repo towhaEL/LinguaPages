@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>OpenPages - Onboarding</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS v3 -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "tertiary-fixed-dim": "#f7b98e",
+            "surface-container-low": "#f6f3ee",
+            "surface": "#fcf9f4",
+            "secondary-fixed": "#eae1d7",
+            "on-primary-fixed-variant": "#2b4676",
+            "on-tertiary-fixed": "#301400",
+            "on-error": "#ffffff",
+            "tertiary-container": "#6b401e",
+            "surface-variant": "#e5e2dd",
+            "secondary": "#635d56",
+            "on-primary": "#ffffff",
+            "on-tertiary-container": "#eaad83",
+            "on-secondary-fixed": "#1f1b15",
+            "surface-tint": "#445e8f",
+            "on-secondary": "#ffffff",
+            "on-secondary-container": "#68625a",
+            "surface-bright": "#fcf9f4",
+            "outline": "#747780",
+            "on-surface-variant": "#44474f",
+            "on-primary-container": "#a0bbf2",
+            "surface-dim": "#dcdad5",
+            "on-tertiary-fixed-variant": "#673d1b",
+            "background": "#fcf9f4",
+            "outline-variant": "#c4c6d0",
+            "secondary-container": "#e7ded4",
+            "surface-container-lowest": "#ffffff",
+            "primary-fixed": "#d7e2ff",
+            "primary-container": "#2f4a7a",
+            "on-background": "#1c1c19",
+            "surface-container-high": "#ebe8e3",
+            "primary-fixed-dim": "#acc7fe",
+            "on-surface": "#1c1c19",
+            "on-tertiary": "#ffffff",
+            "surface-container": "#f0ede9",
+            "inverse-surface": "#31302d",
+            "secondary-fixed-dim": "#cec5bb",
+            "surface-container-highest": "#e5e2dd",
+            "tertiary-fixed": "#ffdcc5",
+            "on-error-container": "#93000a",
+            "primary": "#153362",
+            "on-secondary-fixed-variant": "#4b463f",
+            "error-container": "#ffdad6",
+            "on-primary-fixed": "#001a40",
+            "tertiary": "#502a0a",
+            "inverse-on-surface": "#f3f0eb",
+            "inverse-primary": "#acc7fe",
+            "error": "#ba1a1a"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "gutter": "1rem",
+            "space-xl": "2.25rem",
+            "margin-tablet": "2rem",
+            "gutter-mobile": "0.75rem",
+            "space-xs": "0.25rem",
+            "space-md": "1rem",
+            "space-sm": "0.5rem",
+            "space-lg": "1.5rem",
+            "margin": "1.25rem"
+          },
+          "fontFamily": {
+            "display-lg-mobile": ["Newsreader"],
+            "display-lg": ["Newsreader"],
+            "headline-md": ["Newsreader"],
+            "label-lg": ["Inter"],
+            "label-md": ["Inter"],
+            "headline-sm": ["Newsreader"],
+            "body-sm": ["Inter"],
+            "label-sm": ["Inter"],
+            "headline-lg": ["Newsreader"],
+            "headline-lg-mobile": ["Newsreader"],
+            "body-md": ["Inter"],
+            "body-lg": ["Newsreader"]
+          },
+          "fontSize": {
+            "display-lg-mobile": ["30px", { "lineHeight": "38px", "letterSpacing": "-0.015em", "fontWeight": "400" }],
+            "display-lg": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "400" }],
+            "headline-md": ["22px", { "lineHeight": "28px", "fontWeight": "500" }],
+            "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600" }],
+            "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+            "headline-sm": ["19px", { "lineHeight": "26px", "fontWeight": "500" }],
+            "body-sm": ["13px", { "lineHeight": "18px", "fontWeight": "400" }],
+            "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "500" }],
+            "headline-lg": ["26px", { "lineHeight": "34px", "letterSpacing": "-0.01em", "fontWeight": "500" }],
+            "headline-lg-mobile": ["24px", { "lineHeight": "30px", "letterSpacing": "-0.01em", "fontWeight": "500" }],
+            "body-md": ["15px", { "lineHeight": "22px", "fontWeight": "400" }],
+            "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }]
+          }
+        }
+      }
+    };
+  </script>
+</head>
+<body class="bg-surface text-on-surface antialiased selection:bg-secondary-fixed min-h-screen flex items-center justify-center p-0 sm:p-4">
+<!-- Mobile Viewport Frame (412px x 915px ratio) -->
+<div class="relative w-full max-w-[412px] h-[915px] max-h-screen bg-surface flex flex-col justify-between overflow-hidden shadow-2xl sm:rounded-[36px] sm:border sm:border-outline-variant/30">
+<!-- Top Utility Bar (Shared Component: TopAppBar with suppress borders) -->
+<header class="w-full z-10 pt-3">
+<div class="flex justify-between items-center w-full px-5 py-3.5 max-w-2xl mx-auto">
+<!-- Brand Leading Identity -->
+<div class="flex items-center space-x-2.5">
+<div class="w-8 h-8 rounded-full bg-secondary-fixed flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[19px]">local_library</span>
+</div>
+<span class="font-headline-md text-headline-md font-medium text-on-surface tracking-tight">OpenPages</span>
+</div>
+<!-- Trailing Action Button -->
+<button class="text-on-surface-variant font-label-md text-label-md hover:text-primary transition-colors duration-150 active:opacity-80 px-2 py-1" type="button">
+          Skip
+        </button>
+</div>
+</header>
+<!-- Main Content Canvas (Scrollable or flex fitted) -->
+<main class="flex-1 flex flex-col justify-between px-5 pt-1 pb-4 overflow-y-auto">
+<!-- Upper Section: Editorial Illustration Showcase -->
+<div class="w-full flex flex-col items-center">
+<div class="w-full max-w-[340px] aspect-[4/3.8] rounded-2xl overflow-hidden relative flex items-center justify-center bg-surface-container-low border border-outline-variant/30 p-2">
+<!-- Illustration Image matching the editorial prompt asset -->
+<img alt="Editorial book illustration" class="w-full h-full object-contain rounded-xl" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDEq2bteUS8DFq4VKP1xUgFM-4TXUrt5FjHv02zcAeg-VluIyzCepXjQLDTX5FItsx1p3-LNe11rl7gNfArP5AbuoSaYbNXlYDFca55MyOA9GcULcfOrHGPktTgMQnHMP-RXcs8Gm15hPNYidsOtGBo-9LtTsJXjghgd_R_I1VAYG7ZKLFUQ1tvensBp-0x2WGjG-JoD4kiIgh61e1TIl8uQFMV2F0XYCxaHA5ESc16IX_oIOYMszlgHnJhopq1pEBPvtkVMZSMSZg"/>
+</div>
+<!-- Interactive Customization Feature Tag Pills -->
+<div class="flex flex-wrap items-center justify-center gap-2 mt-4 px-1">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container-lowest border border-outline-variant/40 text-secondary font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[14px] text-primary">format_size</span>
+            Custom Fonts
+          </span>
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container-lowest border border-outline-variant/40 text-secondary font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[14px] text-primary">format_align_justify</span>
+            Margins &amp; Spacing
+          </span>
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container-lowest border border-outline-variant/40 text-secondary font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[14px] text-primary">stylus_note</span>
+            Highlights &amp; Notes
+          </span>
+</div>
+</div>
+<!-- Copy Area -->
+<div class="flex flex-col items-center text-center my-auto py-2">
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface tracking-tight mb-2.5 max-w-xs">
+          Read the way you like
+        </h1>
+<p class="font-body-md text-body-md text-secondary leading-relaxed max-w-[310px] mx-auto">
+          Themes, fonts, line spacing and margins. Highlights, notes and bookmarks that stay with the page.
+        </p>
+</div>
+<!-- Bottom Interactive Cluster (Dots + Actions + Privacy Tag) -->
+<div class="w-full flex flex-col items-center space-y-4 pt-1 pb-2">
+<!-- Carousel Page Indicators (4 dots) -->
+<div aria-label="Onboarding carousel progression" class="flex items-center justify-center space-x-2 py-1" role="tablist">
+<!-- Dot 1: Inactive -->
+<span aria-label="Page 1" class="w-2 h-2 rounded-full bg-outline-variant/50 transition-all duration-300"></span>
+<!-- Dot 2: ACTIVE (Elongated ink blue pill) -->
+<span aria-current="step" aria-label="Page 2 of 4 (Current)" class="w-6 h-2 rounded-full bg-primary-container transition-all duration-300"></span>
+<!-- Dot 3: Inactive -->
+<span aria-label="Page 3" class="w-2 h-2 rounded-full bg-outline-variant/50 transition-all duration-300"></span>
+<!-- Dot 4: Inactive -->
+<span aria-label="Page 4" class="w-2 h-2 rounded-full bg-outline-variant/50 transition-all duration-300"></span>
+</div>
+<!-- Primary Action Button -->
+<button class="w-full h-12 bg-primary-container text-on-primary rounded-full font-label-lg text-label-lg flex items-center justify-center gap-2 hover:bg-primary transition-all duration-150 active:scale-[0.98] shadow-sm" type="button">
+<span>Next</span>
+<span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+<!-- Subtle Offline / Privacy Badge -->
+<div class="flex items-center justify-center space-x-1.5 text-secondary/80 pt-0.5">
+<span class="material-symbols-outlined text-[14px]">lock</span>
+<span class="font-label-sm text-label-sm">100% Offline • Zero telemetry &amp; personal storage</span>
+</div>
+</div>
+</main>
+</div>
+</body></html>

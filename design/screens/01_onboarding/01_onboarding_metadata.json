@@ -1,0 +1,21 @@
+{
+  "success": true,
+  "data": {
+    "deviceType": "MOBILE",
+    "height": "1830",
+    "htmlCode": {
+      "downloadUrl": "https://stitch.googleapis.com/v1/projects/8671147000524611054/files/9dd4c8585b6e4d1ebc931c0b9fe1f036:download",
+      "mimeType": "text/html",
+      "name": "projects/8671147000524611054/files/9dd4c8585b6e4d1ebc931c0b9fe1f036"
+    },
+    "name": "projects/8671147000524611054/screens/ce71ef5341e7435abff9e5eab14d0402",
+    "screenshot": {
+      "downloadUrl": "https://stitch.googleapis.com/v1/projects/8671147000524611054/files/21b64a3914fd4510b4a1e6e841285f86:download",
+      "mimeType": "png",
+      "name": "projects/8671147000524611054/files/21b64a3914fd4510b4a1e6e841285f86"
+    },
+    "title": "OpenPages - Onboarding Carousel",
+    "width": "780",
+    "id": "ce71ef5341e7435abff9e5eab14d0402"
+  }
+}

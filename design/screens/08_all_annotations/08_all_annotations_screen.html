@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>OpenPages - All Annotations</title>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Google Fonts: Newsreader (editorial serif) & Inter (refined sans) -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-error-container": "#93000a",
+            "on-surface-variant": "#44474f",
+            "background": "#fcf9f4",
+            "surface-dim": "#dcdad5",
+            "on-secondary-container": "#68625a",
+            "on-primary-fixed": "#001a40",
+            "outline": "#747780",
+            "surface-container-high": "#ebe8e3",
+            "error": "#ba1a1a",
+            "secondary-container": "#e7ded4",
+            "inverse-primary": "#acc7fe",
+            "on-primary": "#ffffff",
+            "on-tertiary": "#ffffff",
+            "surface-tint": "#445e8f",
+            "on-tertiary-fixed-variant": "#673d1b",
+            "primary": "#153362",
+            "outline-variant": "#c4c6d0",
+            "on-tertiary-container": "#eaad83",
+            "on-primary-fixed-variant": "#2b4676",
+            "surface-container-highest": "#e5e2dd",
+            "inverse-surface": "#31302d",
+            "tertiary-fixed-dim": "#f7b98e",
+            "on-surface": "#1c1c19",
+            "on-background": "#1c1c19",
+            "surface-container-lowest": "#ffffff",
+            "surface-container-low": "#f6f3ee",
+            "on-primary-container": "#a0bbf2",
+            "on-secondary-fixed": "#1f1b15",
+            "inverse-on-surface": "#f3f0eb",
+            "surface-container": "#f0ede9",
+            "tertiary-container": "#6b401e",
+            "surface": "#fcf9f4",
+            "secondary": "#635d56",
+            "tertiary-fixed": "#ffdcc5",
+            "on-tertiary-fixed": "#301400",
+            "surface-bright": "#fcf9f4",
+            "surface-variant": "#e5e2dd",
+            "secondary-fixed": "#eae1d7",
+            "primary-fixed": "#d7e2ff",
+            "primary-fixed-dim": "#acc7fe",
+            "secondary-fixed-dim": "#cec5bb",
+            "primary-container": "#2f4a7a",
+            "on-secondary": "#ffffff",
+            "error-container": "#ffdad6",
+            "tertiary": "#502a0a",
+            "on-error": "#ffffff",
+            "on-secondary-fixed-variant": "#4b463f"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-sm": "0.5rem",
+            "space-xs": "0.25rem",
+            "space-md": "1rem",
+            "space-lg": "1.5rem",
+            "gutter-mobile": "0.75rem",
+            "margin": "1.25rem",
+            "margin-tablet": "2rem",
+            "space-xl": "2.25rem",
+            "gutter": "1rem"
+          },
+          "fontFamily": {
+            "headline-md": ["Newsreader", "serif"],
+            "label-lg": ["Inter", "sans-serif"],
+            "label-md": ["Inter", "sans-serif"],
+            "display-lg-mobile": ["Newsreader", "serif"],
+            "body-lg": ["Newsreader", "serif"],
+            "headline-sm": ["Newsreader", "serif"],
+            "display-lg": ["Newsreader", "serif"],
+            "body-sm": ["Inter", "sans-serif"],
+            "body-md": ["Inter", "sans-serif"],
+            "label-sm": ["Inter", "sans-serif"],
+            "headline-lg": ["Newsreader", "serif"]
+          },
+          "fontSize": {
+            "headline-md": ["22px", { "lineHeight": "28px", "fontWeight": "500" }],
+            "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600" }],
+            "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+            "display-lg-mobile": ["30px", { "lineHeight": "38px", "letterSpacing": "-0.015em", "fontWeight": "400" }],
+            "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+            "headline-sm": ["19px", { "lineHeight": "26px", "fontWeight": "500" }],
+            "display-lg": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "400" }],
+            "body-sm": ["13px", { "lineHeight": "18px", "fontWeight": "400" }],
+            "body-md": ["15px", { "lineHeight": "22px", "fontWeight": "400" }],
+            "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "500" }],
+            "headline-lg": ["26px", { "lineHeight": "34px", "letterSpacing": "-0.01em", "fontWeight": "500" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-family: 'Material Symbols Outlined';
+      font-weight: normal;
+      font-style: normal;
+      font-size: 20px;
+      line-height: 1;
+      letter-spacing: normal;
+      text-transform: none;
+      display: inline-block;
+      white-space: nowrap;
+      word-wrap: normal;
+      direction: ltr;
+      -webkit-font-feature-settings: 'liga';
+      -webkit-font-smoothing: antialiased;
+    }
+    /* Hide scrollbar for neat horizontal scroll */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="bg-surface text-on-surface antialiased min-h-screen flex justify-center selection:bg-secondary-container">
+<!-- Mobile Android Container (412px target width) -->
+<div class="w-full max-w-[412px] min-h-screen bg-surface flex flex-col relative pb-12">
+<!-- Android System Status Bar -->
+<div class="w-full px-5 pt-3 pb-2 flex justify-between items-center text-on-surface select-none">
+<span class="font-label-md text-label-md font-semibold tracking-tight">09:41</span>
+<div class="flex items-center space-x-1.5 opacity-80">
+<span class="material-symbols-outlined !text-[16px]">signal_cellular_alt</span>
+<span class="material-symbols-outlined !text-[16px]">wifi</span>
+<span class="material-symbols-outlined !text-[18px]">battery_full</span>
+</div>
+</div>
+<!-- Top App Bar (Task-focused sub-page with Back Navigation) -->
+<header class="w-full px-5 py-2.5 flex items-center justify-between">
+<div class="flex items-center space-x-3">
+<button aria-label="Go back" class="w-9 h-9 rounded-full flex items-center justify-center text-on-surface hover:bg-surface-container active:scale-95 transition-all" type="button">
+<span class="material-symbols-outlined text-primary">arrow_back</span>
+</button>
+<div class="flex items-baseline space-x-2">
+<h1 class="font-headline-sm text-headline-sm text-on-surface tracking-tight">Annotations</h1>
+<span class="font-label-sm text-label-sm text-secondary px-1.5 py-0.5 rounded-full bg-secondary-fixed/50">42 items</span>
+</div>
+</div>
+<!-- Action items & Overflow Menu trigger -->
+<div class="flex items-center space-x-1">
+<button aria-label="Search" class="w-9 h-9 rounded-full flex items-center justify-center text-secondary hover:text-primary hover:bg-surface-container transition-colors" type="button">
+<span class="material-symbols-outlined">search</span>
+</button>
+<!-- Overflow Menu Trigger with Export badge popover preview -->
+<div class="relative group">
+<button aria-label="More actions" class="w-9 h-9 rounded-full flex items-center justify-center text-secondary hover:text-primary hover:bg-surface-container transition-colors" type="button">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+<!-- Dropdown card preview -->
+<div class="hidden group-hover:flex absolute right-0 top-full mt-1 w-52 bg-surface-container-lowest rounded-xl shadow-[0_8px_24px_-4px_rgba(28,27,26,0.12)] border border-secondary-fixed/60 py-1.5 flex-col z-50">
+<button class="px-3.5 py-2 text-left flex items-center space-x-2.5 hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined !text-[18px] text-primary-container">file_download</span>
+<span class="font-label-md text-label-md text-on-surface">Export as Markdown (.md)</span>
+</button>
+<button class="px-3.5 py-2 text-left flex items-center space-x-2.5 hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined !text-[18px] text-secondary">print</span>
+<span class="font-label-md text-label-md text-on-surface">Export as Plain Text</span>
+</button>
+<div class="h-[1px] bg-secondary-fixed/60 my-1"></div>
+<button class="px-3.5 py-2 text-left flex items-center space-x-2.5 hover:bg-surface-container-low transition-colors text-error">
+<span class="material-symbols-outlined !text-[18px]">delete_sweep</span>
+<span class="font-label-md text-label-md">Clear Selected</span>
+</button>
+</div>
+</div>
+</div>
+</header>
+<!-- Search Bar Component -->
+<div class="px-5 mt-1.5 mb-3.5">
+<div class="relative flex items-center w-full bg-surface-container-lowest rounded-full border border-secondary-fixed/70 px-4 py-2.5 shadow-[0_1px_3px_rgba(28,27,26,0.03)] focus-within:border-primary-container focus-within:ring-1 focus-within:ring-primary-container transition-all">
+<span class="material-symbols-outlined text-secondary mr-2.5 !text-[20px]">manage_search</span>
+<input class="w-full bg-transparent border-0 p-0 font-body-md text-body-md text-on-surface placeholder:text-secondary focus:ring-0 focus:outline-none" placeholder="Search highlights &amp; notes..." type="text"/>
+<button aria-label="Clear or filter" class="text-secondary hover:text-on-surface ml-1 p-0.5 rounded-full" type="button">
+<span class="material-symbols-outlined !text-[18px]">tune</span>
+</button>
+</div>
+</div>
+<!-- Filter Chips Row (Scrollable horizontally) -->
+<div class="px-5 mb-5 overflow-x-auto no-scrollbar flex items-center space-x-2">
+<!-- Active Chip -->
+<button class="whitespace-nowrap px-4 py-1.5 rounded-full bg-primary-container text-on-primary font-label-md text-label-md transition-all active:scale-95" type="button">
+        All (42)
+      </button>
+<!-- Inactive Chips -->
+<button class="whitespace-nowrap px-3.5 py-1.5 rounded-full bg-surface-container-lowest border border-secondary-fixed/80 text-secondary font-label-md text-label-md hover:bg-surface-container transition-colors active:scale-95" type="button">
+        Highlights (30)
+      </button>
+<button class="whitespace-nowrap px-3.5 py-1.5 rounded-full bg-surface-container-lowest border border-secondary-fixed/80 text-secondary font-label-md text-label-md hover:bg-surface-container transition-colors active:scale-95" type="button">
+        Notes (12)
+      </button>
+<button class="whitespace-nowrap px-3.5 py-1.5 rounded-full bg-surface-container-lowest border border-secondary-fixed/80 text-secondary font-label-md text-label-md hover:bg-surface-container transition-colors active:scale-95" type="button">
+        Bookmarks (8)
+      </button>
+<!-- Color Dot Selector Divider & Dots -->
+<div class="h-4 w-[1px] bg-secondary-fixed/90 flex-shrink-0 mx-1"></div>
+<div class="flex items-center space-x-2 pl-1 flex-shrink-0">
+<button class="w-5 h-5 rounded-full bg-[#E5A93C] ring-2 ring-transparent hover:ring-primary-container/30 transition-all" title="Amber highlights" type="button"></button>
+<button class="w-5 h-5 rounded-full bg-[#4E8752] ring-2 ring-transparent hover:ring-primary-container/30 transition-all" title="Sage highlights" type="button"></button>
+<button class="w-5 h-5 rounded-full bg-[#2F4A7A] ring-2 ring-transparent hover:ring-primary-container/30 transition-all" title="Ink Blue highlights" type="button"></button>
+<button class="w-5 h-5 rounded-full bg-[#C85A54] ring-2 ring-transparent hover:ring-primary-container/30 transition-all" title="Terracotta highlights" type="button"></button>
+</div>
+</div>
+<!-- Grouped Annotation Feed -->
+<main class="px-5 flex flex-col space-y-6">
+<!-- ================= GROUP 1: The Shadow of the Wind ================= -->
+<section class="flex flex-col space-y-3">
+<!-- Book Group Header -->
+<div class="flex items-center justify-between pb-1 border-b border-secondary-fixed/60">
+<div class="flex items-center space-x-3">
+<!-- Vintage Gothic Cover Thumbnail -->
+<div class="w-9 h-13 aspect-[1/1.45] rounded-[4px] overflow-hidden shadow-sm bg-surface-container-high border border-secondary-fixed flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="Vintage gothic architectural cover of The Shadow of the Wind featuring mist-shrouded old Barcelona cobblestone alleys under an amber twilight lamp. The visual style is classic archival book jacket with warm paper texture, deep indigo shadows, and warm parchment highlights, elegant and literary." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAhxY6VvyD_UDf2IyjgOKurSKZ_R3LUhOmFC0MD565F5UrPXVCa0j0yTDV0f1hohTuo7CtvOxDBHDRB6CkcAZ13i5w8_UO5NTJKP4eoaCIb3-5SIxTaw4QJ6TiwCpxNgSIgMaaC20bw_CYBqpJFjg3FcLmbDr-QOgcQl7J07z8SgHmKksoGtyo1zuS_qj4nSu-0kK7rV1yLX4EpT3RSjK-15n9hOyV59Ga-tyvc42MIsNv8y-jTog682rb0KRzAiMa895GN--0tjuI"/>
+</div>
+<div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface leading-snug">The Shadow of the Wind</h2>
+<p class="font-body-sm text-body-sm text-secondary">Carlos Ruiz Zafón</p>
+</div>
+</div>
+<span class="font-label-sm text-label-sm text-secondary bg-surface-container px-2 py-0.5 rounded-full">
+            18 annotations
+          </span>
+</div>
+<!-- Annotation Card 1 (Amber Highlight + User Note) -->
+<article class="bg-surface-container-lowest rounded-2xl border border-secondary-fixed/80 p-4 shadow-[0_1px_4px_rgba(28,27,26,0.03)] relative overflow-hidden transition-shadow hover:shadow-md">
+<div class="flex">
+<!-- Left Highlighter Indicator Strip (Amber #E5A93C) -->
+<div class="w-1.5 self-stretch bg-[#E5A93C] rounded-full mr-3.5 flex-shrink-0"></div>
+<div class="flex-1 flex flex-col space-y-2.5">
+<!-- Quoted passage in serif italics -->
+<blockquote class="font-body-lg text-body-lg italic text-on-surface leading-relaxed">
+                “I still remember the day that my father took me to the Cemetery of Forgotten Books for the first time. The early summer fog lingered in the cobblestones...”
+              </blockquote>
+<!-- Attached user thought / note in clean sans Inter container -->
+<div class="bg-surface-container-low/70 border border-secondary-fixed/50 rounded-xl p-3 flex items-start space-x-2.5">
+<span class="material-symbols-outlined !text-[16px] text-primary-container mt-0.5 flex-shrink-0">edit_note</span>
+<p class="font-body-sm text-body-sm text-on-surface/90 leading-normal">
+                  Foreshadows the labyrinthine memory structure that anchors Daniel's obsession.
+                </p>
+</div>
+<!-- Tags -->
+<div class="flex items-center space-x-1.5 pt-0.5">
+<span class="font-label-sm text-label-sm text-secondary bg-surface-container-low px-2 py-0.5 rounded-md">#theme</span>
+<span class="font-label-sm text-label-sm text-secondary bg-surface-container-low px-2 py-0.5 rounded-md">#fatherhood</span>
+</div>
+<!-- Footer Metadata & Actions -->
+<div class="flex items-center justify-between pt-1.5 border-t border-secondary-fixed/40 text-secondary">
+<div class="flex items-center space-x-2 font-label-sm text-label-sm">
+<span>Chapter 4 · Page 142</span>
+<span>·</span>
+<span>Oct 28, 2026</span>
+</div>
+<!-- Quick actions -->
+<div class="flex items-center space-x-1">
+<button aria-label="Copy quote" class="p-1 rounded hover:bg-surface-container text-secondary hover:text-primary transition-colors" type="button">
+<span class="material-symbols-outlined !text-[18px]">content_copy</span>
+</button>
+<button aria-label="Share quote" class="p-1 rounded hover:bg-surface-container text-secondary hover:text-primary transition-colors" type="button">
+<span class="material-symbols-outlined !text-[18px]">share</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</article>
+<!-- Annotation Card 2 (Soft Sage Highlight) -->
+<article class="bg-surface-container-lowest rounded-2xl border border-secondary-fixed/80 p-4 shadow-[0_1px_4px_rgba(28,27,26,0.03)] relative overflow-hidden transition-shadow hover:shadow-md">
+<div class="flex">
+<!-- Left Highlighter Indicator Strip (Soft Sage #4E8752) -->
+<div class="w-1.5 self-stretch bg-[#4E8752] rounded-full mr-3.5 flex-shrink-0"></div>
+<div class="flex-1 flex flex-col space-y-2.5">
+<!-- Quoted passage in serif italics -->
+<blockquote class="font-body-lg text-body-lg italic text-on-surface leading-relaxed">
+                “Every book you see here has been someone’s dearest secret, someone’s sleepless night, someone’s sanctuary.”
+              </blockquote>
+<!-- Footer Metadata & Actions -->
+<div class="flex items-center justify-between pt-1.5 border-t border-secondary-fixed/40 text-secondary">
+<div class="flex items-center space-x-2 font-label-sm text-label-sm">
+<span>Chapter 4 · Page 144</span>
+<span>·</span>
+<span>Oct 26, 2026</span>
+</div>
+<!-- Quick action buttons (Copy, Share, Delete) -->
+<div class="flex items-center space-x-0.5">
+<button aria-label="Copy quote" class="p-1 rounded hover:bg-surface-container text-secondary hover:text-primary transition-colors" type="button">
+<span class="material-symbols-outlined !text-[18px]">content_copy</span>
+</button>
+<button aria-label="Share quote" class="p-1 rounded hover:bg-surface-container text-secondary hover:text-primary transition-colors" type="button">
+<span class="material-symbols-outlined !text-[18px]">share</span>
+</button>
+<button aria-label="Delete annotation" class="p-1 rounded hover:bg-surface-container text-secondary hover:text-error transition-colors" type="button">
+<span class="material-symbols-outlined !text-[18px]">delete</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</article>
+</section>
+<!-- ================= GROUP 2: Dune by Frank Herbert ================= -->
+<section class="flex flex-col space-y-3 pt-2">
+<!-- Book Group Header -->
+<div class="flex items-center justify-between pb-1 border-b border-secondary-fixed/60">
+<div class="flex items-center space-x-3">
+<!-- Dune Book Thumbnail (Using the provided placeholder) -->
+<div class="w-9 h-13 aspect-[1/1.45] rounded-[4px] overflow-hidden shadow-sm border border-secondary-fixed flex-shrink-0">
+<img alt="Dune book jacket" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida/AEtjO1XteBsbIqaU7M0H9UJVpMSwh1J3mXR6VgMjHYvqs77s3ayZmVC72-Cbfb5T386fd9zjIIriAfYkdYgWnLp3LzJwMrl02OPsUhqUBKi3k1Y2OFdcHmFYF9OITfP_4mOyprakrTEddPC7Bc7PMJtg9KyHRjvrBVQ6WwW4ccd8wwiic_NcAimCmQp4wztT3cizIrVelkT93LyOTAEYA5U2bVtnvyyk65DSISFpz6ektHPr_lyeLpWOB-zozeo"/>
+</div>
+<div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface leading-snug">Dune</h2>
+<p class="font-body-sm text-body-sm text-secondary">Frank Herbert</p>
+</div>
+</div>
+<span class="font-label-sm text-label-sm text-secondary bg-surface-container px-2 py-0.5 rounded-full">
+            14 annotations
+          </span>
+</div>
+<!-- Annotation Card 3 (Deep Ink Blue + User Note + Bookmark) -->
+<article class="bg-surface-container-lowest rounded-2xl border border-secondary-fixed/80 p-4 shadow-[0_1px_4px_rgba(28,27,26,0.03)] relative overflow-hidden transition-shadow hover:shadow-md">
+<div class="flex">
+<!-- Left Highlighter Indicator Strip (Deep Ink Blue #2F4A7A) -->
+<div class="w-1.5 self-stretch bg-[#2F4A7A] rounded-full mr-3.5 flex-shrink-0"></div>
+<div class="flex-1 flex flex-col space-y-2.5">
+<!-- Quoted passage in serif italics -->
+<blockquote class="font-body-lg text-body-lg italic text-on-surface leading-relaxed">
+                “A beginning is the time for taking the most delicate care that the balances are correct. This every sister of the Bene Gesserit knows.”
+              </blockquote>
+<!-- Attached note in sans Inter -->
+<div class="bg-surface-container-low/70 border border-secondary-fixed/50 rounded-xl p-3 flex items-start space-x-2.5">
+<span class="material-symbols-outlined !text-[16px] text-primary-container mt-0.5 flex-shrink-0">bookmark</span>
+<p class="font-body-sm text-body-sm text-on-surface/90 leading-normal">
+                  Classic epigraph technique introducing Princess Irulan's historical perspective.
+                </p>
+</div>
+<!-- Footer Metadata & Saved Bookmark -->
+<div class="flex items-center justify-between pt-1.5 border-t border-secondary-fixed/40 text-secondary">
+<div class="flex items-center space-x-2 font-label-sm text-label-sm">
+<span>Prologue · Page 3</span>
+<span>·</span>
+<span>Oct 19, 2026</span>
+</div>
+<!-- Quick actions -->
+<div class="flex items-center space-x-1">
+<span class="material-symbols-outlined !text-[18px] text-primary-container" style="font-variation-settings: 'FILL' 1;" title="Bookmarked">bookmark</span>
+<button aria-label="Copy quote" class="p-1 rounded hover:bg-surface-container text-secondary hover:text-primary transition-colors" type="button">
+<span class="material-symbols-outlined !text-[18px]">content_copy</span>
+</button>
+<button aria-label="Share quote" class="p-1 rounded hover:bg-surface-container text-secondary hover:text-primary transition-colors" type="button">
+<span class="material-symbols-outlined !text-[18px]">share</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</article>
+<!-- Annotation Card 4 (Rose Terracotta Highlight) -->
+<article class="bg-surface-container-lowest rounded-2xl border border-secondary-fixed/80 p-4 shadow-[0_1px_4px_rgba(28,27,26,0.03)] relative overflow-hidden transition-shadow hover:shadow-md">
+<div class="flex">
+<!-- Left Highlighter Indicator Strip (Rose Terracotta #C85A54) -->
+<div class="w-1.5 self-stretch bg-[#C85A54] rounded-full mr-3.5 flex-shrink-0"></div>
+<div class="flex-1 flex flex-col space-y-2.5">
+<!-- Famous Litany quote in serif italics -->
+<blockquote class="font-body-lg text-body-lg italic text-on-surface leading-relaxed font-medium">
+                “Fear is the mind-killer. Fear is the little-death that brings total obliteration.”
+              </blockquote>
+<!-- Footer Metadata & Actions -->
+<div class="flex items-center justify-between pt-1.5 border-t border-secondary-fixed/40 text-secondary">
+<div class="flex items-center space-x-2 font-label-sm text-label-sm">
+<span>Chapter 2 · Page 22</span>
+<span>·</span>
+<span>Oct 15, 2026</span>
+</div>
+<!-- Quick actions -->
+<div class="flex items-center space-x-1">
+<button aria-label="Copy quote" class="p-1 rounded hover:bg-surface-container text-secondary hover:text-primary transition-colors" type="button">
+<span class="material-symbols-outlined !text-[18px]">content_copy</span>
+</button>
+<button aria-label="Share quote" class="p-1 rounded hover:bg-surface-container text-secondary hover:text-primary transition-colors" type="button">
+<span class="material-symbols-outlined !text-[18px]">share</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</article>
+</section>
+<!-- Offline Privacy Trust Badge / Bottom Footer note -->
+<footer class="pt-6 pb-4 flex flex-col items-center justify-center text-center space-y-1 select-none">
+<div class="flex items-center space-x-1.5 text-secondary">
+<span class="material-symbols-outlined !text-[16px] text-primary-container">verified_user</span>
+<span class="font-label-sm text-label-sm font-medium text-on-surface/80">Archived locally in Offline Sanctuary</span>
+</div>
+<p class="font-label-sm text-label-sm text-secondary/80">
+          42 annotations synced to device · Zero cloud telemetry
+        </p>
+</footer>
+</main>
+</div>
+</body></html>

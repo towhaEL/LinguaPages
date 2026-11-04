@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Settings — OpenPages</title>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Editorial Typography Fonts: Newsreader and Inter -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "secondary-fixed-dim": "#cec5bb",
+            "on-tertiary-fixed": "#301400",
+            "background": "#fcf9f4",
+            "on-primary-fixed-variant": "#2b4676",
+            "inverse-primary": "#acc7fe",
+            "on-secondary-fixed": "#1f1b15",
+            "inverse-on-surface": "#f3f0eb",
+            "surface-dim": "#dcdad5",
+            "tertiary-fixed-dim": "#f7b98e",
+            "outline": "#747780",
+            "surface-tint": "#445e8f",
+            "on-tertiary-fixed-variant": "#673d1b",
+            "on-secondary-container": "#68625a",
+            "on-secondary": "#ffffff",
+            "on-primary": "#ffffff",
+            "secondary-container": "#e7ded4",
+            "surface-container-low": "#f6f3ee",
+            "primary-fixed": "#d7e2ff",
+            "primary-container": "#2f4a7a",
+            "error-container": "#ffdad6",
+            "primary": "#153362",
+            "inverse-surface": "#31302d",
+            "error": "#ba1a1a",
+            "surface-container": "#f0ede9",
+            "tertiary-container": "#6b401e",
+            "on-tertiary-container": "#eaad83",
+            "tertiary-fixed": "#ffdcc5",
+            "surface-container-high": "#ebe8e3",
+            "primary-fixed-dim": "#acc7fe",
+            "surface": "#fcf9f4",
+            "surface-container-lowest": "#ffffff",
+            "on-surface-variant": "#44474f",
+            "on-surface": "#1c1c19",
+            "outline-variant": "#c4c6d0",
+            "on-primary-fixed": "#001a40",
+            "on-error-container": "#93000a",
+            "surface-variant": "#e5e2dd",
+            "on-tertiary": "#ffffff",
+            "secondary-fixed": "#eae1d7",
+            "tertiary": "#502a0a",
+            "on-error": "#ffffff",
+            "secondary": "#635d56",
+            "surface-bright": "#fcf9f4",
+            "on-secondary-fixed-variant": "#4b463f",
+            "on-primary-container": "#a0bbf2",
+            "on-background": "#1c1c19",
+            "surface-container-highest": "#e5e2dd"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "card": "16px",
+            "full": "9999px"
+          },
+          "spacing": {
+            "gutter": "1rem",
+            "space-md": "1rem",
+            "margin-tablet": "2rem",
+            "gutter-mobile": "0.75rem",
+            "space-sm": "0.5rem",
+            "margin": "1.25rem",
+            "space-lg": "1.5rem",
+            "space-xs": "0.25rem",
+            "space-xl": "2.25rem"
+          },
+          "fontFamily": {
+            "label-sm": ["Inter"],
+            "body-md": ["Inter"],
+            "headline-md": ["Newsreader"],
+            "label-md": ["Inter"],
+            "display-lg": ["Newsreader"],
+            "headline-sm": ["Newsreader"],
+            "label-lg": ["Inter"],
+            "body-lg": ["Newsreader"],
+            "headline-lg": ["Newsreader"],
+            "body-sm": ["Inter"],
+            "display-lg-mobile": ["Newsreader"]
+          },
+          "fontSize": {
+            "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "500" }],
+            "body-md": ["15px", { "lineHeight": "22px", "fontWeight": "400" }],
+            "headline-md": ["22px", { "lineHeight": "28px", "fontWeight": "500" }],
+            "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+            "display-lg": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "400" }],
+            "headline-sm": ["19px", { "lineHeight": "26px", "fontWeight": "500" }],
+            "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600" }],
+            "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+            "headline-lg": ["26px", { "lineHeight": "34px", "letterSpacing": "-0.01em", "fontWeight": "500" }],
+            "body-sm": ["13px", { "lineHeight": "18px", "fontWeight": "400" }],
+            "display-lg-mobile": ["30px", { "lineHeight": "38px", "letterSpacing": "-0.015em", "fontWeight": "400" }]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      display: inline-block;
+      vertical-align: middle;
+      line-height: 1;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      appearance: none;
+      height: 18px;
+      width: 18px;
+      border-radius: 9999px;
+      background: #2F4A7A;
+      cursor: pointer;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+      border: 2px solid #FFFFFF;
+    }
+    input[type=range]::-moz-range-thumb {
+      height: 18px;
+      width: 18px;
+      border-radius: 9999px;
+      background: #2F4A7A;
+      cursor: pointer;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+      border: 2px solid #FFFFFF;
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface antialiased selection:bg-secondary-fixed selection:text-on-secondary-fixed flex justify-center min-h-screen">
+<!-- Android Canvas Device Wrapper (412px target width) -->
+<div class="w-full max-w-[412px] bg-background min-h-screen flex flex-col pb-12 shadow-sm relative">
+<!-- Top App Bar (Task-focused sub-page with Arrow Back; Bottom Bar Strictly Suppressed) -->
+<header class="sticky top-0 z-40 bg-surface/95 backdrop-blur-sm border-b border-surface-variant/70 px-5 py-3.5 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<button aria-label="Go back" class="w-10 h-10 -ml-2 rounded-full flex items-center justify-center text-on-surface hover:bg-surface-container active:scale-95 transition-all" type="button">
+<span class="material-symbols-outlined text-[24px]">arrow_back</span>
+</button>
+<h1 class="font-headline-md text-headline-md font-medium text-on-surface tracking-tight">Settings</h1>
+</div>
+<div class="flex items-center">
+<span class="font-label-sm text-label-sm text-secondary bg-surface-container px-2.5 py-1 rounded-full border border-surface-variant">Offline</span>
+</div>
+</header>
+<!-- Main Settings Content Container (20px / px-5 horizontal margins) -->
+<main class="flex-1 px-5 pt-5 pb-6 space-y-6">
+<!-- Patron Promotion Banner (High-end Editorial Highlight) -->
+<section class="relative overflow-hidden rounded-[16px] bg-surface-container-lowest border border-primary-container/20 p-4 shadow-[0_2px_12px_rgba(47,74,122,0.06)]">
+<div class="absolute -right-6 -bottom-6 w-28 h-28 bg-primary-container/5 rounded-full pointer-events-none"></div>
+<div class="flex items-start justify-between gap-3 relative z-10">
+<div class="space-y-1">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary-container text-[18px]">verified</span>
+<span class="font-label-sm text-label-sm text-primary-container tracking-wider font-semibold">PATRON EDITION</span>
+</div>
+<h2 class="font-headline-sm text-headline-sm font-medium text-on-surface">Unlock 12 themes and 8 fonts</h2>
+<p class="font-body-sm text-body-sm text-secondary">Support private, DRM-free offline reading.</p>
+</div>
+<button class="mt-1 bg-primary-container hover:bg-primary active:opacity-90 text-on-primary font-label-md text-label-md px-4 py-2 rounded-full shadow-sm transition-all duration-150 shrink-0" type="button">
+            Unlock
+          </button>
+</div>
+</section>
+<!-- Group 1: Appearance -->
+<section class="space-y-2.5">
+<h3 class="font-label-md text-label-md text-secondary uppercase tracking-wider px-1">Appearance</h3>
+<div class="bg-surface-container-lowest rounded-[16px] border border-surface-variant divide-y divide-surface-variant/60 shadow-[0_1px_3px_rgba(28,27,26,0.03)]">
+<!-- App Theme Segmented Control -->
+<div class="p-4 space-y-3">
+<div class="flex items-center justify-between">
+<span class="font-label-lg text-label-lg text-on-surface">App Theme</span>
+<span class="font-label-sm text-label-sm text-secondary">Warm Ivory palette</span>
+</div>
+<div class="grid grid-cols-3 p-1 bg-surface-container-low rounded-full border border-surface-variant/80 gap-1 text-center">
+<button class="py-1.5 rounded-full bg-primary-container text-on-primary font-label-sm text-label-sm font-medium shadow-sm transition-all" type="button">
+                Light
+              </button>
+<button class="py-1.5 rounded-full text-secondary hover:text-on-surface font-label-sm text-label-sm transition-all" type="button">
+                Dark
+              </button>
+<button class="py-1.5 rounded-full text-secondary hover:text-on-surface font-label-sm text-label-sm transition-all" type="button">
+                System
+              </button>
+</div>
+</div>
+<!-- App Text Size -->
+<div class="p-4 space-y-2">
+<div class="flex items-center justify-between">
+<span class="font-label-lg text-label-lg text-on-surface">Interface scale</span>
+<span class="font-label-md text-label-md text-secondary font-medium" id="text-size-label">Medium (100%)</span>
+</div>
+<div class="flex items-center gap-3 pt-1">
+<span class="font-headline-sm text-headline-sm text-secondary select-none">A</span>
+<div class="relative flex-1 flex items-center">
+<input class="w-full h-1.5 bg-surface-container-high rounded-full appearance-none accent-primary-container focus:outline-none" id="scale-slider" max="130" min="80" type="range" value="100"/>
+</div>
+<span class="font-headline-md text-headline-md text-secondary select-none">A</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Group 2: Reading Defaults -->
+<section class="space-y-2.5">
+<h3 class="font-label-md text-label-md text-secondary uppercase tracking-wider px-1">Reading defaults</h3>
+<div class="bg-surface-container-lowest rounded-[16px] border border-surface-variant divide-y divide-surface-variant/60 shadow-[0_1px_3px_rgba(28,27,26,0.03)]">
+<!-- Theme Swatch Preview -->
+<div class="p-4 space-y-2.5">
+<div class="flex items-center justify-between">
+<span class="font-label-lg text-label-lg text-on-surface">Default paper tone</span>
+<span class="font-label-sm text-label-sm text-secondary">Warm Ivory</span>
+</div>
+<div class="grid grid-cols-4 gap-2.5 pt-1">
+<!-- Swatch 1: Warm Ivory (Active) -->
+<button class="flex flex-col items-center gap-1.5 p-1 rounded-xl focus:outline-none group" type="button">
+<div class="w-full h-11 rounded-lg bg-[#FAF7F2] border-2 border-primary-container flex items-center justify-center shadow-xs">
+<span class="material-symbols-outlined text-primary-container text-[18px]">check</span>
+</div>
+<span class="font-label-sm text-[10px] text-primary-container font-semibold">Ivory</span>
+</button>
+<!-- Swatch 2: Sepia -->
+<button class="flex flex-col items-center gap-1.5 p-1 rounded-xl focus:outline-none group" type="button">
+<div class="w-full h-11 rounded-lg bg-[#F4ECD8] border border-surface-variant flex items-center justify-center"></div>
+<span class="font-label-sm text-[10px] text-secondary group-hover:text-on-surface">Sepia</span>
+</button>
+<!-- Swatch 3: Soft Night -->
+<button class="flex flex-col items-center gap-1.5 p-1 rounded-xl focus:outline-none group" type="button">
+<div class="w-full h-11 rounded-lg bg-[#2B2D31] border border-surface-variant flex items-center justify-center"></div>
+<span class="font-label-sm text-[10px] text-secondary group-hover:text-on-surface">Slate</span>
+</button>
+<!-- Swatch 4: Pure Black -->
+<button class="flex flex-col items-center gap-1.5 p-1 rounded-xl focus:outline-none group" type="button">
+<div class="w-full h-11 rounded-lg bg-[#0F0F10] border border-surface-variant flex items-center justify-center"></div>
+<span class="font-label-sm text-[10px] text-secondary group-hover:text-on-surface">OLED</span>
+</button>
+</div>
+</div>
+<!-- Default Font Selector -->
+<div class="p-4 space-y-2.5">
+<div class="flex items-center justify-between">
+<span class="font-label-lg text-label-lg text-on-surface">Default typeface</span>
+<span class="font-label-sm text-label-sm text-secondary">Serif / Editorial</span>
+</div>
+<div class="flex items-center gap-2 overflow-x-auto pb-0.5">
+<button class="px-3.5 py-1.5 rounded-full bg-primary-container text-on-primary font-headline-sm text-body-sm shadow-xs flex items-center gap-1.5" type="button">
+<span class="material-symbols-outlined text-[15px]">check</span>
+<span>Newsreader</span>
+</button>
+<button class="px-3.5 py-1.5 rounded-full bg-surface-container-low text-on-surface font-body-sm text-body-sm border border-surface-variant hover:bg-surface-container" type="button">
+                Inter Sans
+              </button>
+<button class="px-3.5 py-1.5 rounded-full bg-surface-container-low text-on-surface font-body-lg text-body-sm border border-surface-variant hover:bg-surface-container italic" type="button">
+                Literata
+              </button>
+</div>
+</div>
+<!-- Page Turning: Tap zones -->
+<div class="p-4 flex items-center justify-between hover:bg-surface-container-low/40 transition-colors cursor-pointer">
+<div>
+<div class="font-label-lg text-label-lg text-on-surface">Tap zones &amp; gestures</div>
+<div class="font-body-sm text-body-sm text-secondary">Three-column classic zones</div>
+</div>
+<span class="material-symbols-outlined text-secondary text-[20px]">chevron_right</span>
+</div>
+<!-- Volume Keys Turn Pages Toggle (Active) -->
+<div class="p-4 flex items-center justify-between">
+<div class="pr-3">
+<div class="font-label-lg text-label-lg text-on-surface">Volume keys turn pages</div>
+<div class="font-body-sm text-body-sm text-secondary">Inverted when upside down</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer shrink-0">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-on-primary after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-on-primary after:border-surface-variant after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-container"></div>
+</label>
+</div>
+<!-- Keep Screen On Toggle (Active) -->
+<div class="p-4 flex items-center justify-between">
+<div class="pr-3">
+<div class="font-label-lg text-label-lg text-on-surface">Keep screen on while reading</div>
+<div class="font-body-sm text-body-sm text-secondary">Prevent display sleep during immersion</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer shrink-0">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-on-primary after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-on-primary after:border-surface-variant after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-container"></div>
+</label>
+</div>
+</div>
+</section>
+<!-- Group 3: Read Aloud (TTS) -->
+<section class="space-y-2.5">
+<h3 class="font-label-md text-label-md text-secondary uppercase tracking-wider px-1">Read aloud (TTS)</h3>
+<div class="bg-surface-container-lowest rounded-[16px] border border-surface-variant divide-y divide-surface-variant/60 shadow-[0_1px_3px_rgba(28,27,26,0.03)]">
+<!-- Voice Selector -->
+<div class="p-4 flex items-center justify-between hover:bg-surface-container-low/40 transition-colors cursor-pointer">
+<div>
+<div class="font-label-lg text-label-lg text-on-surface">Default voice</div>
+<div class="font-body-sm text-body-sm text-secondary">English (US) — Natural</div>
+</div>
+<span class="material-symbols-outlined text-secondary text-[20px]">chevron_right</span>
+</div>
+<!-- Speed Slider -->
+<div class="p-4 space-y-2">
+<div class="flex items-center justify-between">
+<span class="font-label-lg text-label-lg text-on-surface">Reading speed</span>
+<span class="font-label-sm text-label-sm text-primary-container font-semibold bg-primary-fixed/30 px-2 py-0.5 rounded-full" id="speed-label">1.0x</span>
+</div>
+<div class="pt-1">
+<input class="w-full h-1.5 bg-surface-container-high rounded-full appearance-none accent-primary-container focus:outline-none" id="speed-slider" max="2.5" min="0.5" step="0.1" type="range" value="1.0"/>
+<div class="flex justify-between font-label-sm text-[10px] text-secondary pt-1">
+<span>0.5x</span>
+<span>1.0x</span>
+<span>1.5x</span>
+<span>2.0x</span>
+<span>2.5x</span>
+</div>
+</div>
+</div>
+<!-- Skip Footnotes Toggle -->
+<div class="p-4 flex items-center justify-between">
+<div class="pr-3">
+<div class="font-label-lg text-label-lg text-on-surface">Skip page numbers &amp; footnotes</div>
+<div class="font-body-sm text-body-sm text-secondary">Enhances audio narrative flow</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer shrink-0">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-on-primary after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-on-primary after:border-surface-variant after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-container"></div>
+</label>
+</div>
+</div>
+</section>
+<!-- Group 4: Library & Backup -->
+<section class="space-y-2.5">
+<h3 class="font-label-md text-label-md text-secondary uppercase tracking-wider px-1">Library &amp; Backup</h3>
+<div class="bg-surface-container-lowest rounded-[16px] border border-surface-variant divide-y divide-surface-variant/60 shadow-[0_1px_3px_rgba(28,27,26,0.03)]">
+<!-- Import Folder Row -->
+<div class="p-4 flex items-center justify-between hover:bg-surface-container-low/40 transition-colors cursor-pointer">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-full bg-secondary-container/40 flex items-center justify-center text-on-secondary-container">
+<span class="material-symbols-outlined text-[20px]">folder_open</span>
+</div>
+<div>
+<div class="font-label-lg text-label-lg text-on-surface">Import a folder</div>
+<div class="font-body-sm text-body-sm text-secondary">Auto-sync DRM-free files</div>
+</div>
+</div>
+<span class="material-symbols-outlined text-secondary text-[20px]">chevron_right</span>
+</div>
+<!-- Auto-mark Finished Toggle -->
+<div class="p-4 flex items-center justify-between">
+<div class="pr-3">
+<div class="font-label-lg text-label-lg text-on-surface">Auto-mark finished at 100%</div>
+<div class="font-body-sm text-body-sm text-secondary">Move completed to Archive shelf</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer shrink-0">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-on-primary after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-on-primary after:border-surface-variant after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-container"></div>
+</label>
+</div>
+<!-- Trash Auto-Empty -->
+<div class="p-4 flex items-center justify-between hover:bg-surface-container-low/40 transition-colors cursor-pointer">
+<div>
+<div class="font-label-lg text-label-lg text-on-surface">Trash auto-empty</div>
+<div class="font-body-sm text-body-sm text-secondary">Permanently purge deleted volumes</div>
+</div>
+<div class="flex items-center gap-1 text-secondary font-label-md text-label-md">
+<span>30 days</span>
+<span class="material-symbols-outlined text-[18px]">unfold_more</span>
+</div>
+</div>
+<!-- Backup Actions: Two Tonal/Outline Buttons -->
+<div class="p-4 space-y-2.5">
+<div class="font-label-lg text-label-lg text-on-surface">Local Vault Snapshot</div>
+<div class="grid grid-cols-2 gap-3 pt-0.5">
+<button class="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-full border border-surface-variant text-on-surface hover:bg-surface-container active:scale-95 transition-all text-label-md font-label-md" type="button">
+<span class="material-symbols-outlined text-[18px] text-secondary">cloud_upload</span>
+<span>Back up now</span>
+</button>
+<button class="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-full border border-surface-variant text-on-surface hover:bg-surface-container active:scale-95 transition-all text-label-md font-label-md" type="button">
+<span class="material-symbols-outlined text-[18px] text-secondary">settings_backup_restore</span>
+<span>Restore backup</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Group 6: About & Licenses -->
+<section class="space-y-2.5">
+<h3 class="font-label-md text-label-md text-secondary uppercase tracking-wider px-1">About &amp; Licenses</h3>
+<div class="bg-surface-container-lowest rounded-[16px] border border-surface-variant divide-y divide-surface-variant/60 shadow-[0_1px_3px_rgba(28,27,26,0.03)]">
+<!-- Dictionary Credits -->
+<div class="p-4 flex items-center justify-between hover:bg-surface-container-low/40 transition-colors cursor-pointer">
+<div>
+<div class="font-label-lg text-label-lg text-on-surface">Dictionary sources</div>
+<div class="font-body-sm text-body-sm text-secondary">Wiktionary, CC BY-SA 3.0</div>
+</div>
+<span class="material-symbols-outlined text-secondary text-[20px]">open_in_new</span>
+</div>
+<!-- Open-Source Licenses -->
+<div class="p-4 flex items-center justify-between hover:bg-surface-container-low/40 transition-colors cursor-pointer">
+<div>
+<div class="font-label-lg text-label-lg text-on-surface">Open-source licenses</div>
+<div class="font-body-sm text-body-sm text-secondary">MuPDF, Readium, Foliate engines</div>
+</div>
+<span class="material-symbols-outlined text-secondary text-[20px]">chevron_right</span>
+</div>
+<!-- Privacy Pledge Row -->
+<div class="p-4 flex items-center justify-between hover:bg-surface-container-low/40 transition-colors cursor-pointer">
+<div>
+<div class="font-label-lg text-label-lg text-on-surface">Offline privacy manifest</div>
+<div class="font-body-sm text-body-sm text-secondary">No analytics, no cloud tracking, 0 telemetry</div>
+</div>
+<span class="material-symbols-outlined text-secondary text-[20px]">verified_user</span>
+</div>
+</div>
+<!-- Version & Editorial Tag -->
+<div class="text-center pt-3 pb-2 space-y-1">
+<p class="font-label-sm text-label-sm text-secondary">OpenPages v1.0.0 (Build 104) · 100% Offline &amp; Private</p>
+<p class="font-headline-sm text-[13px] italic text-secondary/80">“A serene sanctuary for personal stewardship.”</p>
+</div>
+</section>
+</main>
+</div>
+<script>
+    // Lightweight micro-interaction for interactive range sliders
+    const scaleSlider = document.getElementById('scale-slider');
+    const textSizeLabel = document.getElementById('text-size-label');
+    if (scaleSlider && textSizeLabel) {
+      scaleSlider.addEventListener('input', (e) => {
+        const val = e.target.value;
+        if (val < 95) textSizeLabel.textContent = `Compact (${val}%)`;
+        else if (val <= 105) textSizeLabel.textContent = `Medium (${val}%)`;
+        else textSizeLabel.textContent = `Large (${val}%)`;
+      });
+    }
+
+    const speedSlider = document.getElementById('speed-slider');
+    const speedLabel = document.getElementById('speed-label');
+    if (speedSlider && speedLabel) {
+      speedSlider.addEventListener('input', (e) => {
+        speedLabel.textContent = `${parseFloat(e.target.value).toFixed(1)}x`;
+      });
+    }
+  </script>
+</body></html>

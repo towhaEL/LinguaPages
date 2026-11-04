@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>OpenPages - Lock Screen Media Session</title>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Editorial Typography: Newsreader & Inter -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&amp;family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "primary-fixed-dim": "#acc7fe",
+            "surface-container-highest": "#e5e2dd",
+            "on-secondary-container": "#68625a",
+            "on-primary-container": "#a0bbf2",
+            "surface-container-lowest": "#ffffff",
+            "on-surface-variant": "#44474f",
+            "on-secondary": "#ffffff",
+            "on-tertiary-fixed-variant": "#673d1b",
+            "on-surface": "#1c1c19",
+            "tertiary-container": "#6b401e",
+            "surface-container-high": "#ebe8e3",
+            "secondary-fixed-dim": "#cec5bb",
+            "secondary-container": "#e7ded4",
+            "inverse-surface": "#31302d",
+            "on-secondary-fixed": "#1f1b15",
+            "primary-fixed": "#d7e2ff",
+            "surface-dim": "#dcdad5",
+            "outline": "#747780",
+            "on-error-container": "#93000a",
+            "background": "#fcf9f4",
+            "primary-container": "#2f4a7a",
+            "error": "#ba1a1a",
+            "surface-bright": "#fcf9f4",
+            "surface-tint": "#445e8f",
+            "surface-container": "#f0ede9",
+            "on-tertiary-fixed": "#301400",
+            "inverse-on-surface": "#f3f0eb",
+            "on-secondary-fixed-variant": "#4b463f",
+            "tertiary-fixed-dim": "#f7b98e",
+            "surface-variant": "#e5e2dd",
+            "on-tertiary-container": "#eaad83",
+            "tertiary": "#502a0a",
+            "on-primary-fixed-variant": "#2b4676",
+            "on-primary-fixed": "#001a40",
+            "secondary-fixed": "#eae1d7",
+            "outline-variant": "#c4c6d0",
+            "surface": "#fcf9f4",
+            "error-container": "#ffdad6",
+            "surface-container-low": "#f6f3ee",
+            "tertiary-fixed": "#ffdcc5",
+            "on-background": "#1c1c19",
+            "secondary": "#635d56",
+            "primary": "#153362",
+            "inverse-primary": "#acc7fe",
+            "on-tertiary": "#ffffff",
+            "on-primary": "#ffffff",
+            "on-error": "#ffffff"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "gutter-mobile": "0.75rem",
+            "space-lg": "1.5rem",
+            "margin-tablet": "2rem",
+            "margin": "1.25rem",
+            "space-sm": "0.5rem",
+            "gutter": "1rem",
+            "space-xs": "0.25rem",
+            "space-md": "1rem",
+            "space-xl": "2.25rem"
+          },
+          "fontFamily": {
+            "label-md": ["Inter"],
+            "body-lg": ["Newsreader"],
+            "body-md": ["Inter"],
+            "label-lg": ["Inter"],
+            "display-lg-mobile": ["Newsreader"],
+            "body-sm": ["Inter"],
+            "headline-lg": ["Newsreader"],
+            "headline-sm": ["Newsreader"],
+            "headline-md": ["Newsreader"],
+            "label-sm": ["Inter"],
+            "display-lg": ["Newsreader"]
+          },
+          "fontSize": {
+            "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+            "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+            "body-md": ["15px", { "lineHeight": "22px", "fontWeight": "400" }],
+            "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600" }],
+            "display-lg-mobile": ["30px", { "lineHeight": "38px", "letterSpacing": "-0.015em", "fontWeight": "400" }],
+            "body-sm": ["13px", { "lineHeight": "18px", "fontWeight": "400" }],
+            "headline-lg": ["26px", { "lineHeight": "34px", "letterSpacing": "-0.01em", "fontWeight": "500" }],
+            "headline-sm": ["19px", { "lineHeight": "26px", "fontWeight": "500" }],
+            "headline-md": ["22px", { "lineHeight": "28px", "fontWeight": "500" }],
+            "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "500" }],
+            "display-lg": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "400" }]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      display: inline-block;
+      vertical-align: middle;
+      line-height: 1;
+    }
+    /* Subtle organic paper grain texture overlay */
+    .paper-texture {
+      background-image: radial-gradient(rgba(28, 27, 26, 0.04) 1px, transparent 0);
+      background-size: 24px 24px;
+    }
+    /* Android 15 lock screen clock tabular styling */
+    .clock-digit {
+      font-feature-settings: "tnum";
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface-container-highest min-h-screen text-on-surface antialiased flex items-center justify-center p-0 md:p-6 select-none font-body-md text-body-md">
+<!-- Android 15 Handset Frame -->
+<div class="relative w-full max-w-[430px] h-[884px] max-h-[932px] bg-surface rounded-none md:rounded-[48px] overflow-hidden shadow-2xl flex flex-col justify-between border-0 md:border-[10px] md:border-on-surface/80">
+<!-- Atmospheric Wallpaper Layer: Warm vintage literary aesthetic with soft blur -->
+<div class="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+<div class="absolute inset-0 bg-cover bg-center scale-105 filter blur-[28px] opacity-45 brightness-95 transform transition-transform duration-1000" data-alt="Soft atmospheric impressionist watercolor painting of desert sand dunes under a dusk starry sky with celestial orbital rings and vintage ivory paper texture. The aesthetic reflects muted amber, warm sepia, creamy ivory and deep midnight blue hues with gentle artistic bokeh and cinematic low glare lighting." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCcC_B9Redf9mBWbKwMDqaUKP8yxPISffts5Jm_h60UDgtzOL_W_UEEpvJhpcxyS87eWM1ylD1nUdPtvi7oIVLzaNoGuYwurhnTZ0oiz01wKvQMDPTYHGi5omjgRetwY0115ybLz_gBpNOaoptTzBc4rDlJMD2_KhBlwE566JFL1s_7j0F_t99M-l-AIHcRRjuvw1OJUMqJV9O2xgYWmf5O7b5YstR_RHVDztuFXh_mmJPilP79MMZCgGoyE921mt4_lWrJ1uo2_R4')">
+</div>
+<div class="absolute inset-0 bg-gradient-to-b from-surface/80 via-surface/40 to-surface/90 paper-texture"></div>
+</div>
+<!-- 1. System Status Bar (Android 15 Top Shell) -->
+<header class="relative z-20 w-full px-6 pt-3 pb-2 flex items-center justify-between text-on-surface/90">
+<!-- Time & Carrier / Privacy indicators -->
+<div class="flex items-center space-x-2">
+<span class="font-label-md text-label-md font-semibold tracking-tight text-on-surface">09:41</span>
+<span class="w-1.5 h-1.5 rounded-full bg-primary/40 inline-block"></span>
+<span class="font-label-sm text-label-sm text-secondary font-medium tracking-wide">OpenPages Audio</span>
+</div>
+<!-- System Status Glyphs -->
+<div class="flex items-center space-x-2.5 text-on-surface/80">
+<span class="material-symbols-outlined text-[17px]">network_cell</span>
+<span class="material-symbols-outlined text-[18px]">wifi</span>
+<div class="flex items-center space-x-1 pl-0.5">
+<span class="font-label-sm text-label-sm font-semibold">94%</span>
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">battery_full</span>
+</div>
+</div>
+</header>
+<!-- 2. Main Content Canvas: Android 15 Clock + Lock Widgets + Dynamic Media Session -->
+<main class="relative z-10 flex-1 flex flex-col justify-between px-5 pt-3 pb-4 overflow-y-auto no-scrollbar">
+<!-- Top Lock Screen Header: Clock & Smart Glance Widget -->
+<div class="w-full flex flex-col items-center pt-2">
+<!-- Padlock Status Indicator -->
+<div class="mb-2 p-1.5 rounded-full bg-surface-container/60 backdrop-blur-md border border-outline-variant/30 text-secondary">
+<span class="material-symbols-outlined text-[18px]">lock</span>
+</div>
+<!-- Android 15 Expressive Dynamic Clock -->
+<div class="flex items-baseline justify-center tracking-tight text-on-surface clock-digit">
+<h1 class="font-display-lg text-[76px] leading-[78px] font-light tracking-tighter text-on-surface/95 font-body-lg">
+            09<span class="text-primary/70 font-normal">:</span>41
+          </h1>
+</div>
+<!-- Date & At-a-Glance Information Pill -->
+<div class="mt-2.5 flex items-center gap-2">
+<div class="flex items-center gap-1.5 px-3 py-1 bg-surface-container-low/75 backdrop-blur-md border border-outline-variant/40 rounded-full shadow-sm">
+<span class="material-symbols-outlined text-[16px] text-tertiary" style="font-variation-settings: 'FILL' 1;">calendar_today</span>
+<span class="font-label-md text-label-md text-on-surface font-medium">Thu, Nov 5</span>
+</div>
+<div class="flex items-center gap-1.5 px-3 py-1 bg-surface-container-low/75 backdrop-blur-md border border-outline-variant/40 rounded-full shadow-sm">
+<span class="material-symbols-outlined text-[16px] text-secondary">wb_sunny</span>
+<span class="font-label-md text-label-md text-on-surface font-medium">68° Ivory Bay</span>
+</div>
+</div>
+</div>
+<!-- 3. Central Feature: Android 15 / Material You Dynamic Media Player Card for OpenPages -->
+<section class="w-full my-auto pt-4 pb-2">
+<!-- Card Container with Tactile Surface Tint & Hairline Border -->
+<div class="w-full bg-surface-container-lowest/90 backdrop-blur-xl border border-outline-variant/40 rounded-[28px] p-4 sm:p-5 shadow-[0_8px_30px_rgba(28,27,26,0.06)] relative overflow-hidden transition-all duration-200">
+<!-- Subtle warm brand ambient glow within card -->
+<div class="absolute -top-16 -right-16 w-44 h-44 bg-primary-fixed/20 rounded-full blur-3xl pointer-events-none"></div>
+<!-- Card Top Bar: App Attribution Badge & Audio Output Selector -->
+<div class="flex items-center justify-between mb-3.5 relative z-10">
+<!-- App Attribution Pill -->
+<div class="flex items-center space-x-2">
+<div class="w-6 h-6 rounded-full bg-primary-container flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined text-[15px]" style="font-variation-settings: 'FILL' 1;">auto_stories</span>
+</div>
+<div class="flex items-center space-x-1.5">
+<span class="font-label-md text-label-md font-semibold text-on-surface tracking-tight">OpenPages</span>
+<span class="w-1 h-1 rounded-full bg-outline"></span>
+<span class="font-label-sm text-label-sm text-secondary font-medium">Read Aloud</span>
+</div>
+</div>
+<!-- Material You Audio Output Chip (Pixel Buds / Speaker) -->
+<button class="flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-surface-container border border-outline-variant/40 text-on-surface hover:bg-surface-container-high transition-colors active:scale-95 duration-150" title="Audio Device Route">
+<span class="material-symbols-outlined text-[15px] text-primary" style="font-variation-settings: 'FILL' 1;">headphones</span>
+<span class="font-label-sm text-label-sm font-medium">Pixel Buds Pro</span>
+</button>
+</div>
+<!-- Book Metadata + Cover Layout (Editorial Warm Bento) -->
+<div class="flex items-start gap-3.5 relative z-10 mb-4">
+<!-- Book Cover Artwork with Vintage Archival Border & Aspect Ratio -->
+<div class="relative w-20 h-28 flex-shrink-0 rounded-xl overflow-hidden shadow-md border border-outline-variant/40 bg-surface-container-high">
+<img class="w-full h-full object-cover transform hover:scale-105 transition-transform duration-300" data-alt="Retro vintage sci-fi book cover of Dune by Frank Herbert with stylized celestial sun mandala, giant sandworm emerging from rolling orange sand dunes, midnight blue night sky with constellations and aged archival book paper texture with elegant typography." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAewVwWzFb8NjAK0eJVjhxhBEBNHzBR3Ont3sQZ9VB2vg7MPel08C64KJo6RSsItroiikFAJ_HzGhO3EFVxC1fCGNwfYACMmIZNcub54mF7DTg2v1c850FW0hXoMFPwz9y9NgDVVrg843PNELHUhc7cBW5nH7mwxjk-4NQbEUS6HLYKzd-NIe6qwbtVTnMkT5kPKLe56PuNWPKdk02CnnYvqfD5InY7jC4mdbluJ7L0gXUJh-g8clH_jenu1zzJYwI2aBroXkzaP5Q"/>
+<!-- Subtle spine highlight -->
+<div class="absolute inset-y-0 left-0 w-1.5 bg-gradient-to-r from-on-surface/20 to-transparent pointer-events-none"></div>
+</div>
+<!-- Title, Author, Voice & Chapter Details -->
+<div class="flex-1 min-w-0 flex flex-col justify-between h-28 py-0.5">
+<div>
+<div class="flex items-center gap-1.5 mb-1">
+<span class="inline-block px-1.5 py-0.2 rounded bg-surface-variant font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider font-semibold">EPUB</span>
+<span class="font-label-sm text-label-sm text-secondary truncate">Offline Sanctuary</span>
+</div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface font-semibold tracking-tight leading-snug line-clamp-2">
+                  Dune: The Arrakis Awakening
+                </h2>
+<p class="font-body-sm text-body-sm text-secondary font-medium truncate mt-0.5">
+                  Frank Herbert · Narrated by Neural Eleanor
+                </p>
+</div>
+<!-- Sentence / Chapter Marker -->
+<div class="flex items-center space-x-1.5 text-primary">
+<span class="material-symbols-outlined text-[15px]" style="font-variation-settings: 'FILL' 1;">bookmark</span>
+<span class="font-label-sm text-label-sm font-semibold truncate">Chapter 4 · Paragraph 42</span>
+</div>
+</div>
+</div>
+<!-- Android 15 Material You Audio Scrubber (Interactive waveform/wavy progression) -->
+<div class="relative z-10 w-full mb-3">
+<div class="relative flex items-center group cursor-pointer py-1">
+<!-- Background Inactive Track -->
+<div class="w-full h-1.5 bg-surface-container-highest rounded-full overflow-hidden">
+<!-- Active Progress Indicator -->
+<div class="h-full bg-primary rounded-full transition-all duration-150" style="width: 44.8%;"></div>
+</div>
+<!-- Floating Scrubber Handle -->
+<div class="absolute left-[44.8%] -translate-x-1/2 w-4 h-4 bg-primary rounded-full shadow-md border-2 border-surface flex items-center justify-center group-hover:scale-110 transition-transform">
+<div class="w-1.5 h-1.5 bg-on-primary rounded-full"></div>
+</div>
+</div>
+<!-- Timestamps -->
+<div class="flex justify-between items-center mt-1 px-0.5 text-secondary font-label-sm text-label-sm font-medium">
+<span>14:20</span>
+<span class="text-outline font-label-sm">-17:40</span>
+<span>32:00</span>
+</div>
+</div>
+<!-- Media Controls Cluster -->
+<div class="relative z-10 flex items-center justify-between pt-1">
+<!-- Left Tool: Sleep Timer -->
+<button class="flex items-center space-x-1 px-2.5 py-1.5 rounded-full bg-surface-container-low hover:bg-surface-container border border-outline-variant/30 text-secondary hover:text-on-surface transition-colors active:scale-95 duration-150" id="sleep-timer-btn" title="Sleep Timer">
+<span class="material-symbols-outlined text-[16px] text-tertiary">bedtime</span>
+<span class="font-label-sm text-label-sm font-medium">30m</span>
+</button>
+<!-- Center Primary Controls: 10s back, Play/Pause, 10s skip -->
+<div class="flex items-center space-x-3 sm:space-x-4">
+<!-- Replay 10 Seconds -->
+<button class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface hover:bg-surface-container-high transition-colors active:scale-90 duration-150" title="Rewind 10 seconds">
+<span class="material-symbols-outlined text-[24px]">replay_10</span>
+</button>
+<!-- Central Play / Pause Button (Android 15 Pill Button) -->
+<button class="w-14 h-14 rounded-full bg-primary-container hover:bg-primary text-on-primary flex items-center justify-center shadow-lg transition-transform active:scale-95 duration-150 focus:outline-none" id="play-pause-btn" title="Play or Pause">
+<span class="material-symbols-outlined text-[32px]" id="play-icon" style="font-variation-settings: 'FILL' 1;">pause</span>
+</button>
+<!-- Forward 10 Seconds -->
+<button class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface hover:bg-surface-container-high transition-colors active:scale-90 duration-150" title="Forward 10 seconds">
+<span class="material-symbols-outlined text-[24px]">forward_10</span>
+</button>
+</div>
+<!-- Right Tool: Reading Speed & Sentence Stepper -->
+<button class="flex items-center space-x-1 px-2.5 py-1.5 rounded-full bg-surface-container-low hover:bg-surface-container border border-outline-variant/30 text-secondary hover:text-on-surface transition-colors active:scale-95 duration-150" id="speed-btn" title="Playback Speed">
+<span class="material-symbols-outlined text-[16px]">speed</span>
+<span class="font-label-sm text-label-sm font-semibold">1.1x</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Contextual Quick Reading Quote / Ambient Offline Indicator -->
+<div class="w-full flex items-center justify-center space-x-2 text-secondary/80 py-1">
+<span class="material-symbols-outlined text-[14px]">cloud_off</span>
+<span class="font-label-sm text-label-sm tracking-wide">Archival Offline Mode · Private Sanctuary</span>
+</div>
+</main>
+<!-- 4. System Lock Screen Bottom Bar: Fingerprint sensor, Flashlight, Camera & Home Indicator -->
+<footer class="relative z-20 w-full px-6 pt-1 pb-4 flex flex-col items-center">
+<!-- Central Under-display Fingerprint Area -->
+<div class="mb-4 flex flex-col items-center">
+<div class="w-14 h-14 rounded-full bg-surface-container-low/80 backdrop-blur-md border border-outline-variant/40 flex items-center justify-center text-on-surface shadow-sm cursor-pointer hover:bg-surface-container active:scale-90 transition-all">
+<span class="material-symbols-outlined text-[30px] text-primary" style="font-variation-settings: 'FILL' 0, 'wght' 300;">fingerprint</span>
+</div>
+<span class="font-label-sm text-label-sm text-secondary mt-1 font-medium tracking-tight">Touch to unlock</span>
+</div>
+<!-- Android 15 Quick Lock Screen Shortcuts (Bottom Corners) -->
+<div class="w-full flex items-center justify-between px-2">
+<!-- Bottom Left: Flashlight shortcut -->
+<button class="w-11 h-11 rounded-full bg-surface-container-lowest/80 backdrop-blur-md border border-outline-variant/40 flex items-center justify-center text-on-surface shadow-sm active:scale-90 transition-transform" title="Toggle Flashlight">
+<span class="material-symbols-outlined text-[20px]">flashlight_on</span>
+</button>
+<!-- Android 15 Gesture Bar (Home indicator pill) -->
+<div class="w-32 h-1 bg-on-surface/40 rounded-full mx-auto"></div>
+<!-- Bottom Right: Camera shortcut -->
+<button class="w-11 h-11 rounded-full bg-surface-container-lowest/80 backdrop-blur-md border border-outline-variant/40 flex items-center justify-center text-on-surface shadow-sm active:scale-90 transition-transform" title="Launch Camera">
+<span class="material-symbols-outlined text-[20px]">photo_camera</span>
+</button>
+</div>
+</footer>
+</div>
+<!-- Interactive Logic for Media Controls -->
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const playBtn = document.getElementById('play-pause-btn');
+      const playIcon = document.getElementById('play-icon');
+      let isPlaying = true;
+
+      playBtn.addEventListener('click', () => {
+        isPlaying = !isPlaying;
+        if (isPlaying) {
+          playIcon.textContent = 'pause';
+          playBtn.setAttribute('title', 'Pause narration');
+        } else {
+          playIcon.textContent = 'play_arrow';
+          playBtn.setAttribute('title', 'Play narration');
+        }
+      });
+
+      // Quick interactive toggle for sleep timer
+      const sleepBtn = document.getElementById('sleep-timer-btn');
+      const sleepLabels = ['30m', '45m', '60m', 'Off'];
+      let sleepIndex = 0;
+      sleepBtn.addEventListener('click', () => {
+        sleepIndex = (sleepIndex + 1) % sleepLabels.length;
+        sleepBtn.querySelector('span:last-child').textContent = sleepLabels[sleepIndex];
+      });
+
+      // Speed toggler
+      const speedBtn = document.getElementById('speed-btn');
+      const speeds = ['1.0x', '1.1x', '1.25x', '1.5x'];
+      let speedIdx = 1;
+      speedBtn.addEventListener('click', () => {
+        speedIdx = (speedIdx + 1) % speeds.length;
+        speedBtn.querySelector('span:last-child').textContent = speeds[speedIdx];
+      });
+    });
+  </script>
+</body></html>

@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>OpenPages - Empty Library</title>
+<!-- Google Fonts: Newsreader & Inter -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS with Forms and Container Queries -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "tertiary-fixed": "#ffdcc5",
+            "tertiary-container": "#6b401e",
+            "outline-variant": "#c4c6d0",
+            "on-surface": "#1c1c19",
+            "primary": "#153362",
+            "surface-container-lowest": "#ffffff",
+            "on-primary": "#ffffff",
+            "on-tertiary-container": "#eaad83",
+            "inverse-surface": "#31302d",
+            "surface-container-highest": "#e5e2dd",
+            "on-secondary-container": "#68625a",
+            "inverse-on-surface": "#f3f0eb",
+            "surface-tint": "#445e8f",
+            "on-secondary": "#ffffff",
+            "error-container": "#ffdad6",
+            "primary-fixed-dim": "#acc7fe",
+            "error": "#ba1a1a",
+            "on-surface-variant": "#44474f",
+            "on-error": "#ffffff",
+            "primary-fixed": "#d7e2ff",
+            "on-error-container": "#93000a",
+            "on-background": "#1c1c19",
+            "surface": "#fcf9f4",
+            "on-primary-fixed-variant": "#2b4676",
+            "on-primary-container": "#a0bbf2",
+            "outline": "#747780",
+            "inverse-primary": "#acc7fe",
+            "on-tertiary-fixed-variant": "#673d1b",
+            "background": "#fcf9f4",
+            "secondary-container": "#e7ded4",
+            "on-tertiary-fixed": "#301400",
+            "surface-dim": "#dcdad5",
+            "surface-container": "#f0ede9",
+            "surface-container-low": "#f6f3ee",
+            "on-secondary-fixed": "#1f1b15",
+            "surface-variant": "#e5e2dd",
+            "secondary-fixed-dim": "#cec5bb",
+            "tertiary-fixed-dim": "#f7b98e",
+            "surface-bright": "#fcf9f4",
+            "secondary-fixed": "#eae1d7",
+            "secondary": "#635d56",
+            "primary-container": "#2f4a7a",
+            "on-tertiary": "#ffffff",
+            "surface-container-high": "#ebe8e3",
+            "on-secondary-fixed-variant": "#4b463f",
+            "on-primary-fixed": "#001a40",
+            "tertiary": "#502a0a"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-xs": "0.25rem",
+            "gutter-mobile": "0.75rem",
+            "space-xl": "2.25rem",
+            "margin-tablet": "2rem",
+            "margin": "1.25rem",
+            "space-md": "1rem",
+            "space-sm": "0.5rem",
+            "space-lg": "1.5rem",
+            "gutter": "1rem"
+          },
+          "fontFamily": {
+            "label-sm": ["Inter"],
+            "display-lg-mobile": ["Newsreader"],
+            "body-lg": ["Newsreader"],
+            "headline-md": ["Newsreader"],
+            "label-md": ["Inter"],
+            "label-lg": ["Inter"],
+            "body-sm": ["Inter"],
+            "body-md": ["Inter"],
+            "headline-sm": ["Newsreader"],
+            "headline-lg": ["Newsreader"],
+            "display-lg": ["Newsreader"]
+          },
+          "fontSize": {
+            "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "500" }],
+            "display-lg-mobile": ["30px", { "lineHeight": "38px", "letterSpacing": "-0.015em", "fontWeight": "400" }],
+            "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+            "headline-md": ["22px", { "lineHeight": "28px", "fontWeight": "500" }],
+            "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+            "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600" }],
+            "body-sm": ["13px", { "lineHeight": "18px", "fontWeight": "400" }],
+            "body-md": ["15px", { "lineHeight": "22px", "fontWeight": "400" }],
+            "headline-sm": ["19px", { "lineHeight": "26px", "fontWeight": "500" }],
+            "headline-lg": ["26px", { "lineHeight": "34px", "letterSpacing": "-0.01em", "fontWeight": "500" }],
+            "display-lg": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "400" }]
+          }
+        }
+      }
+    };
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      display: inline-block;
+      vertical-align: middle;
+      line-height: 1;
+    }
+  </style>
+</head>
+<body class="bg-surface text-on-surface antialiased flex justify-center items-center min-h-screen selection:bg-secondary-container selection:text-on-surface p-0 sm:p-4">
+<!-- Mobile Frame Container (412px x 915px Canvas) -->
+<main class="w-full max-w-[412px] h-[915px] bg-surface flex flex-col justify-between overflow-hidden shadow-2xl relative sm:rounded-[36px] sm:border sm:border-outline-variant/30">
+<!-- 1. Android M3 Status Bar -->
+<header class="w-full flex-none">
+<div class="w-full h-11 px-6 flex justify-between items-center text-on-surface select-none pt-1">
+<span class="font-label-md text-label-md font-medium tracking-tight">9:41</span>
+<div class="flex items-center space-x-2 text-on-surface">
+<span class="material-symbols-outlined text-[17px] leading-none" data-icon="wifi">wifi</span>
+<span class="material-symbols-outlined text-[17px] leading-none" data-icon="signal_cellular_4_bar">signal_cellular_4_bar</span>
+<span class="material-symbols-outlined text-[19px] leading-none" data-icon="battery_full">battery_full</span>
+</div>
+</div>
+<!-- 2. Top App Bar -->
+<div class="w-full px-5 py-3 flex items-center justify-between border-b border-outline-variant/30 bg-surface">
+<div class="flex items-center space-x-2.5">
+<div class="w-8 h-8 rounded-full bg-secondary-container/60 flex items-center justify-center text-primary-container">
+<span class="material-symbols-outlined text-[20px]" data-icon="local_library">local_library</span>
+</div>
+<h1 class="font-headline-md text-headline-md text-on-surface tracking-tight">Library</h1>
+</div>
+<div class="flex items-center space-x-1">
+<button aria-label="Search volumes" class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface hover:bg-surface-container active:scale-95 transition-all duration-150" type="button">
+<span class="material-symbols-outlined text-[22px]" data-icon="search">search</span>
+</button>
+<button aria-label="Shelf settings" class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface hover:bg-surface-container active:scale-95 transition-all duration-150" type="button">
+<span class="material-symbols-outlined text-[22px]" data-icon="tune">tune</span>
+</button>
+</div>
+</div>
+</header>
+<!-- 3. Center Viewport Empty State (Balanced Editorial Cadence) -->
+<section class="flex-1 w-full px-5 flex flex-col items-center justify-center -mt-4 text-center">
+<!-- Serene Shelf Illustration Container -->
+<div class="w-[280px] h-[220px] mb-5 flex items-center justify-center relative overflow-hidden rounded-2xl bg-surface">
+<img alt="Single book on wooden shelf" class="w-full h-full object-contain mix-blend-multiply transition-opacity duration-300 pointer-events-none select-none" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBQ2MgtCS9q0RoCJ97i31YREJpJRuUpWQP6j1Pkj-h2a0O-bxfCX62k-SFL8uamqV_NthJgPBbLmW9mfRotIGW4kYFWqi1oA6W-D7ayFluGnbQw0D9fTu1i32vjS47NdVjiPOdm4uBz6-IJ0D7oTB6nBGdDatTZoeMt99DRMblCvMSDdXeZMIvdexfYwB1iqkil4GqNNPwEd5RMW69R2f_RH48M8kphtITCUVus3C3Q6PZkbIX4yrcy1ELs2bt24k1ZzRzO483V4EY"/>
+</div>
+<!-- Editorial Typography Group -->
+<div class="max-w-[320px] flex flex-col items-center mb-8">
+<h2 class="font-display-lg-mobile text-display-lg-mobile text-on-surface tracking-tight font-normal mb-2">
+          Your shelf is quiet
+        </h2>
+<p class="font-body-md text-body-md text-secondary leading-relaxed">
+          Import a DRM-free book or a whole folder to start reading.
+        </p>
+</div>
+<!-- Action Buttons Cluster -->
+<div class="w-full max-w-[320px] flex flex-col space-y-3 mb-6">
+<!-- Primary Action: Import files -->
+<button class="w-full h-12 rounded-full bg-primary-container text-on-primary flex items-center justify-center space-x-2.5 font-label-lg text-label-lg shadow-sm hover:brightness-105 active:brightness-90 active:scale-[0.98] transition-all duration-150" type="button">
+<span class="material-symbols-outlined text-[20px]" data-icon="upload_file">upload_file</span>
+<span>Import files</span>
+</button>
+<!-- Secondary Action: Import a folder -->
+<button class="w-full h-12 rounded-full bg-surface-container-lowest border-[1.5px] border-primary-container text-primary-container flex items-center justify-center space-x-2.5 font-label-lg text-label-lg hover:bg-surface-container-low active:bg-secondary-container/40 active:scale-[0.98] transition-all duration-150" type="button">
+<span class="material-symbols-outlined text-[20px]" data-icon="folder_open">folder_open</span>
+<span>Import a folder</span>
+</button>
+</div>
+<!-- Format Compatibility & Privacy Pill Badge -->
+<div class="inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-full bg-surface-container-lowest border border-surface-container-highest shadow-[0_1px_4px_rgba(28,27,26,0.03)] max-w-[340px]">
+<span class="material-symbols-outlined text-[14px] text-secondary flex-shrink-0" data-icon="shield">shield</span>
+<span class="font-label-sm text-label-sm text-secondary truncate">
+          Supports EPUB, PDF, TXT, Markdown, HTML, FB2 · Stored locally
+        </span>
+</div>
+</section>
+<!-- Bottom Margin / Android Gesture Navigation Bar Area (No Tab Bar) -->
+<footer class="w-full flex-none pb-2 flex flex-col items-center">
+<!-- Android Gesture Pill Handle -->
+<div class="w-28 h-1 rounded-full bg-on-surface/20 my-1"></div>
+</footer>
+</main>
+<!-- Interactive Ripple Simulation for Mobile Fidelity -->
+<script>
+    document.querySelectorAll('button').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        // Lightweight visual feedback trigger
+        btn.classList.add('opacity-90');
+        setTimeout(() => btn.classList.remove('opacity-90'), 120);
+      });
+    });
+  </script>
+</body></html>

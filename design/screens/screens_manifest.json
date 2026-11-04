@@ -1,0 +1,237 @@
+{
+  "project_title": "OpenPages",
+  "project_id": "8671147000524611054",
+  "project_canvas_url": "https://stitch.google.com/projects/8671147000524611054",
+  "device": "MOBILE (412x915)",
+  "total_screens": 19,
+  "screens": [
+    {
+      "slug": "01_onboarding",
+      "title": "OpenPages - Onboarding Carousel",
+      "node_id": "ce71ef5341e7435abff9e5eab14d0402",
+      "canvas_url": "https://stitch.google.com/projects/8671147000524611054?node-id=ce71ef5341e7435abff9e5eab14d0402",
+      "screen_png": "design/screens/01_onboarding/01_onboarding_screen.png",
+      "screen_html": "design/screens/01_onboarding/01_onboarding_screen.html",
+      "assets": [
+        "design/screens/01_onboarding/01_onboarding_hero_illustration.png"
+      ],
+      "metadata_file": "design/screens/01_onboarding/01_onboarding_metadata.json"
+    },
+    {
+      "slug": "01b_onboarding_page2",
+      "title": "OpenPages - Onboarding Carousel (Page 2)",
+      "node_id": "ebb14c4cc542497d8d69e7b450363062",
+      "canvas_url": "https://stitch.google.com/projects/8671147000524611054?node-id=ebb14c4cc542497d8d69e7b450363062",
+      "screen_png": "design/screens/01b_onboarding_page2/01b_onboarding_page2_screen.png",
+      "screen_html": "design/screens/01b_onboarding_page2/01b_onboarding_page2_screen.html",
+      "assets": [
+        "design/screens/01b_onboarding_page2/01b_onboarding_page2_asset_1.png"
+      ],
+      "metadata_file": "design/screens/01b_onboarding_page2/01b_onboarding_page2_metadata.json"
+    },
+    {
+      "slug": "01c_onboarding_page3",
+      "title": "OpenPages - Onboarding Carousel (Page 3)",
+      "node_id": "20ed4f1571d044229f5caa0a4ddcc73d",
+      "canvas_url": "https://stitch.google.com/projects/8671147000524611054?node-id=20ed4f1571d044229f5caa0a4ddcc73d",
+      "screen_png": "design/screens/01c_onboarding_page3/01c_onboarding_page3_screen.png",
+      "screen_html": "design/screens/01c_onboarding_page3/01c_onboarding_page3_screen.html",
+      "assets": [
+        "design/screens/01c_onboarding_page3/01c_onboarding_page3_asset_1.png"
+      ],
+      "metadata_file": "design/screens/01c_onboarding_page3/01c_onboarding_page3_metadata.json"
+    },
+    {
+      "slug": "01d_onboarding_page4",
+      "title": "OpenPages - Onboarding Carousel (Page 4)",
+      "node_id": "8a586c73cb324ef38359eac34e6ee3ce",
+      "canvas_url": "https://stitch.google.com/projects/8671147000524611054?node-id=8a586c73cb324ef38359eac34e6ee3ce",
+      "screen_png": "design/screens/01d_onboarding_page4/01d_onboarding_page4_screen.png",
+      "screen_html": "design/screens/01d_onboarding_page4/01d_onboarding_page4_screen.html",
+      "assets": [
+        "design/screens/01d_onboarding_page4/01d_onboarding_page4_asset_1.png"
+      ],
+      "metadata_file": "design/screens/01d_onboarding_page4/01d_onboarding_page4_metadata.json"
+    },
+    {
+      "slug": "02_library",
+      "title": "OpenPages - Library Home",
+      "node_id": "9d845920b6d64a1bbe0f24b877a97774",
+      "canvas_url": "https://stitch.google.com/projects/8671147000524611054?node-id=9d845920b6d64a1bbe0f24b877a97774",
+      "screen_png": "design/screens/02_library/02_library_screen.png",
+      "screen_html": "design/screens/02_library/02_library_screen.html",
+      "assets": [],
+      "metadata_file": "design/screens/02_library/02_library_metadata.json"
+    },
+    {
+      "slug": "02b_empty_library",
+      "title": "OpenPages - Empty Library",
+      "node_id": "e53734ed1e36444c8244209319139409",
+      "canvas_url": "https://stitch.google.com/projects/8671147000524611054?node-id=e53734ed1e36444c8244209319139409",
+      "screen_png": "design/screens/02b_empty_library/02b_empty_library_screen.png",
+      "screen_html": "design/screens/02b_empty_library/02b_empty_library_screen.html",
+      "assets": [
+        "design/screens/02b_empty_library/02b_empty_library_asset_1.png"
+      ],
+      "metadata_file": "design/screens/02b_empty_library/02b_empty_library_metadata.json"
+    },
+    {
+      "slug": "02c_filter_sort_sheet",
+      "title": "OpenPages - Filter and Sort Sheet",
+      "node_id": "7a5f6480a9dd4f94874d0c16e35b4dbe",
+      "canvas_url": "https://stitch.google.com/projects/8671147000524611054?node-id=7a5f6480a9dd4f94874d0c16e35b4dbe",
+      "screen_png": "design/screens/02c_filter_sort_sheet/02c_filter_sort_sheet_screen.png",
+      "screen_html": "design/screens/02c_filter_sort_sheet/02c_filter_sort_sheet_screen.html",
+      "assets": [],
+      "metadata_file": "design/screens/02c_filter_sort_sheet/02c_filter_sort_sheet_metadata.json"
+    },
+    {
+      "slug": "02d_book_details",
+      "title": "OpenPages - Book Details Sheet",
+      "node_id": "54ac31aea72a4e83b1e04e7c24d681e7",
+      "canvas_url": "https://stitch.google.com/projects/8671147000524611054?node-id=54ac31aea72a4e83b1e04e7c24d681e7",
+      "screen_png": "design/screens/02d_book_details/02d_book_details_screen.png",
+      "screen_html": "design/screens/02d_book_details/02d_book_details_screen.html",
+      "assets": [
+        "design/screens/02d_book_details/02d_book_details_asset_1.png"
+      ],
+      "metadata_file": "design/screens/02d_book_details/02d_book_details_metadata.json"
+    },
+    {
+      "slug": "03_settings",
+      "title": "OpenPages - Settings",
+      "node_id": "0e2582dd012247b68a3368ad5eba12c8",
+      "canvas_url": "https://stitch.google.com/projects/8671147000524611054?node-id=0e2582dd012247b68a3368ad5eba12c8",
+      "screen_png": "design/screens/03_settings/03_settings_screen.png",
+      "screen_html": "design/screens/03_settings/03_settings_screen.html",
+      "assets": [],
+      "metadata_file": "design/screens/03_settings/03_settings_metadata.json"
+    },
+    {
+      "slug": "04_reader_chrome_hidden",
+      "title": "OpenPages - Book Reader (Zen Mode)",
+      "node_id": "b868e1ced50640ff8de1949fcb0f8c2e",
+      "canvas_url": "https://stitch.google.com/projects/8671147000524611054?node-id=b868e1ced50640ff8de1949fcb0f8c2e",
+      "screen_png": "design/screens/04_reader_chrome_hidden/04_reader_chrome_hidden_screen.png",
+      "screen_html": "design/screens/04_reader_chrome_hidden/04_reader_chrome_hidden_screen.html",
+      "assets": [],
+      "metadata_file": "design/screens/04_reader_chrome_hidden/04_reader_chrome_hidden_metadata.json"
+    },
+    {
+      "slug": "04_reader_chrome_visible",
+      "title": "OpenPages - Book Reader (Chrome Visible)",
+      "node_id": "80a5b42582244aea8c4661094117f3f7",
+      "canvas_url": "https://stitch.google.com/projects/8671147000524611054?node-id=80a5b42582244aea8c4661094117f3f7",
+      "screen_png": "design/screens/04_reader_chrome_visible/04_reader_chrome_visible_screen.png",
+      "screen_html": "design/screens/04_reader_chrome_visible/04_reader_chrome_visible_screen.html",
+      "assets": [],
+      "metadata_file": "design/screens/04_reader_chrome_visible/04_reader_chrome_visible_metadata.json"
+    },
+    {
+      "slug": "04b_appearance_sheet",
+      "title": "OpenPages - Reader Appearance Sheet",
+      "node_id": "d8bb2a419ed94bd2912d8dd529e5c482",
+      "canvas_url": "https://stitch.google.com/projects/8671147000524611054?node-id=d8bb2a419ed94bd2912d8dd529e5c482",
+      "screen_png": "design/screens/04b_appearance_sheet/04b_appearance_sheet_screen.png",
+      "screen_html": "design/screens/04b_appearance_sheet/04b_appearance_sheet_screen.html",
+      "assets": [],
+      "metadata_file": "design/screens/04b_appearance_sheet/04b_appearance_sheet_metadata.json"
+    },
+    {
+      "slug": "04c_text_selection_dictionary",
+      "title": "OpenPages - Text Selection & Dictionary Definition",
+      "node_id": "3377a7d8be9f4c4a806e881edd365939",
+      "canvas_url": "https://stitch.google.com/projects/8671147000524611054?node-id=3377a7d8be9f4c4a806e881edd365939",
+      "screen_png": "design/screens/04c_text_selection_dictionary/04c_text_selection_dictionary_screen.png",
+      "screen_html": "design/screens/04c_text_selection_dictionary/04c_text_selection_dictionary_screen.html",
+      "assets": [],
+      "metadata_file": "design/screens/04c_text_selection_dictionary/04c_text_selection_dictionary_metadata.json"
+    },
+    {
+      "slug": "04d_contents_annotations",
+      "title": "OpenPages - Table of Contents & Annotations Panel",
+      "node_id": "60c9068ec7e6446eb55f8762102cb112",
+      "canvas_url": "https://stitch.google.com/projects/8671147000524611054?node-id=60c9068ec7e6446eb55f8762102cb112",
+      "screen_png": "design/screens/04d_contents_annotations/04d_contents_annotations_screen.png",
+      "screen_html": "design/screens/04d_contents_annotations/04d_contents_annotations_screen.html",
+      "assets": [],
+      "metadata_file": "design/screens/04d_contents_annotations/04d_contents_annotations_metadata.json"
+    },
+    {
+      "slug": "04e_search_in_book",
+      "title": "OpenPages - Search Inside Book",
+      "node_id": "c63b6121c3f6481fa466900795a02b89",
+      "canvas_url": "https://stitch.google.com/projects/8671147000524611054?node-id=c63b6121c3f6481fa466900795a02b89",
+      "screen_png": "design/screens/04e_search_in_book/04e_search_in_book_screen.png",
+      "screen_html": "design/screens/04e_search_in_book/04e_search_in_book_screen.html",
+      "assets": [],
+      "metadata_file": "design/screens/04e_search_in_book/04e_search_in_book_metadata.json"
+    },
+    {
+      "slug": "05_read_aloud",
+      "title": "OpenPages - Read Aloud In-App Player",
+      "node_id": "b44bfe8531334c9fab5c6e95ba2c2ac3",
+      "canvas_url": "https://stitch.google.com/projects/8671147000524611054?node-id=b44bfe8531334c9fab5c6e95ba2c2ac3",
+      "screen_png": "design/screens/05_read_aloud/05_read_aloud_screen.png",
+      "screen_html": "design/screens/05_read_aloud/05_read_aloud_screen.html",
+      "assets": [],
+      "metadata_file": "design/screens/05_read_aloud/05_read_aloud_metadata.json"
+    },
+    {
+      "slug": "06_lock_screen",
+      "title": "OpenPages - Lock Screen Read Aloud Media Session",
+      "node_id": "cb0c0e53f6d845b193205ead7b7aeb7e",
+      "canvas_url": "https://stitch.google.com/projects/8671147000524611054?node-id=cb0c0e53f6d845b193205ead7b7aeb7e",
+      "screen_png": "design/screens/06_lock_screen/06_lock_screen_screen.png",
+      "screen_html": "design/screens/06_lock_screen/06_lock_screen_screen.html",
+      "assets": [],
+      "metadata_file": "design/screens/06_lock_screen/06_lock_screen_metadata.json"
+    },
+    {
+      "slug": "07_premium_paywall",
+      "title": "OpenPages - Premium Appearance Paywall",
+      "node_id": "e4e1f70641644d55af19ba91bec03cb5",
+      "canvas_url": "https://stitch.google.com/projects/8671147000524611054?node-id=e4e1f70641644d55af19ba91bec03cb5",
+      "screen_png": "design/screens/07_premium_paywall/07_premium_paywall_screen.png",
+      "screen_html": "design/screens/07_premium_paywall/07_premium_paywall_screen.html",
+      "assets": [],
+      "metadata_file": "design/screens/07_premium_paywall/07_premium_paywall_metadata.json"
+    },
+    {
+      "slug": "08_all_annotations",
+      "title": "OpenPages - All Annotations",
+      "node_id": "837a423b40e84dc6b4abbdfbdf90bd99",
+      "canvas_url": "https://stitch.google.com/projects/8671147000524611054?node-id=837a423b40e84dc6b4abbdfbdf90bd99",
+      "screen_png": "design/screens/08_all_annotations/08_all_annotations_screen.png",
+      "screen_html": "design/screens/08_all_annotations/08_all_annotations_screen.html",
+      "assets": [],
+      "metadata_file": "design/screens/08_all_annotations/08_all_annotations_metadata.json"
+    }
+  ],
+  "standalone_assets_on_stitch": [
+    {
+      "title": "Fallback Book Cover Default",
+      "node_id": "16925914359237450860",
+      "canvas_url": "https://stitch.google.com/projects/8671147000524611054?node-id=16925914359237450860",
+      "local_path": "assets/images/fallback_book_cover_default.png"
+    },
+    {
+      "title": "Asset: Onboarding Page 2 Reading Styles",
+      "node_id": "9775454326618362961",
+      "canvas_url": "https://stitch.google.com/projects/8671147000524611054?node-id=9775454326618362961",
+      "local_path": "assets/images/onboarding_page_2_reading_styles.png"
+    },
+    {
+      "title": "Asset: Onboarding Page 3 Read Aloud",
+      "node_id": "6902625947890648930",
+      "canvas_url": "https://stitch.google.com/projects/8671147000524611054?node-id=6902625947890648930",
+      "local_path": "assets/images/onboarding_page_3_read_aloud.png"
+    },
+    {
+      "title": "Asset: Onboarding Page 4 Privacy & Dictionary",
+      "node_id": "16548506015143301279",
+      "canvas_url": "https://stitch.google.com/projects/8671147000524611054?node-id=16548506015143301279",
+      "local_path": "assets/images/onboarding_page_4_privacy.png"
+    }
+  ]
+}

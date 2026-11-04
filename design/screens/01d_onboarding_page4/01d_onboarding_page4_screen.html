@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>OpenPages - Onboarding</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400;1,6..72,500&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS CDN -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Config Verbatim -->
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "surface-container": "#f0ede9",
+            "surface-container-high": "#ebe8e3",
+            "error": "#ba1a1a",
+            "surface": "#fcf9f4",
+            "primary": "#153362",
+            "on-tertiary-fixed": "#301400",
+            "on-primary-fixed-variant": "#2b4676",
+            "on-tertiary-container": "#eaad83",
+            "tertiary": "#502a0a",
+            "surface-tint": "#445e8f",
+            "on-primary": "#ffffff",
+            "surface-container-highest": "#e5e2dd",
+            "surface-container-lowest": "#ffffff",
+            "secondary-fixed": "#eae1d7",
+            "on-secondary-fixed-variant": "#4b463f",
+            "on-secondary": "#ffffff",
+            "background": "#fcf9f4",
+            "on-surface": "#1c1c19",
+            "error-container": "#ffdad6",
+            "primary-fixed-dim": "#acc7fe",
+            "surface-bright": "#fcf9f4",
+            "tertiary-fixed": "#ffdcc5",
+            "surface-dim": "#dcdad5",
+            "inverse-on-surface": "#f3f0eb",
+            "on-background": "#1c1c19",
+            "on-tertiary": "#ffffff",
+            "on-primary-fixed": "#001a40",
+            "surface-variant": "#e5e2dd",
+            "secondary-fixed-dim": "#cec5bb",
+            "outline-variant": "#c4c6d0",
+            "on-primary-container": "#a0bbf2",
+            "secondary-container": "#e7ded4",
+            "inverse-primary": "#acc7fe",
+            "primary-container": "#2f4a7a",
+            "outline": "#747780",
+            "on-error-container": "#93000a",
+            "secondary": "#635d56",
+            "tertiary-container": "#6b401e",
+            "tertiary-fixed-dim": "#f7b98e",
+            "on-tertiary-fixed-variant": "#673d1b",
+            "on-error": "#ffffff",
+            "primary-fixed": "#d7e2ff",
+            "inverse-surface": "#31302d",
+            "surface-container-low": "#f6f3ee",
+            "on-secondary-fixed": "#1f1b15",
+            "on-surface-variant": "#44474f",
+            "on-secondary-container": "#68625a"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-md": "1rem",
+            "space-xl": "2.25rem",
+            "space-xs": "0.25rem",
+            "gutter-mobile": "0.75rem",
+            "space-sm": "0.5rem",
+            "margin": "1.25rem",
+            "gutter": "1rem",
+            "margin-tablet": "2rem",
+            "space-lg": "1.5rem"
+          },
+          "fontFamily": {
+            "headline-md": [
+              "Newsreader"
+            ],
+            "body-sm": [
+              "Inter"
+            ],
+            "body-lg": [
+              "Newsreader"
+            ],
+            "display-lg-mobile": [
+              "Newsreader"
+            ],
+            "label-lg": [
+              "Inter"
+            ],
+            "headline-lg": [
+              "Newsreader"
+            ],
+            "display-lg": [
+              "Newsreader"
+            ],
+            "label-md": [
+              "Inter"
+            ],
+            "label-sm": [
+              "Inter"
+            ],
+            "body-md": [
+              "Inter"
+            ],
+            "headline-sm": [
+              "Newsreader"
+            ]
+          },
+          "fontSize": {
+            "headline-md": [
+              "22px",
+              {
+                "lineHeight": "28px",
+                "fontWeight": "500"
+              }
+            ],
+            "body-sm": [
+              "13px",
+              {
+                "lineHeight": "18px",
+                "fontWeight": "400"
+              }
+            ],
+            "body-lg": [
+              "18px",
+              {
+                "lineHeight": "28px",
+                "fontWeight": "400"
+              }
+            ],
+            "display-lg-mobile": [
+              "30px",
+              {
+                "lineHeight": "38px",
+                "letterSpacing": "-0.015em",
+                "fontWeight": "400"
+              }
+            ],
+            "label-lg": [
+              "14px",
+              {
+                "lineHeight": "20px",
+                "letterSpacing": "0.01em",
+                "fontWeight": "600"
+              }
+            ],
+            "headline-lg": [
+              "26px",
+              {
+                "lineHeight": "34px",
+                "letterSpacing": "-0.01em",
+                "fontWeight": "500"
+              }
+            ],
+            "display-lg": [
+              "36px",
+              {
+                "lineHeight": "44px",
+                "letterSpacing": "-0.02em",
+                "fontWeight": "400"
+              }
+            ],
+            "label-md": [
+              "12px",
+              {
+                "lineHeight": "16px",
+                "letterSpacing": "0.02em",
+                "fontWeight": "500"
+              }
+            ],
+            "label-sm": [
+              "11px",
+              {
+                "lineHeight": "14px",
+                "letterSpacing": "0.03em",
+                "fontWeight": "500"
+              }
+            ],
+            "body-md": [
+              "15px",
+              {
+                "lineHeight": "22px",
+                "fontWeight": "400"
+              }
+            ],
+            "headline-sm": [
+              "19px",
+              {
+                "lineHeight": "26px",
+                "fontWeight": "500"
+              }
+            ]
+          }
+        },
+      },
+    }
+  </script>
+</head>
+<body class="bg-background text-on-surface antialiased min-h-screen flex justify-center items-center selection:bg-secondary-container">
+<!-- Mobile Frame Container (412px x 915px viewport scale) -->
+<main class="w-full max-w-[412px] h-[915px] max-h-screen bg-background relative flex flex-col justify-between overflow-hidden shadow-2xl">
+<!-- Top System Area: Status Bar & TopAppBar Shared Component -->
+<header class="w-full flex-shrink-0 z-20">
+<!-- Android Standard Status Bar -->
+<div class="w-full px-6 pt-3 pb-1 flex justify-between items-center text-on-surface select-none">
+<span class="font-label-md text-label-md font-medium tracking-tight">09:41</span>
+<div class="flex items-center space-x-2 text-on-surface">
+<span class="material-symbols-outlined text-[17px]" data-icon="wifi">wifi</span>
+<span class="material-symbols-outlined text-[17px]" data-icon="signal_cellular_alt">signal_cellular_alt</span>
+<span class="material-symbols-outlined text-[19px]" data-icon="battery_full">battery_full</span>
+</div>
+</div>
+<!-- TopAppBar (Derived strictly from Shared Components JSON for TopAppBar) -->
+<nav class="flex justify-between items-center w-full px-5 py-3.5 max-w-2xl mx-auto bg-surface">
+<!-- Leading Logo & Identity -->
+<div class="flex items-center space-x-2.5">
+<div class="w-8 h-8 rounded-full bg-secondary-container/60 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[20px]" data-icon="local_library">local_library</span>
+</div>
+<span class="font-headline-md text-headline-md font-medium text-on-surface tracking-tight">OpenPages</span>
+</div>
+<!-- Trailing Action ("Skip" as specified in JSON) -->
+<button class="font-label-md text-label-md text-secondary hover:text-primary transition-colors duration-150 px-2.5 py-1 rounded-full active:opacity-80">
+          Skip
+        </button>
+</nav>
+</header>
+<!-- Scrollable/Fluid Middle Canvas -->
+<div class="flex-1 flex flex-col items-center justify-between px-5 pt-1 pb-3 overflow-y-auto">
+<!-- Upper Section: Tactile Editorial Art Card & Badges -->
+<section class="w-full flex flex-col items-center mt-1">
+<!-- Elevated Art Frame (Surface Level 1: #FFFFFF with hairline #E8E2D9 border) -->
+<div class="w-full max-w-[348px] aspect-[1/0.95] rounded-3xl bg-surface-container-lowest border border-outline-variant/30 p-2.5 flex items-center justify-center relative overflow-hidden">
+<!-- Ambient paper grain tonal background inside frame -->
+<div class="absolute inset-0 bg-gradient-to-b from-surface-container-low/40 to-surface-container-lowest pointer-events-none"></div>
+<!-- Image Placeholder strictly referencing https://lh3.googleusercontent.com/aida-public/AB6AXuDCg4jMzZtsDe_hrycSOkSEhWW_vdAYqxqIjgb7Bs20kvxNU62CjnhpxUWiy2ZdjLLTOD9IhdAJURF7NwstH1qpN56LIO3KrkHjkzfeMiZ2vH_OHNShzcEw2PAJVx32YS587d6JoNMUMuiVtnIS_s-1oYbjgK72B4dbGaKV6lPgMjo9y1lkoO6Ax5b2bX2VUZ193jnybmWXbarpu4MvN-B6-cAw8yt1edeM02Xm-dpCD45ur8P9qaaRnWin4ZUNqgCdGHJ-429tOpk -->
+<img alt="An intimate watercolor illustration of antique leatherbound books, brass padlock, and typography proof sheets" class="w-full h-full object-contain relative z-10 select-none pointer-events-none" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDCg4jMzZtsDe_hrycSOkSEhWW_vdAYqxqIjgb7Bs20kvxNU62CjnhpxUWiy2ZdjLLTOD9IhdAJURF7NwstH1qpN56LIO3KrkHjkzfeMiZ2vH_OHNShzcEw2PAJVx32YS587d6JoNMUMuiVtnIS_s-1oYbjgK72B4dbGaKV6lPgMjo9y1lkoO6Ax5b2bX2VUZ193jnybmWXbarpu4MvN-B6-cAw8yt1edeM02Xm-dpCD45ur8P9qaaRnWin4ZUNqgCdGHJ-429tOpk"/>
+</div>
+<!-- Editorial Micro-Pill Feature Badges -->
+<div class="flex flex-wrap items-center justify-center gap-2 mt-4 px-1">
+<!-- Offline Vault -->
+<div class="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-surface-container-lowest border border-outline-variant/30">
+<span class="material-symbols-outlined text-primary text-[15px]" data-icon="lock">lock</span>
+<span class="font-label-md text-label-md text-secondary font-medium">100% Offline Vault</span>
+</div>
+<!-- Zero Telemetry -->
+<div class="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-surface-container-lowest border border-outline-variant/30">
+<span class="material-symbols-outlined text-primary text-[15px]" data-icon="shield">shield</span>
+<span class="font-label-md text-label-md text-secondary font-medium">Zero Telemetry</span>
+</div>
+<!-- Offline Dictionary -->
+<div class="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-surface-container-lowest border border-outline-variant/30">
+<span class="material-symbols-outlined text-primary text-[15px]" data-icon="translate">translate</span>
+<span class="font-label-md text-label-md text-secondary font-medium">Offline Dictionary</span>
+</div>
+</div>
+</section>
+<!-- Content Narrative Area -->
+<section class="w-full text-center px-2 my-auto py-2">
+<h1 class="font-headline-lg text-headline-lg font-medium text-on-surface tracking-tight mb-2.5">
+          Private by design
+        </h1>
+<p class="font-body-md text-body-md text-secondary max-w-[320px] mx-auto leading-relaxed">
+          No account, no telemetry, no tracking. DRM-free books stored only on your device, with free offline dictionary lookup.
+        </p>
+<!-- Carousel Page Indicator: 4-dot indicator (Page 4 of 4 active) -->
+<div aria-label="Page 4 of 4" class="flex items-center justify-center space-x-2 mt-5">
+<!-- Dot 1 -->
+<span class="w-2 h-2 rounded-full bg-outline-variant/50 transition-all duration-200"></span>
+<!-- Dot 2 -->
+<span class="w-2 h-2 rounded-full bg-outline-variant/50 transition-all duration-200"></span>
+<!-- Dot 3 -->
+<span class="w-2 h-2 rounded-full bg-outline-variant/50 transition-all duration-200"></span>
+<!-- Dot 4: Active elongated pill dot in primary-container -->
+<span aria-current="step" class="w-6 h-2 rounded-full bg-primary-container transition-all duration-200"></span>
+</div>
+</section>
+<!-- Bottom Interactive Action Area -->
+<section class="w-full max-w-[364px] flex flex-col items-center space-y-2 mt-auto pb-1">
+<!-- Primary Button: Pill-shaped in deep ink blue primary-container -->
+<button class="w-full h-12 rounded-full bg-primary-container text-on-primary hover:bg-primary transition-colors duration-150 flex items-center justify-center space-x-2 px-6 shadow-sm active:scale-[0.98]">
+<span class="material-symbols-outlined text-[19px]" data-icon="folder_open">folder_open</span>
+<span class="font-label-lg text-label-lg font-medium">Import your first book</span>
+</button>
+<!-- Secondary Action Link -->
+<button class="font-label-md text-label-md text-secondary hover:text-primary transition-colors duration-150 py-1.5 hover:underline">
+          Explore first
+        </button>
+<!-- Reassuring Archival Privacy Badge -->
+<div class="flex items-center justify-center space-x-1.5 text-secondary/80 pt-0.5">
+<span class="material-symbols-outlined text-[14px]" data-icon="lock">lock</span>
+<span class="font-label-sm text-label-sm">Archived locally • Zero cloud sync required</span>
+</div>
+</section>
+</div>
+<!-- Android Gesture Navigation Bar -->
+<footer class="w-full h-5 flex justify-center items-center pb-1 flex-shrink-0 select-none">
+<div class="w-32 h-1 bg-on-surface-variant/30 rounded-full"></div>
+</footer>
+</main>
+</body></html>

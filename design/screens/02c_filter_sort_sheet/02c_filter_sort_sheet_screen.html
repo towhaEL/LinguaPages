@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>OpenPages - Filter and Sort</title>
+<!-- Google Fonts: Newsreader & Inter -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS v3 -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "surface-variant": "#e5e2dd",
+            "on-tertiary": "#ffffff",
+            "on-background": "#1c1c19",
+            "inverse-surface": "#31302d",
+            "on-secondary-container": "#68625a",
+            "on-primary": "#ffffff",
+            "primary-fixed": "#d7e2ff",
+            "surface-container-high": "#ebe8e3",
+            "surface-container-lowest": "#ffffff",
+            "on-primary-fixed": "#001a40",
+            "surface-container-highest": "#e5e2dd",
+            "on-primary-container": "#a0bbf2",
+            "secondary-fixed": "#eae1d7",
+            "surface-dim": "#dcdad5",
+            "on-surface-variant": "#44474f",
+            "on-primary-fixed-variant": "#2b4676",
+            "background": "#fcf9f4",
+            "primary": "#153362",
+            "surface": "#fcf9f4",
+            "on-secondary-fixed-variant": "#4b463f",
+            "on-surface": "#1c1c19",
+            "on-error": "#ffffff",
+            "inverse-on-surface": "#f3f0eb",
+            "on-secondary-fixed": "#1f1b15",
+            "tertiary": "#502a0a",
+            "on-tertiary-fixed-variant": "#673d1b",
+            "surface-container-low": "#f6f3ee",
+            "primary-fixed-dim": "#acc7fe",
+            "on-tertiary-fixed": "#301400",
+            "on-error-container": "#93000a",
+            "primary-container": "#2f4a7a",
+            "inverse-primary": "#acc7fe",
+            "error": "#ba1a1a",
+            "error-container": "#ffdad6",
+            "tertiary-fixed": "#ffdcc5",
+            "outline-variant": "#c4c6d0",
+            "tertiary-fixed-dim": "#f7b98e",
+            "secondary-container": "#e7ded4",
+            "outline": "#747780",
+            "on-tertiary-container": "#eaad83",
+            "surface-container": "#f0ede9",
+            "surface-bright": "#fcf9f4",
+            "surface-tint": "#445e8f",
+            "secondary-fixed-dim": "#cec5bb",
+            "secondary": "#635d56",
+            "tertiary-container": "#6b401e",
+            "on-secondary": "#ffffff"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-md": "1rem",
+            "space-xs": "0.25rem",
+            "space-lg": "1.5rem",
+            "space-xl": "2.25rem",
+            "gutter": "1rem",
+            "margin-tablet": "2rem",
+            "gutter-mobile": "0.75rem",
+            "space-sm": "0.5rem",
+            "margin": "1.25rem"
+          },
+          "fontFamily": {
+            "display-lg": ["Newsreader"],
+            "display-lg-mobile": ["Newsreader"],
+            "body-sm": ["Inter"],
+            "label-lg": ["Inter"],
+            "headline-sm": ["Newsreader"],
+            "headline-md": ["Newsreader"],
+            "body-md": ["Inter"],
+            "label-sm": ["Inter"],
+            "headline-lg": ["Newsreader"],
+            "label-md": ["Inter"],
+            "body-lg": ["Newsreader"]
+          },
+          "fontSize": {
+            "display-lg": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "400" }],
+            "display-lg-mobile": ["30px", { "lineHeight": "38px", "letterSpacing": "-0.015em", "fontWeight": "400" }],
+            "body-sm": ["13px", { "lineHeight": "18px", "fontWeight": "400" }],
+            "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600" }],
+            "headline-sm": ["19px", { "lineHeight": "26px", "fontWeight": "500" }],
+            "headline-md": ["22px", { "lineHeight": "28px", "fontWeight": "500" }],
+            "body-md": ["15px", { "lineHeight": "22px", "fontWeight": "400" }],
+            "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "500" }],
+            "headline-lg": ["26px", { "lineHeight": "34px", "letterSpacing": "-0.01em", "fontWeight": "500" }],
+            "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+            "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      font-size: 20px;
+      display: inline-block;
+      vertical-align: middle;
+      line-height: 1;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .custom-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface antialiased flex justify-center items-center min-h-screen sm:py-8 sm:px-4">
+<!-- Mobile Device Shell 412x915 -->
+<div class="relative w-full max-w-[412px] h-[915px] max-h-[915px] bg-surface overflow-hidden sm:rounded-[36px] shadow-2xl flex flex-col border border-surface-variant">
+<!-- Android Status Bar (Native Frame) -->
+<div class="w-full h-11 pt-2.5 px-6 flex items-center justify-between z-30 select-none text-on-surface text-label-md font-label-md">
+<span class="tracking-tight font-medium">9:41</span>
+<div class="flex items-center space-x-2 text-on-surface">
+<span class="material-symbols-outlined text-[16px]">wifi</span>
+<span class="material-symbols-outlined text-[16px]">signal_cellular_4_bar</span>
+<span class="material-symbols-outlined text-[18px]">battery_full</span>
+</div>
+</div>
+<!-- BACKGROUND: Dimmed & Blurred Library View (Level 0 Scrim Backdrop) -->
+<div aria-hidden="true" class="absolute inset-0 pt-11 px-5 flex flex-col pointer-events-none select-none overflow-hidden">
+<!-- Library Top Bar Ghost -->
+<div class="flex items-center justify-between py-3.5 mb-2">
+<div class="flex items-center space-x-2">
+<span class="material-symbols-outlined text-primary text-[22px]">local_library</span>
+<span class="font-headline-md text-headline-md font-medium text-on-surface tracking-tight">OpenPages</span>
+</div>
+<div class="flex items-center space-x-3 text-secondary">
+<span class="material-symbols-outlined">search</span>
+<span class="material-symbols-outlined">tune</span>
+</div>
+</div>
+<!-- Library Heading Ghost -->
+<div class="py-2">
+<h1 class="font-headline-lg text-headline-lg text-on-surface">Library</h1>
+<p class="font-body-sm text-body-sm text-secondary">28 volumes offline</p>
+</div>
+<!-- Blurred Grid of Books -->
+<div class="grid grid-cols-2 gap-3 mt-4 opacity-55">
+<div class="bg-surface-container-lowest p-2.5 rounded-xl border border-surface-variant/80 flex flex-col">
+<div class="h-44 rounded-lg bg-surface-container flex flex-col justify-end p-3 relative overflow-hidden">
+<span class="font-label-sm text-label-sm text-secondary uppercase tracking-widest mb-1">EPUB</span>
+<div class="font-headline-sm text-headline-sm leading-tight text-on-surface">The Creative Habit</div>
+</div>
+<p class="font-body-sm text-body-sm text-secondary mt-2 truncate">Twyla Tharp</p>
+</div>
+<div class="bg-surface-container-lowest p-2.5 rounded-xl border border-surface-variant/80 flex flex-col">
+<div class="h-44 rounded-lg bg-surface-container flex flex-col justify-end p-3 relative overflow-hidden">
+<span class="font-label-sm text-label-sm text-secondary uppercase tracking-widest mb-1">PDF</span>
+<div class="font-headline-sm text-headline-sm leading-tight text-on-surface">Design as Art</div>
+</div>
+<p class="font-body-sm text-body-sm text-secondary mt-2 truncate">Bruno Munari</p>
+</div>
+<div class="bg-surface-container-lowest p-2.5 rounded-xl border border-surface-variant/80 flex flex-col">
+<div class="h-32 rounded-lg bg-surface-container p-3">
+<div class="font-headline-sm text-headline-sm leading-tight text-on-surface">Essays</div>
+</div>
+<p class="font-body-sm text-body-sm text-secondary mt-2">Montaigne</p>
+</div>
+<div class="bg-surface-container-lowest p-2.5 rounded-xl border border-surface-variant/80 flex flex-col">
+<div class="h-32 rounded-lg bg-surface-container p-3">
+<div class="font-headline-sm text-headline-sm leading-tight text-on-surface">Speculative Everything</div>
+</div>
+<p class="font-body-sm text-body-sm text-secondary mt-2">Dunne &amp; Raby</p>
+</div>
+</div>
+</div>
+<!-- Scrim Overlay (Tinted Layer Level 3) -->
+<div class="absolute inset-0 bg-[#1c1c19]/35 backdrop-blur-[3px] z-10"></div>
+<!-- MODAL BOTTOM SHEET CONTAINER -->
+<div class="relative z-20 mt-auto w-full bg-surface-container-lowest rounded-t-[28px] border-t border-l border-r border-surface-variant flex flex-col max-h-[820px] shadow-[0_-8px_32px_rgba(28,27,26,0.12)]">
+<!-- Drag Handle -->
+<div class="w-full pt-3 pb-1 flex justify-center items-center cursor-grab active:cursor-grabbing">
+<div class="w-10 h-1.5 rounded-full bg-surface-dim"></div>
+</div>
+<!-- Sheet Header -->
+<div class="px-5 py-2.5 flex items-center justify-between border-b border-surface-container-high/60">
+<div>
+<h2 class="font-headline-sm text-headline-sm font-medium text-on-surface">Filter &amp; Sort</h2>
+</div>
+<button class="font-label-lg text-label-lg text-secondary hover:text-primary active:opacity-70 transition-colors duration-150 px-2 py-1 rounded-md" type="button">
+          Reset
+        </button>
+</div>
+<!-- Scrollable Options Canvas -->
+<div class="flex-1 overflow-y-auto custom-scrollbar px-5 py-4 space-y-6">
+<!-- VIEW MODE TOGGLE (Grid vs List Segmented Control) -->
+<div class="flex flex-col space-y-2">
+<span class="font-label-sm text-label-sm tracking-wider uppercase font-semibold text-secondary">View Layout</span>
+<div class="p-1 bg-surface-container-low rounded-full border border-surface-variant flex items-center">
+<button class="flex-1 py-1.5 px-3 rounded-full flex items-center justify-center space-x-2 bg-surface-container-lowest shadow-sm text-primary transition-all" type="button">
+<span class="material-symbols-outlined text-[18px]">grid_view</span>
+<span class="font-label-md text-label-md font-medium">Grid</span>
+</button>
+<button class="flex-1 py-1.5 px-3 rounded-full flex items-center justify-center space-x-2 text-secondary hover:text-on-surface transition-all" type="button">
+<span class="material-symbols-outlined text-[18px]">view_list</span>
+<span class="font-label-md text-label-md font-medium">List</span>
+</button>
+</div>
+</div>
+<!-- SECTION 1: SORT BY -->
+<div class="flex flex-col space-y-2.5">
+<span class="font-label-sm text-label-sm tracking-wider uppercase font-semibold text-secondary">Sort by</span>
+<div class="rounded-xl border border-surface-variant bg-surface-container-lowest overflow-hidden divide-y divide-surface-container">
+<!-- Option 1: Recently read (Active) -->
+<label class="flex items-center justify-between px-3.5 py-3 cursor-pointer hover:bg-surface-container-low transition-colors duration-150">
+<div class="flex items-center space-x-3">
+<span class="material-symbols-outlined text-primary text-[20px]">history</span>
+<span class="font-body-md text-body-md text-on-surface font-medium">Recently read</span>
+</div>
+<div class="w-5 h-5 rounded-full border-2 border-primary-container flex items-center justify-center bg-primary-container">
+<div class="w-2 h-2 rounded-full bg-on-primary"></div>
+</div>
+</label>
+<!-- Option 2: Title -->
+<label class="flex items-center justify-between px-3.5 py-3 cursor-pointer hover:bg-surface-container-low transition-colors duration-150">
+<div class="flex items-center space-x-3">
+<span class="material-symbols-outlined text-secondary text-[20px]">sort_by_alpha</span>
+<span class="font-body-md text-body-md text-on-surface">Title</span>
+</div>
+<div class="w-5 h-5 rounded-full border border-surface-dim bg-surface-container-lowest"></div>
+</label>
+<!-- Option 3: Author -->
+<label class="flex items-center justify-between px-3.5 py-3 cursor-pointer hover:bg-surface-container-low transition-colors duration-150">
+<div class="flex items-center space-x-3">
+<span class="material-symbols-outlined text-secondary text-[20px]">person</span>
+<span class="font-body-md text-body-md text-on-surface">Author</span>
+</div>
+<div class="w-5 h-5 rounded-full border border-surface-dim bg-surface-container-lowest"></div>
+</label>
+<!-- Option 4: Date added -->
+<label class="flex items-center justify-between px-3.5 py-3 cursor-pointer hover:bg-surface-container-low transition-colors duration-150">
+<div class="flex items-center space-x-3">
+<span class="material-symbols-outlined text-secondary text-[20px]">calendar_today</span>
+<span class="font-body-md text-body-md text-on-surface">Date added</span>
+</div>
+<div class="w-5 h-5 rounded-full border border-surface-dim bg-surface-container-lowest"></div>
+</label>
+<!-- Option 5: Progress -->
+<label class="flex items-center justify-between px-3.5 py-3 cursor-pointer hover:bg-surface-container-low transition-colors duration-150">
+<div class="flex items-center space-x-3">
+<span class="material-symbols-outlined text-secondary text-[20px]">donut_large</span>
+<span class="font-body-md text-body-md text-on-surface">Progress</span>
+</div>
+<div class="w-5 h-5 rounded-full border border-surface-dim bg-surface-container-lowest"></div>
+</label>
+</div>
+</div>
+<!-- SECTION 2: FORMAT -->
+<div class="flex flex-col space-y-2.5">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm tracking-wider uppercase font-semibold text-secondary">Format</span>
+<span class="font-label-sm text-label-sm text-secondary">2 selected</span>
+</div>
+<div class="flex flex-wrap gap-2">
+<!-- Selected Pill 1 -->
+<button class="px-4 py-2 rounded-full bg-primary-container text-on-primary font-label-md text-label-md flex items-center space-x-1.5 shadow-sm active:scale-95 transition-transform duration-150" type="button">
+<span>EPUB</span>
+<span class="material-symbols-outlined text-[16px]">check</span>
+</button>
+<!-- Selected Pill 2 -->
+<button class="px-4 py-2 rounded-full bg-primary-container text-on-primary font-label-md text-label-md flex items-center space-x-1.5 shadow-sm active:scale-95 transition-transform duration-150" type="button">
+<span>PDF</span>
+<span class="material-symbols-outlined text-[16px]">check</span>
+</button>
+<!-- Unselected Pill 3 -->
+<button class="px-4 py-2 rounded-full bg-surface-container-lowest border border-surface-variant text-on-surface font-label-md text-label-md hover:bg-surface-container-low active:scale-95 transition-all duration-150" type="button">
+<span>TXT</span>
+</button>
+<!-- Unselected Pill 4 -->
+<button class="px-4 py-2 rounded-full bg-surface-container-lowest border border-surface-variant text-on-surface font-label-md text-label-md hover:bg-surface-container-low active:scale-95 transition-all duration-150" type="button">
+<span>Markdown</span>
+</button>
+<!-- Unselected Pill 5 -->
+<button class="px-4 py-2 rounded-full bg-surface-container-lowest border border-surface-variant text-on-surface font-label-md text-label-md hover:bg-surface-container-low active:scale-95 transition-all duration-150" type="button">
+<span>HTML</span>
+</button>
+<!-- Unselected Pill 6 -->
+<button class="px-4 py-2 rounded-full bg-surface-container-lowest border border-surface-variant text-on-surface font-label-md text-label-md hover:bg-surface-container-low active:scale-95 transition-all duration-150" type="button">
+<span>FB2</span>
+</button>
+</div>
+</div>
+<!-- SECTION 3: BROWSE BY -->
+<div class="flex flex-col space-y-2.5 pb-2">
+<span class="font-label-sm text-label-sm tracking-wider uppercase font-semibold text-secondary">Browse by</span>
+<div class="rounded-xl border border-surface-variant bg-surface-container-lowest overflow-hidden divide-y divide-surface-container">
+<!-- Row 1: Authors -->
+<a class="flex items-center justify-between px-3.5 py-3 hover:bg-surface-container-low active:bg-surface-container transition-colors duration-150" href="#">
+<div class="flex items-center space-x-3">
+<span class="material-symbols-outlined text-secondary text-[20px]">person_outline</span>
+<span class="font-body-md text-body-md text-on-surface font-medium">Authors</span>
+</div>
+<div class="flex items-center space-x-2">
+<span class="font-label-md text-label-md text-secondary bg-surface-container px-2 py-0.5 rounded-full">14</span>
+<span class="material-symbols-outlined text-secondary text-[18px]">chevron_right</span>
+</div>
+</a>
+<!-- Row 2: Series -->
+<a class="flex items-center justify-between px-3.5 py-3 hover:bg-surface-container-low active:bg-surface-container transition-colors duration-150" href="#">
+<div class="flex items-center space-x-3">
+<span class="material-symbols-outlined text-secondary text-[20px]">collections_bookmark</span>
+<span class="font-body-md text-body-md text-on-surface font-medium">Series</span>
+</div>
+<div class="flex items-center space-x-2">
+<span class="font-label-md text-label-md text-secondary bg-surface-container px-2 py-0.5 rounded-full">4</span>
+<span class="material-symbols-outlined text-secondary text-[18px]">chevron_right</span>
+</div>
+</a>
+<!-- Row 3: Collections -->
+<a class="flex items-center justify-between px-3.5 py-3 hover:bg-surface-container-low active:bg-surface-container transition-colors duration-150" href="#">
+<div class="flex items-center space-x-3">
+<span class="material-symbols-outlined text-secondary text-[20px]">folder_open</span>
+<span class="font-body-md text-body-md text-on-surface font-medium">Collections</span>
+</div>
+<div class="flex items-center space-x-2">
+<span class="font-label-md text-label-md text-secondary bg-surface-container px-2 py-0.5 rounded-full">3</span>
+<span class="material-symbols-outlined text-secondary text-[18px]">chevron_right</span>
+</div>
+</a>
+<!-- Row 4: All annotations -->
+<a class="flex items-center justify-between px-3.5 py-3 hover:bg-surface-container-low active:bg-surface-container transition-colors duration-150" href="#">
+<div class="flex items-center space-x-3">
+<span class="material-symbols-outlined text-secondary text-[20px]">edit_note</span>
+<span class="font-body-md text-body-md text-on-surface font-medium">All annotations</span>
+</div>
+<div class="flex items-center space-x-2">
+<span class="font-label-md text-label-md text-secondary bg-surface-container px-2 py-0.5 rounded-full">42</span>
+<span class="material-symbols-outlined text-secondary text-[18px]">chevron_right</span>
+</div>
+</a>
+<!-- Row 5: Trash -->
+<a class="flex items-center justify-between px-3.5 py-3 hover:bg-surface-container-low active:bg-surface-container transition-colors duration-150" href="#">
+<div class="flex items-center space-x-3">
+<span class="material-symbols-outlined text-secondary text-[20px]">delete_outline</span>
+<span class="font-body-md text-body-md text-on-surface font-medium">Trash</span>
+</div>
+<div class="flex items-center space-x-2">
+<span class="font-label-md text-label-md text-secondary bg-surface-container px-2 py-0.5 rounded-full">2</span>
+<span class="material-symbols-outlined text-secondary text-[18px]">chevron_right</span>
+</div>
+</a>
+</div>
+</div>
+</div>
+<!-- BOTTOM STICKY ACTION BAR (Strictly No Bottom Nav on Sub-modal) -->
+<div class="px-5 pt-3.5 pb-6 border-t border-surface-variant bg-surface-container-lowest">
+<button class="w-full h-[52px] rounded-full bg-primary-container hover:bg-primary active:bg-primary-container text-on-primary font-label-lg text-label-lg tracking-wide transition-all duration-150 shadow-md flex items-center justify-center space-x-2 active:scale-[0.99]" type="button">
+<span>Apply Filters</span>
+<span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Android Gesture Navigation Bar Pill -->
+<div class="w-full h-4 pb-2 flex justify-center items-center bg-surface-container-lowest z-30">
+<div class="w-32 h-1 bg-on-surface/20 rounded-full"></div>
+</div>
+</div>
+</body></html>

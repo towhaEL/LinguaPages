@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>OpenPages - Read Aloud Player</title>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Google Fonts: Newsreader and Inter -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400;1,6..72,500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-tertiary": "#ffffff",
+            "secondary-fixed": "#eae1d7",
+            "primary-fixed": "#d7e2ff",
+            "on-primary-container": "#a0bbf2",
+            "primary-container": "#2f4a7a",
+            "outline-variant": "#c4c6d0",
+            "on-secondary-container": "#68625a",
+            "inverse-primary": "#acc7fe",
+            "surface-dim": "#dcdad5",
+            "outline": "#747780",
+            "on-surface-variant": "#44474f",
+            "inverse-surface": "#31302d",
+            "secondary": "#635d56",
+            "on-tertiary-container": "#eaad83",
+            "surface": "#fcf9f4",
+            "primary-fixed-dim": "#acc7fe",
+            "on-secondary-fixed-variant": "#4b463f",
+            "on-error": "#ffffff",
+            "background": "#fcf9f4",
+            "surface-container": "#f0ede9",
+            "tertiary": "#502a0a",
+            "secondary-container": "#e7ded4",
+            "on-primary-fixed": "#001a40",
+            "error-container": "#ffdad6",
+            "error": "#ba1a1a",
+            "surface-tint": "#445e8f",
+            "on-secondary": "#ffffff",
+            "on-tertiary-fixed-variant": "#673d1b",
+            "tertiary-fixed-dim": "#f7b98e",
+            "tertiary-fixed": "#ffdcc5",
+            "on-secondary-fixed": "#1f1b15",
+            "on-surface": "#1c1c19",
+            "primary": "#153362",
+            "on-primary-fixed-variant": "#2b4676",
+            "surface-container-low": "#f6f3ee",
+            "surface-variant": "#e5e2dd",
+            "inverse-on-surface": "#f3f0eb",
+            "on-tertiary-fixed": "#301400",
+            "on-primary": "#ffffff",
+            "surface-container-high": "#ebe8e3",
+            "surface-bright": "#fcf9f4",
+            "secondary-fixed-dim": "#cec5bb",
+            "on-error-container": "#93000a",
+            "tertiary-container": "#6b401e",
+            "surface-container-lowest": "#ffffff",
+            "surface-container-highest": "#e5e2dd",
+            "on-background": "#1c1c19"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "2xl": "1rem",
+            "3xl": "1.5rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "margin-tablet": "2rem",
+            "margin": "1.25rem",
+            "gutter": "1rem",
+            "space-md": "1rem",
+            "space-xs": "0.25rem",
+            "space-lg": "1.5rem",
+            "space-sm": "0.5rem",
+            "space-xl": "2.25rem",
+            "gutter-mobile": "0.75rem"
+          },
+          "fontFamily": {
+            "label-sm": ["Inter", "sans-serif"],
+            "headline-lg": ["Newsreader", "serif"],
+            "headline-md": ["Newsreader", "serif"],
+            "body-sm": ["Inter", "sans-serif"],
+            "body-md": ["Inter", "sans-serif"],
+            "label-md": ["Inter", "sans-serif"],
+            "label-lg": ["Inter", "sans-serif"],
+            "body-lg": ["Newsreader", "serif"],
+            "headline-sm": ["Newsreader", "serif"],
+            "display-lg-mobile": ["Newsreader", "serif"],
+            "display-lg": ["Newsreader", "serif"]
+          },
+          "fontSize": {
+            "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "500" }],
+            "headline-lg": ["26px", { "lineHeight": "34px", "letterSpacing": "-0.01em", "fontWeight": "500" }],
+            "headline-md": ["22px", { "lineHeight": "28px", "fontWeight": "500" }],
+            "body-sm": ["13px", { "lineHeight": "18px", "fontWeight": "400" }],
+            "body-md": ["15px", { "lineHeight": "22px", "fontWeight": "400" }],
+            "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+            "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600" }],
+            "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+            "headline-sm": ["19px", { "lineHeight": "26px", "fontWeight": "500" }],
+            "display-lg-mobile": ["30px", { "lineHeight": "38px", "letterSpacing": "-0.015em", "fontWeight": "400" }],
+            "display-lg": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "400" }]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      font-size: 22px;
+      line-height: 1;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    .material-symbols-outlined.fill-icon {
+      font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface antialiased flex justify-center items-center min-h-screen p-0 sm:p-4 select-none">
+<!-- Mobile Device Canvas (412px x 915px standard Android viewport) -->
+<div class="relative w-full max-w-[412px] h-[915px] bg-surface overflow-hidden flex flex-col justify-between shadow-2xl border border-surface-variant/40">
+<!-- ========================================== -->
+<!-- 1. BACKGROUND READER CANVAS (SUBTLE UNDERLAYER) -->
+<!-- ========================================== -->
+<div class="absolute inset-0 z-0 flex flex-col justify-start bg-surface opacity-95 pointer-events-none">
+<!-- Minimalist Top Reading App Bar -->
+<header class="w-full px-5 pt-3 pb-2.5 flex items-center justify-between border-b border-surface-variant/50">
+<div class="flex items-center space-x-2 text-secondary">
+<span class="material-symbols-outlined" data-icon="arrow_back">arrow_back</span>
+<span class="font-label-sm text-label-sm text-secondary tracking-wide">Back to Shelf</span>
+</div>
+<div class="flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-surface-container-high/60">
+<span class="material-symbols-outlined text-primary" data-icon="graphic_eq">graphic_eq</span>
+<span class="font-label-sm text-label-sm text-primary">Read Aloud Active</span>
+</div>
+<div class="flex items-center space-x-2 text-secondary">
+<span class="material-symbols-outlined" data-icon="format_size">format_size</span>
+<span class="material-symbols-outlined" data-icon="bookmark_border">bookmark_border</span>
+</div>
+</header>
+<!-- Book Reading Text Page Content -->
+<main class="px-6 pt-5 pb-24 text-on-surface/80 flex flex-col space-y-4">
+<!-- Chapter Header -->
+<div class="text-center pt-1 pb-2">
+<p class="font-label-sm text-label-sm text-secondary tracking-widest uppercase">Chapter 4</p>
+<h2 class="font-headline-md text-headline-md text-on-surface mt-1">The Silent Harbour</h2>
+</div>
+<!-- Preceding paragraph text -->
+<p class="font-body-lg text-body-lg text-secondary leading-relaxed">
+          The city of Barcelona still held its secrets in the damp morning mist, creeping up through the cobblestones of Calle Arco del Teatro.
+        </p>
+<!-- Current Paragraph with highlighted spoken sentence -->
+<p class="font-body-lg text-body-lg leading-relaxed">
+<span>We walked through the sleeping alleys without exchanging a single word. </span>
+<!-- Dynamic Synced Text Tracker Highlight -->
+<mark class="bg-primary-fixed/40 text-on-surface rounded-sm px-1 py-0.5 border-b border-primary/20">
+            I still remember the day that my father took me to the Cemetery of Forgotten Books for the first time.
+          </mark>
+<span> It was the early summer of 1945, and we walked through the streets of a city veiled in charcoal skies.</span>
+</p>
+<p class="font-body-lg text-body-lg text-secondary/70 leading-relaxed">
+          "Daniel, what you are about to see today is a mystery very few souls ever encounter," my father whispered as his grip on my hand tightened near the archway of the old palace.
+        </p>
+</main>
+<!-- Atmospheric Backdrop Dimming Mask -->
+<div class="absolute inset-0 bg-inverse-surface/15 backdrop-blur-[1px] pointer-events-auto"></div>
+</div>
+<!-- ========================================== -->
+<!-- 2. EXPANDED READ ALOUD AUDIO PLAYER SHEET  -->
+<!-- ========================================== -->
+<section class="relative z-10 mt-auto w-full bg-surface-container-lowest rounded-t-3xl border-t border-surface-variant/80 shadow-[0_-8px_32px_rgba(28,27,26,0.12)] flex flex-col pt-3 pb-6 px-6">
+<!-- Top Drag Handle Pill -->
+<div class="w-full flex justify-center pb-2 cursor-grab">
+<div class="w-10 h-1 rounded-full bg-surface-variant"></div>
+</div>
+<!-- Book Header & Miniature Cover Presentation -->
+<div class="flex items-center justify-between pt-1 pb-4 border-b border-surface-container-low">
+<div class="flex items-center space-x-3.5 overflow-hidden">
+<!-- Miniature Cover Card with warm editorial shadow -->
+<div class="relative w-12 h-16 rounded-lg bg-surface-container overflow-hidden flex-shrink-0 border border-surface-variant/60 shadow-[0_2px_8px_rgba(28,27,26,0.08)]">
+<img class="w-full h-full object-cover" data-alt="An artistic vintage novel cover with classical geometry and warm parchment texture depicting an old gothic city archway under starry skies, framed in deep ink blue and warm ochre tones." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBTwbTSvs_G1-LVKiU2SavM4in7Ol_mkXN1loLKTuYD_mQgMKm_nfNFFbnmp5mLBcHBVGMk8eWyheYfT426aS1tWFdMF8WXBQ0V7tiJL_sEYAreGf-XjT46Ib99InAuEPZJQzaguGL0_V3hJtuvaV0BWaPBYJU9s7rYRwgYfUw_qeN_RHsh3uDah5oL-kqo21KCN82k7JKIpRXFc0ch_6OsW7S-6Z9mPRXUoeM1_3ILDsJW9VcFAcHeS4TTAQIDqqXJ9r5IuDyX3Q0"/>
+</div>
+<!-- Book & Chapter Metadata -->
+<div class="flex flex-col min-w-0 pr-2">
+<div class="flex items-center space-x-1.5">
+<span class="font-label-sm text-label-sm text-secondary bg-surface-container-high/70 px-1.5 py-0.5 rounded">EPUB</span>
+<span class="font-label-sm text-label-sm text-secondary tracking-normal truncate">Carlos Ruiz Zafón</span>
+</div>
+<h1 class="font-headline-sm text-headline-sm text-on-surface truncate mt-0.5">The Shadow of the Wind</h1>
+<p class="font-body-sm text-body-sm text-secondary truncate">Chapter 4 · The Silent Harbour</p>
+</div>
+</div>
+<!-- Top Right Quick Sheet Collapse / Action -->
+<button aria-label="Minimize player" class="p-2 rounded-full text-secondary hover:text-primary active:scale-95 transition-transform">
+<span class="material-symbols-outlined" data-icon="keyboard_arrow_down">keyboard_arrow_down</span>
+</button>
+</div>
+<!-- Spoken Sentence Display Section (Editorial Focus) -->
+<div class="my-4 py-3 px-4 rounded-2xl bg-surface-container-low/60 border border-surface-container flex flex-col space-y-2">
+<!-- Previous sentence (muted, low opacity) -->
+<p class="font-body-sm text-body-sm text-secondary opacity-50 line-clamp-1 italic">
+          We walked through the sleeping alleys without exchanging a single word.
+        </p>
+<!-- Current Spoken Sentence (Expressive Newsreader serif with subtle ink line) -->
+<div class="relative pl-3 border-l-2 border-primary-container py-0.5">
+<p class="font-headline-sm text-headline-sm text-on-surface leading-snug tracking-tight">
+            “I still remember the day that my father took me to the Cemetery of Forgotten Books for the first time.”
+          </p>
+</div>
+<!-- Next sentence preview (gently faded) -->
+<p class="font-body-sm text-body-sm text-secondary opacity-60 line-clamp-1">
+          It was the early summer of 1945, and we walked through the streets of a city veiled in charcoal skies.
+        </p>
+</div>
+<!-- Audio Timeline & Chapter Progress Scrubber -->
+<div class="w-full flex flex-col space-y-1.5 pt-1">
+<!-- Interactive Progress Slider Track -->
+<div class="relative w-full h-5 flex items-center cursor-pointer group">
+<!-- Background Track -->
+<div class="w-full h-1.5 rounded-full bg-surface-variant overflow-hidden">
+<!-- Filled Progress Track in deep ink blue -->
+<div class="h-full bg-primary-container rounded-full" style="width: 34%;"></div>
+</div>
+<!-- Scrubber Thumb -->
+<div class="absolute left-[34%] -ml-2 w-4 h-4 rounded-full bg-primary-container border-2 border-surface shadow-[0_1px_4px_rgba(28,27,26,0.2)] transition-transform group-hover:scale-110"></div>
+</div>
+<!-- Timestamps and sentence index counters -->
+<div class="flex items-center justify-between font-label-sm text-label-sm text-secondary">
+<span class="font-medium">04:18</span>
+<span class="font-label-sm text-label-sm text-secondary-fixed-dim/90 bg-secondary-fixed/50 px-2 py-0.5 rounded-full">Sentence 14 of 48</span>
+<span class="font-medium">-08:42</span>
+</div>
+</div>
+<!-- Primary Playback Controls Bar -->
+<div class="flex items-center justify-between px-2 pt-3 pb-3">
+<!-- Left Action: Bookmark Snippet -->
+<button aria-label="Bookmark audio moment" class="p-2.5 rounded-full text-secondary hover:text-primary active:scale-90 transition-all">
+<span class="material-symbols-outlined" data-icon="bookmark_add">bookmark_add</span>
+</button>
+<!-- Skip Backward 15s -->
+<button aria-label="Skip back 15 seconds" class="relative p-3 rounded-full text-on-surface bg-surface-container-high/50 hover:bg-surface-container-high active:scale-95 transition-all">
+<span class="material-symbols-outlined" data-icon="replay_10">replay_10</span>
+</button>
+<!-- Large Hero Focal Play / Pause Button -->
+<button aria-label="Pause playback" class="w-16 h-16 rounded-full bg-primary-container text-surface flex items-center justify-center shadow-[0_4px_16px_rgba(47,74,122,0.28)] active:scale-90 hover:opacity-95 transition-all">
+<span class="material-symbols-outlined fill-icon text-3xl" data-icon="pause">pause</span>
+</button>
+<!-- Skip Forward 15s -->
+<button aria-label="Skip forward 15 seconds" class="relative p-3 rounded-full text-on-surface bg-surface-container-high/50 hover:bg-surface-container-high active:scale-95 transition-all">
+<span class="material-symbols-outlined" data-icon="forward_10">forward_10</span>
+</button>
+<!-- Right Action: Audio Output / Overflow -->
+<button aria-label="Audio settings and output" class="p-2.5 rounded-full text-secondary hover:text-primary active:scale-90 transition-all">
+<span class="material-symbols-outlined" data-icon="more_vert">more_vert</span>
+</button>
+</div>
+<!-- Speech Fine-Tuning Adjustment Pills Row -->
+<div class="flex items-center justify-between gap-2 pt-1 pb-3">
+<!-- Pill 1: Speed Stepper (Active State) -->
+<button class="flex-1 flex items-center justify-center space-x-1.5 py-2 px-2.5 rounded-full bg-primary-container text-on-primary font-label-md text-label-md shadow-sm active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-sm" data-icon="speed">speed</span>
+<span>1.25x</span>
+</button>
+<!-- Pill 2: Voice Picker -->
+<button class="flex-1 flex items-center justify-center space-x-1.5 py-2 px-2.5 rounded-full bg-surface-container-low border border-surface-variant text-on-surface font-label-md text-label-md hover:bg-surface-container active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-sm text-secondary" data-icon="record_voice_over">record_voice_over</span>
+<span class="truncate">Natural 2</span>
+</button>
+<!-- Pill 3: Sleep Timer -->
+<button class="flex-1 flex items-center justify-center space-x-1.5 py-2 px-2.5 rounded-full bg-surface-container-low border border-surface-variant text-on-surface font-label-md text-label-md hover:bg-surface-container active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-sm text-secondary" data-icon="bedtime">bedtime</span>
+<span>30 min</span>
+</button>
+</div>
+<!-- Trust & Offline Identity Footer Note -->
+<div class="flex items-center justify-center space-x-1.5 pt-1 pb-2">
+<span class="material-symbols-outlined text-xs text-secondary" data-icon="lock">lock</span>
+<span class="font-label-sm text-label-sm text-secondary">Local On-Device TTS · 0 KB network used</span>
+</div>
+<!-- System Gesture Navigation Indicator Bar (Strictly no Bottom Nav Bar) -->
+<div class="w-full flex justify-center pt-2">
+<div class="w-32 h-1 rounded-full bg-on-surface/20"></div>
+</div>
+</section>
+</div>
+</body></html>

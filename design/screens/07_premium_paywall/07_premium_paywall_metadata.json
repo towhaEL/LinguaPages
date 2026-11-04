@@ -1,0 +1,719 @@
+{
+  "resource": "screen",
+  "id": "e4e1f70641644d55af19ba91bec03cb5",
+  "project": "8671147000524611054",
+  "title": "OpenPages - Premium Appearance Paywall",
+  "device": "MOBILE",
+  "screenType": "DESIGN",
+  "canvasUrl": "https://stitch.google.com/projects/8671147000524611054?node-id=e4e1f70641644d55af19ba91bec03cb5",
+  "imageUrl": "https://stitch.googleapis.com/v1/projects/8671147000524611054/files/e16480f081e347ee933164ea2bca9fc0:download",
+  "htmlCode": {
+    "downloadUrl": "https://stitch.googleapis.com/v1/projects/8671147000524611054/files/e24a1d895fe64e3e83ee1bee604d8f87:download",
+    "mimeType": "text/html",
+    "name": "projects/8671147000524611054/files/e24a1d895fe64e3e83ee1bee604d8f87"
+  },
+  "rawScreen": {
+    "outputComponents": [
+      {
+        "design": {
+          "screens": [
+            {
+              "designSystem": {
+                "designSystem": {
+                  "displayName": "Warm Editorial Literary",
+                  "styleGuidelines": "## Brand & Style\n\nThis design system delivers a serene, distraction-free sanctuary for long-form reading and personal library stewardship on mobile devices. Designed specifically for focused offline immersion, the visual tone departs from sterile e-ink utilities and transactional book stores in favor of an intimate, tactile literary environment reminiscent of well-printed art books and archival paper.\n\n### Target Audience & Emotional Intent\n- **Audience:** Avid readers, academics, archivists, and offline-first minimalists who manage their own multi-format digital collections (EPUB, PDF, Markdown, and plain text).\n- **Emotional Response:** Quiet intimacy, intellectual calm, visual relief from digital glare, and total trust in the app\u2019s respectful, offline private nature.\n\n### Design Movement\n- **Editorial Warm Minimalism:** Prioritizes immaculate typographic proportions, gentle paper-like surface contrasts, hairline structural boundaries, and expansive breathing room. Mechanical drop-shadows and digital gradients are eliminated in favor of calm surface layering and classical book composition.\n\n## Layout & Spacing\n\nThe layout model mimics classical book proportioning using a fluid layout anchored by strict horizontal margins and open vertical cadence.\n\n### Grid & Canvas Structure\n- **Mobile Handsets (< 600dp):** Fluid single or dual-column library grid with `margin: 1.25rem` (20px) outer edge margins and `gutter: 0.75rem` (12px) between book cards.\n- **Foldables & Tablets (600dp\u20131024dp):** Multi-column shelf view (3 to 4 columns) or split-pane dual-page view with `margin: 2rem` (32px) margins and `gutter: 1rem` (16px) gutters.\n- **Reading Canvas:** Strictly bounded text column (maximum reading width 68ch) centered automatically when running on wide viewports or tablets, preserving ocular tracking comfort.\n\n### Vertical Rhythm\nInterface components rely on a base 4px rhythm, stepping from `space-xs` (4px) micro-spacers up to `space-xl` (36px) structural separation between editorial shelves (e.g., \"Currently Reading\" vs. \"Unsorted Volumes\").\n\n## Elevation & Depth\n\nTo protect the paper-first aesthetic, synthetic dropshadows and heavy blurs are replaced by tactile surface stacking, tonal tinting, and physical hairline borders.\n\n### Surface Tiers\n- **Surface Canvas (Level 0):** `#FAF7F2` \u2014 Base application backdrop.\n- **Surface Card (Level 1):** `#FFFFFF` bordered with a 1px solid hairline `#E8E2D9`. Never cast with dark blur shadows; depth is conveyed purely through chromatic freshness against the ivory base.\n- **Surface Floating Bar & Sheet (Level 2):** `#FFFFFF` paired with an ultra-diffused atmospheric tint: `0 8px 24px -4px rgba(28, 27, 26, 0.06)` combined with a 1px hairline border `#E8E2D9`. Used for bottom reading toolbars and floating action bars.\n- **Modal Drawer (Level 3):** `#FFFFFF` with a subtle dimming backdrop of `rgba(28, 27, 26, 0.35)`, presenting table of contents, bookmarks, and font adjustment drawers.\n\n## Components\n\n### Buttons\n- **Primary Button:** Pill-shaped (`rounded-full`), solid `#2F4A7A` background with crisp `#FAF7F2` text. Height 48px on mobile for generous touch targets. Active states shift down 10% brightness to `#23395E`.\n- **Secondary / Outlined Button:** Pill-shaped, transparent surface with a 1px solid `#E8E2D9` hairline border, `#1C1B1A` text, shifting to `#FAF7F2` background on press.\n- **Ghost / Tool Button:** Pill or circle-shaped, zero outline, `#6B655D` icon and text tint, transitioning to `#E8E2D9` fill on press.\n\n### Chips & Filter Tags\n- **Pill Chips:** Full pill contour (`rounded-full`). Unselected state features `#FAF7F2` or `#FFFFFF` fill with 1px `#E8E2D9` border and `#6B655D` text (`label-md`). Selected state fills with `#2F4A7A` text `#FFFFFF` without borders.\n- **Format Badges (EPUB, PDF, TXT):** Micro-pills with `label-sm`, uppercase, `#6B655D` text over `#E8E2D9` surface at 50% opacity.\n\n### Book Cards\n- **Grid Card:** Pure white surface (`#FFFFFF`) with `16px` border-radius and `1px` `#E8E2D9` border. Aspect ratio 1:1.45 cover container. Book title rendered in `Newsreader` (`headline-sm`), author in `Inter` (`body-sm`, `#6B655D`). Progress bar docked at card footer using a 3px hairline track (`#E8E2D9`) with `#2F4A7A` indicator.\n- **List Item:** Flat row with bottom hairline border (`#E8E2D9`). Thumbnail jacket at `8px` corner radius. Metadata organized horizontally with mono-aligned Inter typography.\n\n### Form Inputs & Search Fields\n- **Search Bar:** Pill-shaped pill container (`rounded-full`), `#FFFFFF` fill, 1px `#E8E2D9` border, leading search glyph in `#6B655D`. Placeholder rendered in `body-md` muted ink. Focused state deepens border to `#2F4A7A`.\n- **Checkboxes & Radios:** Circular or soft-cornered toggles with `#E8E2D9` default border. Checked states feature solid `#2F4A7A` background with `#FFFFFF` checkmark.\n\n### Reader Chrome & Specialized Controls\n- **Floating Reading Bar:** Detached bottom pill panel hovering 16px above screen bottom, framed with 1px `#E8E2D9` and soft ambient shadow. Houses chapter stepper, typography drawer trigger, bookmark toggle, and progress slider.\n- **Typography Adjustment Sheet:** Bottom modal containing modular segment pills for serif/sans-serif selection, continuous font size stepper, and ivory/sepia/dark background switcher swatches.",
+                  "theme": {
+                    "bodyFont": "INTER",
+                    "bodyFontFamily": "Inter",
+                    "colorMode": "LIGHT",
+                    "colorVariant": "FIDELITY",
+                    "customColor": "#2f4a7a",
+                    "designMd": "---\nname: Warm Editorial Literary\ncolors:\n  surface: '#fcf9f4'\n  surface-dim: '#dcdad5'\n  surface-bright: '#fcf9f4'\n  surface-container-lowest: '#ffffff'\n  surface-container-low: '#f6f3ee'\n  surface-container: '#f0ede9'\n  surface-container-high: '#ebe8e3'\n  surface-container-highest: '#e5e2dd'\n  on-surface: '#1c1c19'\n  on-surface-variant: '#44474f'\n  inverse-surface: '#31302d'\n  inverse-on-surface: '#f3f0eb'\n  outline: '#747780'\n  outline-variant: '#c4c6d0'\n  surface-tint: '#445e8f'\n  primary: '#153362'\n  on-primary: '#ffffff'\n  primary-container: '#2f4a7a'\n  on-primary-container: '#a0bbf2'\n  inverse-primary: '#acc7fe'\n  secondary: '#635d56'\n  on-secondary: '#ffffff'\n  secondary-container: '#e7ded4'\n  on-secondary-container: '#68625a'\n  tertiary: '#502a0a'\n  on-tertiary: '#ffffff'\n  tertiary-container: '#6b401e'\n  on-tertiary-container: '#eaad83'\n  error: '#ba1a1a'\n  on-error: '#ffffff'\n  error-container: '#ffdad6'\n  on-error-container: '#93000a'\n  primary-fixed: '#d7e2ff'\n  primary-fixed-dim: '#acc7fe'\n  on-primary-fixed: '#001a40'\n  on-primary-fixed-variant: '#2b4676'\n  secondary-fixed: '#eae1d7'\n  secondary-fixed-dim: '#cec5bb'\n  on-secondary-fixed: '#1f1b15'\n  on-secondary-fixed-variant: '#4b463f'\n  tertiary-fixed: '#ffdcc5'\n  tertiary-fixed-dim: '#f7b98e'\n  on-tertiary-fixed: '#301400'\n  on-tertiary-fixed-variant: '#673d1b'\n  background: '#fcf9f4'\n  on-background: '#1c1c19'\n  surface-variant: '#e5e2dd'\ntypography:\n  display-lg:\n    fontFamily: Newsreader\n    fontSize: 36px\n    fontWeight: '400'\n    lineHeight: 44px\n    letterSpacing: -0.02em\n  display-lg-mobile:\n    fontFamily: Newsreader\n    fontSize: 30px\n    fontWeight: '400'\n    lineHeight: 38px\n    letterSpacing: -0.015em\n  headline-lg:\n    fontFamily: Newsreader\n    fontSize: 26px\n    fontWeight: '500'\n    lineHeight: 34px\n    letterSpacing: -0.01em\n  headline-md:\n    fontFamily: Newsreader\n    fontSize: 22px\n    fontWeight: '500'\n    lineHeight: 28px\n  headline-sm:\n    fontFamily: Newsreader\n    fontSize: 19px\n    fontWeight: '500'\n    lineHeight: 26px\n  body-lg:\n    fontFamily: Newsreader\n    fontSize: 18px\n    fontWeight: '400'\n    lineHeight: 28px\n  body-md:\n    fontFamily: Inter\n    fontSize: 15px\n    fontWeight: '400'\n    lineHeight: 22px\n  body-sm:\n    fontFamily: Inter\n    fontSize: 13px\n    fontWeight: '400'\n    lineHeight: 18px\n  label-lg:\n    fontFamily: Inter\n    fontSize: 14px\n    fontWeight: '600'\n    lineHeight: 20px\n    letterSpacing: 0.01em\n  label-md:\n    fontFamily: Inter\n    fontSize: 12px\n    fontWeight: '500'\n    lineHeight: 16px\n    letterSpacing: 0.02em\n  label-sm:\n    fontFamily: Inter\n    fontSize: 11px\n    fontWeight: '500'\n    lineHeight: 14px\n    letterSpacing: 0.03em\nrounded:\n  sm: 0.25rem\n  DEFAULT: 0.5rem\n  md: 0.75rem\n  lg: 1rem\n  xl: 1.5rem\n  full: 9999px\nspacing:\n  gutter: 1rem\n  gutter-mobile: 0.75rem\n  margin: 1.25rem\n  margin-tablet: 2rem\n  space-xs: 0.25rem\n  space-sm: 0.5rem\n  space-md: 1rem\n  space-lg: 1.5rem\n  space-xl: 2.25rem\n---\n\n## Brand & Style\n\nThis design system delivers a serene, distraction-free sanctuary for long-form reading and personal library stewardship on mobile devices. Designed specifically for focused offline immersion, the visual tone departs from sterile e-ink utilities and transactional book stores in favor of an intimate, tactile literary environment reminiscent of well-printed art books and archival paper.\n\n### Target Audience & Emotional Intent\n- **Audience:** Avid readers, academics, archivists, and offline-first minimalists who manage their own multi-format digital collections (EPUB, PDF, Markdown, and plain text).\n- **Emotional Response:** Quiet intimacy, intellectual calm, visual relief from digital glare, and total trust in the app\u2019s respectful, offline private nature.\n\n### Design Movement\n- **Editorial Warm Minimalism:** Prioritizes immaculate typographic proportions, gentle paper-like surface contrasts, hairline structural boundaries, and expansive breathing room. Mechanical drop-shadows and digital gradients are eliminated in favor of calm surface layering and classical book composition.\n\n## Colors\n\nThe palette simulates the natural tone of heavy vellum and cold letterpress ink. Color is applied with rigorous economy: chrome and navigation elements withdraw into paper tones, allowing cover art and prose typography to dominate.\n\n### Color Tokens & Roles\n- **Canvas Base (`#FAF7F2`):** Warm unbleached ivory. Serves as the primary viewport canvas and reader background, softening ocular strain during extended sessions.\n- **Card & Sheet Surface (`#FFFFFF`):** Pure warm chalk white. Reserved for elevated book item cards, reading sheets, modal sheets, and floating tool shelves.\n- **Text Ink (`#1C1B1A`):** Deep carbon black-brown with soft undertones. Used for all primary headlines, reading copy, and active icons. Avoids the starkness of pure digital black (`#000000`).\n- **Secondary Ink (`#6B655D`):** Warm slate-taupe. Used for metadata, author names, reading progress counters, and inactive navigation items.\n- **Accent Deep Ink Blue (`#2F4A7A`):** Single focused accent evoking vintage binding cloth and fountain pen ink. Used strictly for primary actions, current reading progress indicators, and active selection states.\n- **Warm Leather Accent (`#8A5A36`):** Tertiary subdued amber-brown for highlights, bookmarks, and collection tags.\n- **Hairline Divider (`#E8E2D9`):** Subdued sand-tinted line color used for 0.5px\u20131px hairline borders and sectional rules.\n\n## Typography\n\nTypographic hierarchy bridges archival bookcraft and modern interface clarity through a strict dual-family system:\n\n- **Editorial Serif (`Newsreader`):** Utilized for book titles, author credits, chapter heads, literary pull quotes, and custom long-form reading modes. It features optical sizing adjustments and italic styles that give physical book character to digital screens.\n- **Instrumental Sans (`Inter`):** Utilized for all interface navigation, file metadata (e.g., format tags like `EPUB`, `PDF`, byte size), search fields, bottom sheets, and system configuration. It remains crisp, legible, and unpretentious at tiny sizes.\n\n### Usage Rules\n- Optical italics in `Newsreader` are reserved for metadata subtitles, author lines, and literary excerpts.\n- Display sizes apply negative tracking to tighten headlines, while `label-sm` utilizes positive tracking for immediate legibility in tight chip badges and table listings.\n\n## Layout & Spacing\n\nThe layout model mimics classical book proportioning using a fluid layout anchored by strict horizontal margins and open vertical cadence.\n\n### Grid & Canvas Structure\n- **Mobile Handsets (< 600dp):** Fluid single or dual-column library grid with `margin: 1.25rem` (20px) outer edge margins and `gutter: 0.75rem` (12px) between book cards.\n- **Foldables & Tablets (600dp\u20131024dp):** Multi-column shelf view (3 to 4 columns) or split-pane dual-page view with `margin: 2rem` (32px) margins and `gutter: 1rem` (16px) gutters.\n- **Reading Canvas:** Strictly bounded text column (maximum reading width 68ch) centered automatically when running on wide viewports or tablets, preserving ocular tracking comfort.\n\n### Vertical Rhythm\nInterface components rely on a base 4px rhythm, stepping from `space-xs` (4px) micro-spacers up to `space-xl` (36px) structural separation between editorial shelves (e.g., \"Currently Reading\" vs. \"Unsorted Volumes\").\n\n## Elevation & Depth\n\nTo protect the paper-first aesthetic, synthetic dropshadows and heavy blurs are replaced by tactile surface stacking, tonal tinting, and physical hairline borders.\n\n### Surface Tiers\n- **Surface Canvas (Level 0):** `#FAF7F2` \u2014 Base application backdrop.\n- **Surface Card (Level 1):** `#FFFFFF` bordered with a 1px solid hairline `#E8E2D9`. Never cast with dark blur shadows; depth is conveyed purely through chromatic freshness against the ivory base.\n- **Surface Floating Bar & Sheet (Level 2):** `#FFFFFF` paired with an ultra-diffused atmospheric tint: `0 8px 24px -4px rgba(28, 27, 26, 0.06)` combined with a 1px hairline border `#E8E2D9`. Used for bottom reading toolbars and floating action bars.\n- **Modal Drawer (Level 3):** `#FFFFFF` with a subtle dimming backdrop of `rgba(28, 27, 26, 0.35)`, presenting table of contents, bookmarks, and font adjustment drawers.\n\n## Shapes\n\nThe design combines crisp book geometry with soft handheld touchpoints. A distinct radius hierarchy delineates structural containers from interactive controls:\n\n- **Library & Book Cards:** Fixed at `16px` (`rounded-lg` equivalent) border radius, softening book jackets and reader card containers while keeping them architecturally stable.\n- **Interactive Controls (Buttons, Chips, Search Bar, Pill Toggles):** Formed with complete full-radius pills (`rounded-full` / 9999px) to establish instant tactile affordance and thumb friendliness.\n- **Sheets & Floating Panels:** Curved top corners at `20px` to comfortably cradle reading controls.\n\n## Components\n\n### Buttons\n- **Primary Button:** Pill-shaped (`rounded-full`), solid `#2F4A7A` background with crisp `#FAF7F2` text. Height 48px on mobile for generous touch targets. Active states shift down 10% brightness to `#23395E`.\n- **Secondary / Outlined Button:** Pill-shaped, transparent surface with a 1px solid `#E8E2D9` hairline border, `#1C1B1A` text, shifting to `#FAF7F2` background on press.\n- **Ghost / Tool Button:** Pill or circle-shaped, zero outline, `#6B655D` icon and text tint, transitioning to `#E8E2D9` fill on press.\n\n### Chips & Filter Tags\n- **Pill Chips:** Full pill contour (`rounded-full`). Unselected state features `#FAF7F2` or `#FFFFFF` fill with 1px `#E8E2D9` border and `#6B655D` text (`label-md`). Selected state fills with `#2F4A7A` text `#FFFFFF` without borders.\n- **Format Badges (EPUB, PDF, TXT):** Micro-pills with `label-sm`, uppercase, `#6B655D` text over `#E8E2D9` surface at 50% opacity.\n\n### Book Cards\n- **Grid Card:** Pure white surface (`#FFFFFF`) with `16px` border-radius and `1px` `#E8E2D9` border. Aspect ratio 1:1.45 cover container. Book title rendered in `Newsreader` (`headline-sm`), author in `Inter` (`body-sm`, `#6B655D`). Progress bar docked at card footer using a 3px hairline track (`#E8E2D9`) with `#2F4A7A` indicator.\n- **List Item:** Flat row with bottom hairline border (`#E8E2D9`). Thumbnail jacket at `8px` corner radius. Metadata organized horizontally with mono-aligned Inter typography.\n\n### Form Inputs & Search Fields\n- **Search Bar:** Pill-shaped pill container (`rounded-full`), `#FFFFFF` fill, 1px `#E8E2D9` border, leading search glyph in `#6B655D`. Placeholder rendered in `body-md` muted ink. Focused state deepens border to `#2F4A7A`.\n- **Checkboxes & Radios:** Circular or soft-cornered toggles with `#E8E2D9` default border. Checked states feature solid `#2F4A7A` background with `#FFFFFF` checkmark.\n\n### Reader Chrome & Specialized Controls\n- **Floating Reading Bar:** Detached bottom pill panel hovering 16px above screen bottom, framed with 1px `#E8E2D9` and soft ambient shadow. Houses chapter stepper, typography drawer trigger, bookmark toggle, and progress slider.\n- **Typography Adjustment Sheet:** Bottom modal containing modular segment pills for serif/sans-serif selection, continuous font size stepper, and ivory/sepia/dark background switcher swatches.",
+                    "font": "NEWSREADER",
+                    "headlineFont": "NEWSREADER",
+                    "headlineFontFamily": "Newsreader",
+                    "labelFont": "INTER",
+                    "labelFontFamily": "Inter",
+                    "namedColors": {
+                      "background": "#fcf9f4",
+                      "error": "#ba1a1a",
+                      "error_container": "#ffdad6",
+                      "inverse_on_surface": "#f3f0eb",
+                      "inverse_primary": "#acc7fe",
+                      "inverse_surface": "#31302d",
+                      "on_background": "#1c1c19",
+                      "on_error": "#ffffff",
+                      "on_error_container": "#93000a",
+                      "on_primary": "#ffffff",
+                      "on_primary_container": "#a0bbf2",
+                      "on_primary_fixed": "#001a40",
+                      "on_primary_fixed_variant": "#2b4676",
+                      "on_secondary": "#ffffff",
+                      "on_secondary_container": "#68625a",
+                      "on_secondary_fixed": "#1f1b15",
+                      "on_secondary_fixed_variant": "#4b463f",
+                      "on_surface": "#1c1c19",
+                      "on_surface_variant": "#44474f",
+                      "on_tertiary": "#ffffff",
+                      "on_tertiary_container": "#eaad83",
+                      "on_tertiary_fixed": "#301400",
+                      "on_tertiary_fixed_variant": "#673d1b",
+                      "outline": "#747780",
+                      "outline_variant": "#c4c6d0",
+                      "primary": "#153362",
+                      "primary_container": "#2f4a7a",
+                      "primary_fixed": "#d7e2ff",
+                      "primary_fixed_dim": "#acc7fe",
+                      "secondary": "#635d56",
+                      "secondary_container": "#e7ded4",
+                      "secondary_fixed": "#eae1d7",
+                      "secondary_fixed_dim": "#cec5bb",
+                      "surface": "#fcf9f4",
+                      "surface_bright": "#fcf9f4",
+                      "surface_container": "#f0ede9",
+                      "surface_container_high": "#ebe8e3",
+                      "surface_container_highest": "#e5e2dd",
+                      "surface_container_low": "#f6f3ee",
+                      "surface_container_lowest": "#ffffff",
+                      "surface_dim": "#dcdad5",
+                      "surface_tint": "#445e8f",
+                      "surface_variant": "#e5e2dd",
+                      "tertiary": "#502a0a",
+                      "tertiary_container": "#6b401e",
+                      "tertiary_fixed": "#ffdcc5",
+                      "tertiary_fixed_dim": "#f7b98e"
+                    },
+                    "overrideNeutralColor": "#faf7f2",
+                    "overridePrimaryColor": "#2f4a7a",
+                    "overrideSecondaryColor": "#6b655d",
+                    "overrideTertiaryColor": "#8a5a36",
+                    "roundness": "ROUND_EIGHT",
+                    "spacing": {
+                      "gutter": "1rem",
+                      "gutter-mobile": "0.75rem",
+                      "margin": "1.25rem",
+                      "margin-tablet": "2rem",
+                      "space-lg": "1.5rem",
+                      "space-md": "1rem",
+                      "space-sm": "0.5rem",
+                      "space-xl": "2.25rem",
+                      "space-xs": "0.25rem"
+                    },
+                    "spacingScale": 2,
+                    "typography": {
+                      "body-lg": {
+                        "fontFamily": "Newsreader",
+                        "fontSize": "18px",
+                        "fontWeight": "400",
+                        "lineHeight": "28px"
+                      },
+                      "body-md": {
+                        "fontFamily": "Inter",
+                        "fontSize": "15px",
+                        "fontWeight": "400",
+                        "lineHeight": "22px"
+                      },
+                      "body-sm": {
+                        "fontFamily": "Inter",
+                        "fontSize": "13px",
+                        "fontWeight": "400",
+                        "lineHeight": "18px"
+                      },
+                      "display-lg": {
+                        "fontFamily": "Newsreader",
+                        "fontSize": "36px",
+                        "fontWeight": "400",
+                        "letterSpacing": "-0.02em",
+                        "lineHeight": "44px"
+                      },
+                      "display-lg-mobile": {
+                        "fontFamily": "Newsreader",
+                        "fontSize": "30px",
+                        "fontWeight": "400",
+                        "letterSpacing": "-0.015em",
+                        "lineHeight": "38px"
+                      },
+                      "headline-lg": {
+                        "fontFamily": "Newsreader",
+                        "fontSize": "26px",
+                        "fontWeight": "500",
+                        "letterSpacing": "-0.01em",
+                        "lineHeight": "34px"
+                      },
+                      "headline-md": {
+                        "fontFamily": "Newsreader",
+                        "fontSize": "22px",
+                        "fontWeight": "500",
+                        "lineHeight": "28px"
+                      },
+                      "headline-sm": {
+                        "fontFamily": "Newsreader",
+                        "fontSize": "19px",
+                        "fontWeight": "500",
+                        "lineHeight": "26px"
+                      },
+                      "label-lg": {
+                        "fontFamily": "Inter",
+                        "fontSize": "14px",
+                        "fontWeight": "600",
+                        "letterSpacing": "0.01em",
+                        "lineHeight": "20px"
+                      },
+                      "label-md": {
+                        "fontFamily": "Inter",
+                        "fontSize": "12px",
+                        "fontWeight": "500",
+                        "letterSpacing": "0.02em",
+                        "lineHeight": "16px"
+                      },
+                      "label-sm": {
+                        "fontFamily": "Inter",
+                        "fontSize": "11px",
+                        "fontWeight": "500",
+                        "letterSpacing": "0.03em",
+                        "lineHeight": "14px"
+                      }
+                    }
+                  }
+                },
+                "name": "assets/ec4168ca195a4dcca0076ccbdbc45b21",
+                "version": "1"
+              },
+              "deviceType": "MOBILE",
+              "generatedBy": "figaro_agent",
+              "height": "2284",
+              "htmlCode": {
+                "downloadUrl": "https://stitch.googleapis.com/v1/projects/8671147000524611054/files/e24a1d895fe64e3e83ee1bee604d8f87:download",
+                "mimeType": "text/html",
+                "name": "projects/8671147000524611054/files/e24a1d895fe64e3e83ee1bee604d8f87"
+              },
+              "id": "e4e1f70641644d55af19ba91bec03cb5",
+              "name": "projects/8671147000524611054/screens/e4e1f70641644d55af19ba91bec03cb5",
+              "prompt": "Design Screen 07: \"OpenPages - Premium Appearance Paywall\". Mobile 412x915 editorial design adhering strictly to OpenPages styling.\n\nVisual Style and Tokens:\n- Background: warm ivory #FAF7F2\n- Elevated surfaces, cards, and modal sheets: #FFFFFF\n- Hairline dividers & borders: #E8E2D9\n- Primary text: ink #1C1B1A\n- Secondary text: slate #6B655D\n- Single primary accent: deep ink blue #2F4A7A\n- Typography: Newsreader serif for headlines/prose and Inter for UI metadata/chips\n- Card radius: 16px rounded-2xl, pill chips rounded-full\n- STRICTLY NO bottom navigation bar!\n\nLayout Structure & Elements:\n1. Top bar:\n   - Dismiss/close button with a subtle circular hover/touch background containing an 'X' (close) icon on the top right or top left.\n   - Discreet small patron badge or 'Patron Edition' label.\n\n2. Hero Visual Showcase (Themed Page Cards):\n   - Headline in Newsreader serif: \"Make every page yours\" (large, elegant text-headline-md/lg font-serif).\n   - Subhead: \"Unlock premium reading themes, handcrafted fonts, and visual style presets.\"\n   - Side-by-side or overlapping card deck preview showing the same literary excerpt rendered in 3 rich premium themes with their respective serif fonts:\n     * Card 1: \"Linen\" (soft warm oatmeal textured tone, gold/amber bookmark accent, serif typography).\n     * Card 2: \"Midnight Blue\" (deep navy night mode #161E2E with crisp ivory text, star/indigo accent).\n     * Card 3: \"Forest\" (deep muted sage/pine green #1B2921 with soft warm cream text and jade accent).\n     Each theme card displays 2-3 lines of an excerpt like \"I still remember the day that my father took me to the Cemetery of Forgotten Books...\" demonstrating the typographic and atmospheric beauty.\n\n3. Feature List:\n   - Clean, refined list of premium benefits with delicate circular checkmark icons in deep ink blue:\n     * \"12 handcrafted reading themes\" (Warm Linen, Midnight, Forest, Terracotta, Solar, etc.)\n     * \"8 editorial book fonts\" (Newsreader, Literata, Charter, Alegreya, EB Garamond...)\n     * \"Custom accent colors & paper grain textures\"\n     * \"Reading statistics & atmospheric soundscapes\"\n\n4. Reassuring Ethos Note:\n   - A soft callout or tranquil card in slate #6B655D and warm tinted container:\n     \"Reading, offline storage, dictionary, and search remain free forever.\"\n   - Emphasizing OpenPages offline-first, DRM-free privacy respect.\n\n5. Subscription & Purchase Options:\n   - Two selectable plan cards:\n     * \"Lifetime\" (Highlighted card with subtle accent border or soft background tint, \"Best Value\" pill badge in #2F4A7A text with soft background, \"$14.99 one-time\", \"Own it forever\").\n     * \"Yearly\" (\"$4.99 / year\", \"~$0.42 / month, 7-day trial\").\n   - Selection indicator (radio or checked pill).\n\n6. Bottom Action Area (Fixed or docked at bottom with gradient fade):\n   - Full-width prominent primary action button in deep ink blue #2F4A7A with white text: \"Unlock Premium\"\n   - Reassuring secondary action: \"Restore purchases\" text link below.\n   - Small quiet legal/terms note: \"One-time purchase applies to all your Android devices. No account required.\"",
+              "screenMetadata": {
+                "agentType": "PRO_AGENT",
+                "status": "COMPLETE"
+              },
+              "screenType": "DESIGN",
+              "screenshot": {
+                "downloadUrl": "https://stitch.googleapis.com/v1/projects/8671147000524611054/files/e16480f081e347ee933164ea2bca9fc0:download",
+                "name": "projects/8671147000524611054/files/e16480f081e347ee933164ea2bca9fc0"
+              },
+              "theme": {
+                "bodyFont": "INTER",
+                "bodyFontFamily": "Inter",
+                "colorMode": "LIGHT",
+                "colorVariant": "FIDELITY",
+                "customColor": "#2f4a7a",
+                "font": "NEWSREADER",
+                "headlineFont": "NEWSREADER",
+                "headlineFontFamily": "Newsreader",
+                "labelFont": "INTER",
+                "labelFontFamily": "Inter",
+                "namedColors": {
+                  "background": "#fcf9f4",
+                  "error": "#ba1a1a",
+                  "error_container": "#ffdad6",
+                  "inverse_on_surface": "#f3f0eb",
+                  "inverse_primary": "#acc7fe",
+                  "inverse_surface": "#31302d",
+                  "on_background": "#1c1c19",
+                  "on_error": "#ffffff",
+                  "on_error_container": "#93000a",
+                  "on_primary": "#ffffff",
+                  "on_primary_container": "#a0bbf2",
+                  "on_primary_fixed": "#001a40",
+                  "on_primary_fixed_variant": "#2b4676",
+                  "on_secondary": "#ffffff",
+                  "on_secondary_container": "#68625a",
+                  "on_secondary_fixed": "#1f1b15",
+                  "on_secondary_fixed_variant": "#4b463f",
+                  "on_surface": "#1c1c19",
+                  "on_surface_variant": "#44474f",
+                  "on_tertiary": "#ffffff",
+                  "on_tertiary_container": "#eaad83",
+                  "on_tertiary_fixed": "#301400",
+                  "on_tertiary_fixed_variant": "#673d1b",
+                  "outline": "#747780",
+                  "outline_variant": "#c4c6d0",
+                  "primary": "#153362",
+                  "primary_container": "#2f4a7a",
+                  "primary_fixed": "#d7e2ff",
+                  "primary_fixed_dim": "#acc7fe",
+                  "secondary": "#635d56",
+                  "secondary_container": "#e7ded4",
+                  "secondary_fixed": "#eae1d7",
+                  "secondary_fixed_dim": "#cec5bb",
+                  "surface": "#fcf9f4",
+                  "surface_bright": "#fcf9f4",
+                  "surface_container": "#f0ede9",
+                  "surface_container_high": "#ebe8e3",
+                  "surface_container_highest": "#e5e2dd",
+                  "surface_container_low": "#f6f3ee",
+                  "surface_container_lowest": "#ffffff",
+                  "surface_dim": "#dcdad5",
+                  "surface_tint": "#445e8f",
+                  "surface_variant": "#e5e2dd",
+                  "tertiary": "#502a0a",
+                  "tertiary_container": "#6b401e",
+                  "tertiary_fixed": "#ffdcc5",
+                  "tertiary_fixed_dim": "#f7b98e"
+                },
+                "overrideNeutralColor": "#faf7f2",
+                "overridePrimaryColor": "#2f4a7a",
+                "overrideSecondaryColor": "#6b655d",
+                "overrideTertiaryColor": "#8a5a36",
+                "roundness": "ROUND_EIGHT",
+                "spacing": {
+                  "gutter": "1rem",
+                  "gutter-mobile": "0.75rem",
+                  "margin": "1.25rem",
+                  "margin-tablet": "2rem",
+                  "space-lg": "1.5rem",
+                  "space-md": "1rem",
+                  "space-sm": "0.5rem",
+                  "space-xl": "2.25rem",
+                  "space-xs": "0.25rem"
+                },
+                "spacingScale": 2,
+                "typography": {
+                  "body-lg": {
+                    "fontFamily": "Newsreader",
+                    "fontSize": "18px",
+                    "fontWeight": "400",
+                    "lineHeight": "28px"
+                  },
+                  "body-md": {
+                    "fontFamily": "Inter",
+                    "fontSize": "15px",
+                    "fontWeight": "400",
+                    "lineHeight": "22px"
+                  },
+                  "body-sm": {
+                    "fontFamily": "Inter",
+                    "fontSize": "13px",
+                    "fontWeight": "400",
+                    "lineHeight": "18px"
+                  },
+                  "display-lg": {
+                    "fontFamily": "Newsreader",
+                    "fontSize": "36px",
+                    "fontWeight": "400",
+                    "letterSpacing": "-0.02em",
+                    "lineHeight": "44px"
+                  },
+                  "display-lg-mobile": {
+                    "fontFamily": "Newsreader",
+                    "fontSize": "30px",
+                    "fontWeight": "400",
+                    "letterSpacing": "-0.015em",
+                    "lineHeight": "38px"
+                  },
+                  "headline-lg": {
+                    "fontFamily": "Newsreader",
+                    "fontSize": "26px",
+                    "fontWeight": "500",
+                    "letterSpacing": "-0.01em",
+                    "lineHeight": "34px"
+                  },
+                  "headline-md": {
+                    "fontFamily": "Newsreader",
+                    "fontSize": "22px",
+                    "fontWeight": "500",
+                    "lineHeight": "28px"
+                  },
+                  "headline-sm": {
+                    "fontFamily": "Newsreader",
+                    "fontSize": "19px",
+                    "fontWeight": "500",
+                    "lineHeight": "26px"
+                  },
+                  "label-lg": {
+                    "fontFamily": "Inter",
+                    "fontSize": "14px",
+                    "fontWeight": "600",
+                    "letterSpacing": "0.01em",
+                    "lineHeight": "20px"
+                  },
+                  "label-md": {
+                    "fontFamily": "Inter",
+                    "fontSize": "12px",
+                    "fontWeight": "500",
+                    "letterSpacing": "0.02em",
+                    "lineHeight": "16px"
+                  },
+                  "label-sm": {
+                    "fontFamily": "Inter",
+                    "fontSize": "11px",
+                    "fontWeight": "500",
+                    "letterSpacing": "0.03em",
+                    "lineHeight": "14px"
+                  }
+                }
+              },
+              "title": "OpenPages - Premium Appearance Paywall",
+              "width": "780"
+            }
+          ],
+          "theme": {}
+        }
+      },
+      {
+        "text": "Here is the **Premium Appearance Paywall** screen (`OpenPages - Premium Appearance Paywall`) designed for OpenPages in the warm editorial aesthetic:\n\n### Highlights & Design Implementation\n1. **Header & Dismiss**:\n   - Clean top bar with an understated \"Patron Edition\" pill badge and an accessible `close` ('\u2715') icon.\n2. **Hero Typography & Themed Showcase**:\n   - Elegant headline *\"Make every page yours\"* in Newsreader serif paired with warm subhead copy.\n   - Horizontal preview showcase illustrating a literary passage across distinct handcrafted themes:\n     - **Linen** (warm textured oatmeal with archival paper feel)\n     - **Midnight Blue** (deep nocturnal navy with crisp ivory serif text)\n     - **Forest** (calm deep evergreen tone with warm cream typography)\n3. **Value Proposition & Feature List**:\n   - High-contrast ink blue circular checkmarks highlighting the 12 themes, 8 editorial book fonts, custom accent colors & paper textures, and ambient soundscapes/stats.\n4. **Reassuring Privacy & Ethos Card**:\n   - Distinctive callout reassuring patrons that core reading, offline storage, dictionary, and search remain 100% free and offline forever.\n5. **Subscription & Pricing Plan Cards**:\n   - **Lifetime** highlighted as primary with a \"Best Value\" badge at **$14.99 one-time** (*Pay once. Own it forever.*).\n   - **Yearly** option at **$4.99/year** with 7-day trial breakdown.\n6. **Actions & Ethics**:\n   - Full-width deep ink blue CTA button (*\"Unlock Premium\"*), \"Restore purchases\" text action, and transparent device-licensing terms note without account requirements.\n   - Strictly conforms to the no-bottom-navigation requirement."
+      },
+      {
+        "suggestion": "Add a subtle interactive theme switcher toggle to the preview carousel"
+      },
+      {
+        "suggestion": "Design the purchase confirmation / patron thank-you screen"
+      },
+      {
+        "suggestion": "Refine the pricing cards to include an option for gifting a patron pass"
+      }
+    ],
+    "projectId": "8671147000524611054",
+    "sessionId": "8324759807284199136",
+    "designSystem": {
+      "designSystem": {
+        "displayName": "Warm Editorial Literary",
+        "styleGuidelines": "## Brand & Style\n\nThis design system delivers a serene, distraction-free sanctuary for long-form reading and personal library stewardship on mobile devices. Designed specifically for focused offline immersion, the visual tone departs from sterile e-ink utilities and transactional book stores in favor of an intimate, tactile literary environment reminiscent of well-printed art books and archival paper.\n\n### Target Audience & Emotional Intent\n- **Audience:** Avid readers, academics, archivists, and offline-first minimalists who manage their own multi-format digital collections (EPUB, PDF, Markdown, and plain text).\n- **Emotional Response:** Quiet intimacy, intellectual calm, visual relief from digital glare, and total trust in the app\u2019s respectful, offline private nature.\n\n### Design Movement\n- **Editorial Warm Minimalism:** Prioritizes immaculate typographic proportions, gentle paper-like surface contrasts, hairline structural boundaries, and expansive breathing room. Mechanical drop-shadows and digital gradients are eliminated in favor of calm surface layering and classical book composition.\n\n## Layout & Spacing\n\nThe layout model mimics classical book proportioning using a fluid layout anchored by strict horizontal margins and open vertical cadence.\n\n### Grid & Canvas Structure\n- **Mobile Handsets (< 600dp):** Fluid single or dual-column library grid with `margin: 1.25rem` (20px) outer edge margins and `gutter: 0.75rem` (12px) between book cards.\n- **Foldables & Tablets (600dp\u20131024dp):** Multi-column shelf view (3 to 4 columns) or split-pane dual-page view with `margin: 2rem` (32px) margins and `gutter: 1rem` (16px) gutters.\n- **Reading Canvas:** Strictly bounded text column (maximum reading width 68ch) centered automatically when running on wide viewports or tablets, preserving ocular tracking comfort.\n\n### Vertical Rhythm\nInterface components rely on a base 4px rhythm, stepping from `space-xs` (4px) micro-spacers up to `space-xl` (36px) structural separation between editorial shelves (e.g., \"Currently Reading\" vs. \"Unsorted Volumes\").\n\n## Elevation & Depth\n\nTo protect the paper-first aesthetic, synthetic dropshadows and heavy blurs are replaced by tactile surface stacking, tonal tinting, and physical hairline borders.\n\n### Surface Tiers\n- **Surface Canvas (Level 0):** `#FAF7F2` \u2014 Base application backdrop.\n- **Surface Card (Level 1):** `#FFFFFF` bordered with a 1px solid hairline `#E8E2D9`. Never cast with dark blur shadows; depth is conveyed purely through chromatic freshness against the ivory base.\n- **Surface Floating Bar & Sheet (Level 2):** `#FFFFFF` paired with an ultra-diffused atmospheric tint: `0 8px 24px -4px rgba(28, 27, 26, 0.06)` combined with a 1px hairline border `#E8E2D9`. Used for bottom reading toolbars and floating action bars.\n- **Modal Drawer (Level 3):** `#FFFFFF` with a subtle dimming backdrop of `rgba(28, 27, 26, 0.35)`, presenting table of contents, bookmarks, and font adjustment drawers.\n\n## Components\n\n### Buttons\n- **Primary Button:** Pill-shaped (`rounded-full`), solid `#2F4A7A` background with crisp `#FAF7F2` text. Height 48px on mobile for generous touch targets. Active states shift down 10% brightness to `#23395E`.\n- **Secondary / Outlined Button:** Pill-shaped, transparent surface with a 1px solid `#E8E2D9` hairline border, `#1C1B1A` text, shifting to `#FAF7F2` background on press.\n- **Ghost / Tool Button:** Pill or circle-shaped, zero outline, `#6B655D` icon and text tint, transitioning to `#E8E2D9` fill on press.\n\n### Chips & Filter Tags\n- **Pill Chips:** Full pill contour (`rounded-full`). Unselected state features `#FAF7F2` or `#FFFFFF` fill with 1px `#E8E2D9` border and `#6B655D` text (`label-md`). Selected state fills with `#2F4A7A` text `#FFFFFF` without borders.\n- **Format Badges (EPUB, PDF, TXT):** Micro-pills with `label-sm`, uppercase, `#6B655D` text over `#E8E2D9` surface at 50% opacity.\n\n### Book Cards\n- **Grid Card:** Pure white surface (`#FFFFFF`) with `16px` border-radius and `1px` `#E8E2D9` border. Aspect ratio 1:1.45 cover container. Book title rendered in `Newsreader` (`headline-sm`), author in `Inter` (`body-sm`, `#6B655D`). Progress bar docked at card footer using a 3px hairline track (`#E8E2D9`) with `#2F4A7A` indicator.\n- **List Item:** Flat row with bottom hairline border (`#E8E2D9`). Thumbnail jacket at `8px` corner radius. Metadata organized horizontally with mono-aligned Inter typography.\n\n### Form Inputs & Search Fields\n- **Search Bar:** Pill-shaped pill container (`rounded-full`), `#FFFFFF` fill, 1px `#E8E2D9` border, leading search glyph in `#6B655D`. Placeholder rendered in `body-md` muted ink. Focused state deepens border to `#2F4A7A`.\n- **Checkboxes & Radios:** Circular or soft-cornered toggles with `#E8E2D9` default border. Checked states feature solid `#2F4A7A` background with `#FFFFFF` checkmark.\n\n### Reader Chrome & Specialized Controls\n- **Floating Reading Bar:** Detached bottom pill panel hovering 16px above screen bottom, framed with 1px `#E8E2D9` and soft ambient shadow. Houses chapter stepper, typography drawer trigger, bookmark toggle, and progress slider.\n- **Typography Adjustment Sheet:** Bottom modal containing modular segment pills for serif/sans-serif selection, continuous font size stepper, and ivory/sepia/dark background switcher swatches.",
+        "theme": {
+          "bodyFont": "INTER",
+          "bodyFontFamily": "Inter",
+          "colorMode": "LIGHT",
+          "colorVariant": "FIDELITY",
+          "customColor": "#2f4a7a",
+          "designMd": "---\nname: Warm Editorial Literary\ncolors:\n  surface: '#fcf9f4'\n  surface-dim: '#dcdad5'\n  surface-bright: '#fcf9f4'\n  surface-container-lowest: '#ffffff'\n  surface-container-low: '#f6f3ee'\n  surface-container: '#f0ede9'\n  surface-container-high: '#ebe8e3'\n  surface-container-highest: '#e5e2dd'\n  on-surface: '#1c1c19'\n  on-surface-variant: '#44474f'\n  inverse-surface: '#31302d'\n  inverse-on-surface: '#f3f0eb'\n  outline: '#747780'\n  outline-variant: '#c4c6d0'\n  surface-tint: '#445e8f'\n  primary: '#153362'\n  on-primary: '#ffffff'\n  primary-container: '#2f4a7a'\n  on-primary-container: '#a0bbf2'\n  inverse-primary: '#acc7fe'\n  secondary: '#635d56'\n  on-secondary: '#ffffff'\n  secondary-container: '#e7ded4'\n  on-secondary-container: '#68625a'\n  tertiary: '#502a0a'\n  on-tertiary: '#ffffff'\n  tertiary-container: '#6b401e'\n  on-tertiary-container: '#eaad83'\n  error: '#ba1a1a'\n  on-error: '#ffffff'\n  error-container: '#ffdad6'\n  on-error-container: '#93000a'\n  primary-fixed: '#d7e2ff'\n  primary-fixed-dim: '#acc7fe'\n  on-primary-fixed: '#001a40'\n  on-primary-fixed-variant: '#2b4676'\n  secondary-fixed: '#eae1d7'\n  secondary-fixed-dim: '#cec5bb'\n  on-secondary-fixed: '#1f1b15'\n  on-secondary-fixed-variant: '#4b463f'\n  tertiary-fixed: '#ffdcc5'\n  tertiary-fixed-dim: '#f7b98e'\n  on-tertiary-fixed: '#301400'\n  on-tertiary-fixed-variant: '#673d1b'\n  background: '#fcf9f4'\n  on-background: '#1c1c19'\n  surface-variant: '#e5e2dd'\ntypography:\n  display-lg:\n    fontFamily: Newsreader\n    fontSize: 36px\n    fontWeight: '400'\n    lineHeight: 44px\n    letterSpacing: -0.02em\n  display-lg-mobile:\n    fontFamily: Newsreader\n    fontSize: 30px\n    fontWeight: '400'\n    lineHeight: 38px\n    letterSpacing: -0.015em\n  headline-lg:\n    fontFamily: Newsreader\n    fontSize: 26px\n    fontWeight: '500'\n    lineHeight: 34px\n    letterSpacing: -0.01em\n  headline-md:\n    fontFamily: Newsreader\n    fontSize: 22px\n    fontWeight: '500'\n    lineHeight: 28px\n  headline-sm:\n    fontFamily: Newsreader\n    fontSize: 19px\n    fontWeight: '500'\n    lineHeight: 26px\n  body-lg:\n    fontFamily: Newsreader\n    fontSize: 18px\n    fontWeight: '400'\n    lineHeight: 28px\n  body-md:\n    fontFamily: Inter\n    fontSize: 15px\n    fontWeight: '400'\n    lineHeight: 22px\n  body-sm:\n    fontFamily: Inter\n    fontSize: 13px\n    fontWeight: '400'\n    lineHeight: 18px\n  label-lg:\n    fontFamily: Inter\n    fontSize: 14px\n    fontWeight: '600'\n    lineHeight: 20px\n    letterSpacing: 0.01em\n  label-md:\n    fontFamily: Inter\n    fontSize: 12px\n    fontWeight: '500'\n    lineHeight: 16px\n    letterSpacing: 0.02em\n  label-sm:\n    fontFamily: Inter\n    fontSize: 11px\n    fontWeight: '500'\n    lineHeight: 14px\n    letterSpacing: 0.03em\nrounded:\n  sm: 0.25rem\n  DEFAULT: 0.5rem\n  md: 0.75rem\n  lg: 1rem\n  xl: 1.5rem\n  full: 9999px\nspacing:\n  gutter: 1rem\n  gutter-mobile: 0.75rem\n  margin: 1.25rem\n  margin-tablet: 2rem\n  space-xs: 0.25rem\n  space-sm: 0.5rem\n  space-md: 1rem\n  space-lg: 1.5rem\n  space-xl: 2.25rem\n---\n\n## Brand & Style\n\nThis design system delivers a serene, distraction-free sanctuary for long-form reading and personal library stewardship on mobile devices. Designed specifically for focused offline immersion, the visual tone departs from sterile e-ink utilities and transactional book stores in favor of an intimate, tactile literary environment reminiscent of well-printed art books and archival paper.\n\n### Target Audience & Emotional Intent\n- **Audience:** Avid readers, academics, archivists, and offline-first minimalists who manage their own multi-format digital collections (EPUB, PDF, Markdown, and plain text).\n- **Emotional Response:** Quiet intimacy, intellectual calm, visual relief from digital glare, and total trust in the app\u2019s respectful, offline private nature.\n\n### Design Movement\n- **Editorial Warm Minimalism:** Prioritizes immaculate typographic proportions, gentle paper-like surface contrasts, hairline structural boundaries, and expansive breathing room. Mechanical drop-shadows and digital gradients are eliminated in favor of calm surface layering and classical book composition.\n\n## Colors\n\nThe palette simulates the natural tone of heavy vellum and cold letterpress ink. Color is applied with rigorous economy: chrome and navigation elements withdraw into paper tones, allowing cover art and prose typography to dominate.\n\n### Color Tokens & Roles\n- **Canvas Base (`#FAF7F2`):** Warm unbleached ivory. Serves as the primary viewport canvas and reader background, softening ocular strain during extended sessions.\n- **Card & Sheet Surface (`#FFFFFF`):** Pure warm chalk white. Reserved for elevated book item cards, reading sheets, modal sheets, and floating tool shelves.\n- **Text Ink (`#1C1B1A`):** Deep carbon black-brown with soft undertones. Used for all primary headlines, reading copy, and active icons. Avoids the starkness of pure digital black (`#000000`).\n- **Secondary Ink (`#6B655D`):** Warm slate-taupe. Used for metadata, author names, reading progress counters, and inactive navigation items.\n- **Accent Deep Ink Blue (`#2F4A7A`):** Single focused accent evoking vintage binding cloth and fountain pen ink. Used strictly for primary actions, current reading progress indicators, and active selection states.\n- **Warm Leather Accent (`#8A5A36`):** Tertiary subdued amber-brown for highlights, bookmarks, and collection tags.\n- **Hairline Divider (`#E8E2D9`):** Subdued sand-tinted line color used for 0.5px\u20131px hairline borders and sectional rules.\n\n## Typography\n\nTypographic hierarchy bridges archival bookcraft and modern interface clarity through a strict dual-family system:\n\n- **Editorial Serif (`Newsreader`):** Utilized for book titles, author credits, chapter heads, literary pull quotes, and custom long-form reading modes. It features optical sizing adjustments and italic styles that give physical book character to digital screens.\n- **Instrumental Sans (`Inter`):** Utilized for all interface navigation, file metadata (e.g., format tags like `EPUB`, `PDF`, byte size), search fields, bottom sheets, and system configuration. It remains crisp, legible, and unpretentious at tiny sizes.\n\n### Usage Rules\n- Optical italics in `Newsreader` are reserved for metadata subtitles, author lines, and literary excerpts.\n- Display sizes apply negative tracking to tighten headlines, while `label-sm` utilizes positive tracking for immediate legibility in tight chip badges and table listings.\n\n## Layout & Spacing\n\nThe layout model mimics classical book proportioning using a fluid layout anchored by strict horizontal margins and open vertical cadence.\n\n### Grid & Canvas Structure\n- **Mobile Handsets (< 600dp):** Fluid single or dual-column library grid with `margin: 1.25rem` (20px) outer edge margins and `gutter: 0.75rem` (12px) between book cards.\n- **Foldables & Tablets (600dp\u20131024dp):** Multi-column shelf view (3 to 4 columns) or split-pane dual-page view with `margin: 2rem` (32px) margins and `gutter: 1rem` (16px) gutters.\n- **Reading Canvas:** Strictly bounded text column (maximum reading width 68ch) centered automatically when running on wide viewports or tablets, preserving ocular tracking comfort.\n\n### Vertical Rhythm\nInterface components rely on a base 4px rhythm, stepping from `space-xs` (4px) micro-spacers up to `space-xl` (36px) structural separation between editorial shelves (e.g., \"Currently Reading\" vs. \"Unsorted Volumes\").\n\n## Elevation & Depth\n\nTo protect the paper-first aesthetic, synthetic dropshadows and heavy blurs are replaced by tactile surface stacking, tonal tinting, and physical hairline borders.\n\n### Surface Tiers\n- **Surface Canvas (Level 0):** `#FAF7F2` \u2014 Base application backdrop.\n- **Surface Card (Level 1):** `#FFFFFF` bordered with a 1px solid hairline `#E8E2D9`. Never cast with dark blur shadows; depth is conveyed purely through chromatic freshness against the ivory base.\n- **Surface Floating Bar & Sheet (Level 2):** `#FFFFFF` paired with an ultra-diffused atmospheric tint: `0 8px 24px -4px rgba(28, 27, 26, 0.06)` combined with a 1px hairline border `#E8E2D9`. Used for bottom reading toolbars and floating action bars.\n- **Modal Drawer (Level 3):** `#FFFFFF` with a subtle dimming backdrop of `rgba(28, 27, 26, 0.35)`, presenting table of contents, bookmarks, and font adjustment drawers.\n\n## Shapes\n\nThe design combines crisp book geometry with soft handheld touchpoints. A distinct radius hierarchy delineates structural containers from interactive controls:\n\n- **Library & Book Cards:** Fixed at `16px` (`rounded-lg` equivalent) border radius, softening book jackets and reader card containers while keeping them architecturally stable.\n- **Interactive Controls (Buttons, Chips, Search Bar, Pill Toggles):** Formed with complete full-radius pills (`rounded-full` / 9999px) to establish instant tactile affordance and thumb friendliness.\n- **Sheets & Floating Panels:** Curved top corners at `20px` to comfortably cradle reading controls.\n\n## Components\n\n### Buttons\n- **Primary Button:** Pill-shaped (`rounded-full`), solid `#2F4A7A` background with crisp `#FAF7F2` text. Height 48px on mobile for generous touch targets. Active states shift down 10% brightness to `#23395E`.\n- **Secondary / Outlined Button:** Pill-shaped, transparent surface with a 1px solid `#E8E2D9` hairline border, `#1C1B1A` text, shifting to `#FAF7F2` background on press.\n- **Ghost / Tool Button:** Pill or circle-shaped, zero outline, `#6B655D` icon and text tint, transitioning to `#E8E2D9` fill on press.\n\n### Chips & Filter Tags\n- **Pill Chips:** Full pill contour (`rounded-full`). Unselected state features `#FAF7F2` or `#FFFFFF` fill with 1px `#E8E2D9` border and `#6B655D` text (`label-md`). Selected state fills with `#2F4A7A` text `#FFFFFF` without borders.\n- **Format Badges (EPUB, PDF, TXT):** Micro-pills with `label-sm`, uppercase, `#6B655D` text over `#E8E2D9` surface at 50% opacity.\n\n### Book Cards\n- **Grid Card:** Pure white surface (`#FFFFFF`) with `16px` border-radius and `1px` `#E8E2D9` border. Aspect ratio 1:1.45 cover container. Book title rendered in `Newsreader` (`headline-sm`), author in `Inter` (`body-sm`, `#6B655D`). Progress bar docked at card footer using a 3px hairline track (`#E8E2D9`) with `#2F4A7A` indicator.\n- **List Item:** Flat row with bottom hairline border (`#E8E2D9`). Thumbnail jacket at `8px` corner radius. Metadata organized horizontally with mono-aligned Inter typography.\n\n### Form Inputs & Search Fields\n- **Search Bar:** Pill-shaped pill container (`rounded-full`), `#FFFFFF` fill, 1px `#E8E2D9` border, leading search glyph in `#6B655D`. Placeholder rendered in `body-md` muted ink. Focused state deepens border to `#2F4A7A`.\n- **Checkboxes & Radios:** Circular or soft-cornered toggles with `#E8E2D9` default border. Checked states feature solid `#2F4A7A` background with `#FFFFFF` checkmark.\n\n### Reader Chrome & Specialized Controls\n- **Floating Reading Bar:** Detached bottom pill panel hovering 16px above screen bottom, framed with 1px `#E8E2D9` and soft ambient shadow. Houses chapter stepper, typography drawer trigger, bookmark toggle, and progress slider.\n- **Typography Adjustment Sheet:** Bottom modal containing modular segment pills for serif/sans-serif selection, continuous font size stepper, and ivory/sepia/dark background switcher swatches.",
+          "font": "NEWSREADER",
+          "headlineFont": "NEWSREADER",
+          "headlineFontFamily": "Newsreader",
+          "labelFont": "INTER",
+          "labelFontFamily": "Inter",
+          "namedColors": {
+            "background": "#fcf9f4",
+            "error": "#ba1a1a",
+            "error_container": "#ffdad6",
+            "inverse_on_surface": "#f3f0eb",
+            "inverse_primary": "#acc7fe",
+            "inverse_surface": "#31302d",
+            "on_background": "#1c1c19",
+            "on_error": "#ffffff",
+            "on_error_container": "#93000a",
+            "on_primary": "#ffffff",
+            "on_primary_container": "#a0bbf2",
+            "on_primary_fixed": "#001a40",
+            "on_primary_fixed_variant": "#2b4676",
+            "on_secondary": "#ffffff",
+            "on_secondary_container": "#68625a",
+            "on_secondary_fixed": "#1f1b15",
+            "on_secondary_fixed_variant": "#4b463f",
+            "on_surface": "#1c1c19",
+            "on_surface_variant": "#44474f",
+            "on_tertiary": "#ffffff",
+            "on_tertiary_container": "#eaad83",
+            "on_tertiary_fixed": "#301400",
+            "on_tertiary_fixed_variant": "#673d1b",
+            "outline": "#747780",
+            "outline_variant": "#c4c6d0",
+            "primary": "#153362",
+            "primary_container": "#2f4a7a",
+            "primary_fixed": "#d7e2ff",
+            "primary_fixed_dim": "#acc7fe",
+            "secondary": "#635d56",
+            "secondary_container": "#e7ded4",
+            "secondary_fixed": "#eae1d7",
+            "secondary_fixed_dim": "#cec5bb",
+            "surface": "#fcf9f4",
+            "surface_bright": "#fcf9f4",
+            "surface_container": "#f0ede9",
+            "surface_container_high": "#ebe8e3",
+            "surface_container_highest": "#e5e2dd",
+            "surface_container_low": "#f6f3ee",
+            "surface_container_lowest": "#ffffff",
+            "surface_dim": "#dcdad5",
+            "surface_tint": "#445e8f",
+            "surface_variant": "#e5e2dd",
+            "tertiary": "#502a0a",
+            "tertiary_container": "#6b401e",
+            "tertiary_fixed": "#ffdcc5",
+            "tertiary_fixed_dim": "#f7b98e"
+          },
+          "overrideNeutralColor": "#faf7f2",
+          "overridePrimaryColor": "#2f4a7a",
+          "overrideSecondaryColor": "#6b655d",
+          "overrideTertiaryColor": "#8a5a36",
+          "roundness": "ROUND_EIGHT",
+          "spacing": {
+            "gutter": "1rem",
+            "gutter-mobile": "0.75rem",
+            "margin": "1.25rem",
+            "margin-tablet": "2rem",
+            "space-lg": "1.5rem",
+            "space-md": "1rem",
+            "space-sm": "0.5rem",
+            "space-xl": "2.25rem",
+            "space-xs": "0.25rem"
+          },
+          "spacingScale": 2,
+          "typography": {
+            "body-lg": {
+              "fontFamily": "Newsreader",
+              "fontSize": "18px",
+              "fontWeight": "400",
+              "lineHeight": "28px"
+            },
+            "body-md": {
+              "fontFamily": "Inter",
+              "fontSize": "15px",
+              "fontWeight": "400",
+              "lineHeight": "22px"
+            },
+            "body-sm": {
+              "fontFamily": "Inter",
+              "fontSize": "13px",
+              "fontWeight": "400",
+              "lineHeight": "18px"
+            },
+            "display-lg": {
+              "fontFamily": "Newsreader",
+              "fontSize": "36px",
+              "fontWeight": "400",
+              "letterSpacing": "-0.02em",
+              "lineHeight": "44px"
+            },
+            "display-lg-mobile": {
+              "fontFamily": "Newsreader",
+              "fontSize": "30px",
+              "fontWeight": "400",
+              "letterSpacing": "-0.015em",
+              "lineHeight": "38px"
+            },
+            "headline-lg": {
+              "fontFamily": "Newsreader",
+              "fontSize": "26px",
+              "fontWeight": "500",
+              "letterSpacing": "-0.01em",
+              "lineHeight": "34px"
+            },
+            "headline-md": {
+              "fontFamily": "Newsreader",
+              "fontSize": "22px",
+              "fontWeight": "500",
+              "lineHeight": "28px"
+            },
+            "headline-sm": {
+              "fontFamily": "Newsreader",
+              "fontSize": "19px",
+              "fontWeight": "500",
+              "lineHeight": "26px"
+            },
+            "label-lg": {
+              "fontFamily": "Inter",
+              "fontSize": "14px",
+              "fontWeight": "600",
+              "letterSpacing": "0.01em",
+              "lineHeight": "20px"
+            },
+            "label-md": {
+              "fontFamily": "Inter",
+              "fontSize": "12px",
+              "fontWeight": "500",
+              "letterSpacing": "0.02em",
+              "lineHeight": "16px"
+            },
+            "label-sm": {
+              "fontFamily": "Inter",
+              "fontSize": "11px",
+              "fontWeight": "500",
+              "letterSpacing": "0.03em",
+              "lineHeight": "14px"
+            }
+          }
+        }
+      },
+      "name": "assets/ec4168ca195a4dcca0076ccbdbc45b21",
+      "version": "1"
+    },
+    "deviceType": "MOBILE",
+    "generatedBy": "figaro_agent",
+    "height": "2284",
+    "htmlCode": {
+      "downloadUrl": "https://stitch.googleapis.com/v1/projects/8671147000524611054/files/e24a1d895fe64e3e83ee1bee604d8f87:download",
+      "mimeType": "text/html",
+      "name": "projects/8671147000524611054/files/e24a1d895fe64e3e83ee1bee604d8f87"
+    },
+    "id": "e4e1f70641644d55af19ba91bec03cb5",
+    "name": "projects/8671147000524611054/screens/e4e1f70641644d55af19ba91bec03cb5",
+    "prompt": "Design Screen 07: \"OpenPages - Premium Appearance Paywall\". Mobile 412x915 editorial design adhering strictly to OpenPages styling.\n\nVisual Style and Tokens:\n- Background: warm ivory #FAF7F2\n- Elevated surfaces, cards, and modal sheets: #FFFFFF\n- Hairline dividers & borders: #E8E2D9\n- Primary text: ink #1C1B1A\n- Secondary text: slate #6B655D\n- Single primary accent: deep ink blue #2F4A7A\n- Typography: Newsreader serif for headlines/prose and Inter for UI metadata/chips\n- Card radius: 16px rounded-2xl, pill chips rounded-full\n- STRICTLY NO bottom navigation bar!\n\nLayout Structure & Elements:\n1. Top bar:\n   - Dismiss/close button with a subtle circular hover/touch background containing an 'X' (close) icon on the top right or top left.\n   - Discreet small patron badge or 'Patron Edition' label.\n\n2. Hero Visual Showcase (Themed Page Cards):\n   - Headline in Newsreader serif: \"Make every page yours\" (large, elegant text-headline-md/lg font-serif).\n   - Subhead: \"Unlock premium reading themes, handcrafted fonts, and visual style presets.\"\n   - Side-by-side or overlapping card deck preview showing the same literary excerpt rendered in 3 rich premium themes with their respective serif fonts:\n     * Card 1: \"Linen\" (soft warm oatmeal textured tone, gold/amber bookmark accent, serif typography).\n     * Card 2: \"Midnight Blue\" (deep navy night mode #161E2E with crisp ivory text, star/indigo accent).\n     * Card 3: \"Forest\" (deep muted sage/pine green #1B2921 with soft warm cream text and jade accent).\n     Each theme card displays 2-3 lines of an excerpt like \"I still remember the day that my father took me to the Cemetery of Forgotten Books...\" demonstrating the typographic and atmospheric beauty.\n\n3. Feature List:\n   - Clean, refined list of premium benefits with delicate circular checkmark icons in deep ink blue:\n     * \"12 handcrafted reading themes\" (Warm Linen, Midnight, Forest, Terracotta, Solar, etc.)\n     * \"8 editorial book fonts\" (Newsreader, Literata, Charter, Alegreya, EB Garamond...)\n     * \"Custom accent colors & paper grain textures\"\n     * \"Reading statistics & atmospheric soundscapes\"\n\n4. Reassuring Ethos Note:\n   - A soft callout or tranquil card in slate #6B655D and warm tinted container:\n     \"Reading, offline storage, dictionary, and search remain free forever.\"\n   - Emphasizing OpenPages offline-first, DRM-free privacy respect.\n\n5. Subscription & Purchase Options:\n   - Two selectable plan cards:\n     * \"Lifetime\" (Highlighted card with subtle accent border or soft background tint, \"Best Value\" pill badge in #2F4A7A text with soft background, \"$14.99 one-time\", \"Own it forever\").\n     * \"Yearly\" (\"$4.99 / year\", \"~$0.42 / month, 7-day trial\").\n   - Selection indicator (radio or checked pill).\n\n6. Bottom Action Area (Fixed or docked at bottom with gradient fade):\n   - Full-width prominent primary action button in deep ink blue #2F4A7A with white text: \"Unlock Premium\"\n   - Reassuring secondary action: \"Restore purchases\" text link below.\n   - Small quiet legal/terms note: \"One-time purchase applies to all your Android devices. No account required.\"",
+    "screenMetadata": {
+      "agentType": "PRO_AGENT",
+      "status": "COMPLETE"
+    },
+    "screenType": "DESIGN",
+    "screenshot": {
+      "downloadUrl": "https://stitch.googleapis.com/v1/projects/8671147000524611054/files/e16480f081e347ee933164ea2bca9fc0:download",
+      "name": "projects/8671147000524611054/files/e16480f081e347ee933164ea2bca9fc0"
+    },
+    "theme": {
+      "bodyFont": "INTER",
+      "bodyFontFamily": "Inter",
+      "colorMode": "LIGHT",
+      "colorVariant": "FIDELITY",
+      "customColor": "#2f4a7a",
+      "font": "NEWSREADER",
+      "headlineFont": "NEWSREADER",
+      "headlineFontFamily": "Newsreader",
+      "labelFont": "INTER",
+      "labelFontFamily": "Inter",
+      "namedColors": {
+        "background": "#fcf9f4",
+        "error": "#ba1a1a",
+        "error_container": "#ffdad6",
+        "inverse_on_surface": "#f3f0eb",
+        "inverse_primary": "#acc7fe",
+        "inverse_surface": "#31302d",
+        "on_background": "#1c1c19",
+        "on_error": "#ffffff",
+        "on_error_container": "#93000a",
+        "on_primary": "#ffffff",
+        "on_primary_container": "#a0bbf2",
+        "on_primary_fixed": "#001a40",
+        "on_primary_fixed_variant": "#2b4676",
+        "on_secondary": "#ffffff",
+        "on_secondary_container": "#68625a",
+        "on_secondary_fixed": "#1f1b15",
+        "on_secondary_fixed_variant": "#4b463f",
+        "on_surface": "#1c1c19",
+        "on_surface_variant": "#44474f",
+        "on_tertiary": "#ffffff",
+        "on_tertiary_container": "#eaad83",
+        "on_tertiary_fixed": "#301400",
+        "on_tertiary_fixed_variant": "#673d1b",
+        "outline": "#747780",
+        "outline_variant": "#c4c6d0",
+        "primary": "#153362",
+        "primary_container": "#2f4a7a",
+        "primary_fixed": "#d7e2ff",
+        "primary_fixed_dim": "#acc7fe",
+        "secondary": "#635d56",
+        "secondary_container": "#e7ded4",
+        "secondary_fixed": "#eae1d7",
+        "secondary_fixed_dim": "#cec5bb",
+        "surface": "#fcf9f4",
+        "surface_bright": "#fcf9f4",
+        "surface_container": "#f0ede9",
+        "surface_container_high": "#ebe8e3",
+        "surface_container_highest": "#e5e2dd",
+        "surface_container_low": "#f6f3ee",
+        "surface_container_lowest": "#ffffff",
+        "surface_dim": "#dcdad5",
+        "surface_tint": "#445e8f",
+        "surface_variant": "#e5e2dd",
+        "tertiary": "#502a0a",
+        "tertiary_container": "#6b401e",
+        "tertiary_fixed": "#ffdcc5",
+        "tertiary_fixed_dim": "#f7b98e"
+      },
+      "overrideNeutralColor": "#faf7f2",
+      "overridePrimaryColor": "#2f4a7a",
+      "overrideSecondaryColor": "#6b655d",
+      "overrideTertiaryColor": "#8a5a36",
+      "roundness": "ROUND_EIGHT",
+      "spacing": {
+        "gutter": "1rem",
+        "gutter-mobile": "0.75rem",
+        "margin": "1.25rem",
+        "margin-tablet": "2rem",
+        "space-lg": "1.5rem",
+        "space-md": "1rem",
+        "space-sm": "0.5rem",
+        "space-xl": "2.25rem",
+        "space-xs": "0.25rem"
+      },
+      "spacingScale": 2,
+      "typography": {
+        "body-lg": {
+          "fontFamily": "Newsreader",
+          "fontSize": "18px",
+          "fontWeight": "400",
+          "lineHeight": "28px"
+        },
+        "body-md": {
+          "fontFamily": "Inter",
+          "fontSize": "15px",
+          "fontWeight": "400",
+          "lineHeight": "22px"
+        },
+        "body-sm": {
+          "fontFamily": "Inter",
+          "fontSize": "13px",
+          "fontWeight": "400",
+          "lineHeight": "18px"
+        },
+        "display-lg": {
+          "fontFamily": "Newsreader",
+          "fontSize": "36px",
+          "fontWeight": "400",
+          "letterSpacing": "-0.02em",
+          "lineHeight": "44px"
+        },
+        "display-lg-mobile": {
+          "fontFamily": "Newsreader",
+          "fontSize": "30px",
+          "fontWeight": "400",
+          "letterSpacing": "-0.015em",
+          "lineHeight": "38px"
+        },
+        "headline-lg": {
+          "fontFamily": "Newsreader",
+          "fontSize": "26px",
+          "fontWeight": "500",
+          "letterSpacing": "-0.01em",
+          "lineHeight": "34px"
+        },
+        "headline-md": {
+          "fontFamily": "Newsreader",
+          "fontSize": "22px",
+          "fontWeight": "500",
+          "lineHeight": "28px"
+        },
+        "headline-sm": {
+          "fontFamily": "Newsreader",
+          "fontSize": "19px",
+          "fontWeight": "500",
+          "lineHeight": "26px"
+        },
+        "label-lg": {
+          "fontFamily": "Inter",
+          "fontSize": "14px",
+          "fontWeight": "600",
+          "letterSpacing": "0.01em",
+          "lineHeight": "20px"
+        },
+        "label-md": {
+          "fontFamily": "Inter",
+          "fontSize": "12px",
+          "fontWeight": "500",
+          "letterSpacing": "0.02em",
+          "lineHeight": "16px"
+        },
+        "label-sm": {
+          "fontFamily": "Inter",
+          "fontSize": "11px",
+          "fontWeight": "500",
+          "letterSpacing": "0.03em",
+          "lineHeight": "14px"
+        }
+      }
+    },
+    "title": "OpenPages - Premium Appearance Paywall",
+    "width": "780",
+    "agentText": "Here is the **Premium Appearance Paywall** screen (`OpenPages - Premium Appearance Paywall`) designed for OpenPages in the warm editorial aesthetic:\n\n### Highlights & Design Implementation\n1. **Header & Dismiss**:\n   - Clean top bar with an understated \"Patron Edition\" pill badge and an accessible `close` ('\u2715') icon.\n2. **Hero Typography & Themed Showcase**:\n   - Elegant headline *\"Make every page yours\"* in Newsreader serif paired with warm subhead copy.\n   - Horizontal preview showcase illustrating a literary passage across distinct handcrafted themes:\n     - **Linen** (warm textured oatmeal with archival paper feel)\n     - **Midnight Blue** (deep nocturnal navy with crisp ivory serif text)\n     - **Forest** (calm deep evergreen tone with warm cream typography)\n3. **Value Proposition & Feature List**:\n   - High-contrast ink blue circular checkmarks highlighting the 12 themes, 8 editorial book fonts, custom accent colors & paper textures, and ambient soundscapes/stats.\n4. **Reassuring Privacy & Ethos Card**:\n   - Distinctive callout reassuring patrons that core reading, offline storage, dictionary, and search remain 100% free and offline forever.\n5. **Subscription & Pricing Plan Cards**:\n   - **Lifetime** highlighted as primary with a \"Best Value\" badge at **$14.99 one-time** (*Pay once. Own it forever.*).\n   - **Yearly** option at **$4.99/year** with 7-day trial breakdown.\n6. **Actions & Ethics**:\n   - Full-width deep ink blue CTA button (*\"Unlock Premium\"*), \"Restore purchases\" text action, and transparent device-licensing terms note without account requirements.\n   - Strictly conforms to the no-bottom-navigation requirement.",
+    "suggestions": [
+      "Add a subtle interactive theme switcher toggle to the preview carousel",
+      "Design the purchase confirmation / patron thank-you screen",
+      "Refine the pricing cards to include an option for gifting a patron pass"
+    ],
+    "imageUrl": "https://stitch.googleapis.com/v1/projects/8671147000524611054/files/e16480f081e347ee933164ea2bca9fc0:download"
+  }
+}
