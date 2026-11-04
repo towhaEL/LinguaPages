@@ -3,7 +3,8 @@
 **Stitch Canvas Project:** [OpenPages](https://stitch.google.com/projects/8671147000524611054)  
 **Project ID:** `8671147000524611054`  
 **Target Viewport:** Android Mobile (412×915)  
-**Visual Style:** Warm Editorial Minimalism (`#FAF7F2` ivory canvas, `#FFFFFF` cards, `#E8E2D9` hairline rules, `#1C1B1A` ink, `#6B655D` slate, `#2F4A7A` ink-blue accent, Newsreader serif + Inter sans)
+**Visual Style:** Warm Editorial Minimalism (`#FAF7F2` ivory canvas, `#FFFFFF` cards, `#E8E2D9` hairline rules, `#1C1B1A` ink, `#6B655D` slate, `#2F4A7A` ink-blue accent, Newsreader serif + Inter sans)  
+**Implementation Playbook:** [STITCH_UI_IMPLEMENTATION_GUIDE.md](../STITCH_UI_IMPLEMENTATION_GUIDE.md) — Step-by-step pixel-by-pixel Flutter blueprint for every screen.
 
 ---
 
