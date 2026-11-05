@@ -2,18 +2,21 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:lingua_pages/domain/entity/library/book_entity.dart';
 import 'package:lingua_pages/l10n/l10n.dart';
 import 'package:lingua_pages/presentation/route/app_router.gr.dart';
+import 'package:lingua_pages/presentation/screen/home/components/book_details_sheet.dart';
+import 'package:lingua_pages/presentation/screen/home/components/filter_sort_sheet.dart';
 import 'package:lingua_pages/presentation/screen/home/components/library_book_actions.dart';
 import 'package:lingua_pages/presentation/screen/home/cubits/library_cubit.dart';
 import 'package:lingua_pages/presentation/screen/home/cubits/library_state.dart';
+import 'package:lingua_pages/presentation/theme/app_tokens.dart';
 import 'package:lingua_pages/presentation/theme/base/theme_extension.dart';
-import 'package:lingua_pages/presentation/widgets/book/band_progress_bar.dart';
 import 'package:lingua_pages/presentation/widgets/book/book_cover.dart';
 import 'package:lingua_pages/presentation/widgets/state_view.dart';
 
-const _gutter = 16.0;
+const _gutter = 20.0;
 const _tabular = [FontFeature.tabularFigures()];
 
 class LibraryContent extends StatefulWidget {
@@ -24,7 +27,6 @@ class LibraryContent extends StatefulWidget {
 }
 
 class _LibraryContentState extends State<LibraryContent> {
-  /// Search opens on demand so the shelf, not a field, follows the card.
   var _searching = false;
 
   void _closeSearch() {
@@ -79,7 +81,6 @@ class _LibraryContentState extends State<LibraryContent> {
           final cubit = context.read<LibraryCubit>();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              // Optional actions; the message still times out.
               persist: false,
               content: Text(text),
               action: duplicateId == null
@@ -98,7 +99,6 @@ class _LibraryContentState extends State<LibraryContent> {
         },
         child: BlocBuilder<LibraryCubit, LibraryState>(
           builder: (context, state) {
-            // Before the first load starts the status is still initial.
             if ((state.status == LibraryStatus.initial ||
                     state.status == LibraryStatus.loading) &&
                 state.books.isEmpty) {
@@ -110,7 +110,6 @@ class _LibraryContentState extends State<LibraryContent> {
                   icon: Icons.error_outline_rounded,
                   iconColor: context.colors.error,
                   title: context.l10n.libraryLoadError,
-                  // The raw error is logged; the reader gets reassurance.
                   body: context.l10n.libraryLoadErrorBody,
                   action: FilledButton.icon(
                     onPressed: context.read<LibraryCubit>().load,
@@ -127,6 +126,9 @@ class _LibraryContentState extends State<LibraryContent> {
             final current = hasQuery || state.view != LibraryView.all
                 ? null
                 : _continueReading(state.books);
+            final recentBooks = state.books
+                .where((b) => b.lastReadAt != null && b.progress > 0 && b.progress < 1)
+                .toList();
             final visible = state.visibleBooks;
 
             return RefreshIndicator(
@@ -142,6 +144,14 @@ class _LibraryContentState extends State<LibraryContent> {
                         child: _ContinueReadingCard(book: current),
                       ),
                     ),
+                    const SliverToBoxAdapter(child: SizedBox(height: 16)),
+                  ],
+                  if (recentBooks.length > 1 && !hasQuery && state.view == LibraryView.all) ...[
+                    _SectionTitle(title: 'Recent'),
+                    SliverToBoxAdapter(
+                      child: _RecentBooksCarousel(books: recentBooks),
+                    ),
+                    const SliverToBoxAdapter(child: SizedBox(height: 16)),
                   ],
                   if (!isEmptyLibrary) ...[
                     SliverToBoxAdapter(
@@ -215,7 +225,7 @@ class _LibraryContentState extends State<LibraryContent> {
                     _BookList(books: visible)
                   else
                     _BookGrid(books: visible),
-                  const SliverToBoxAdapter(child: SizedBox(height: 32)),
+                  const SliverToBoxAdapter(child: SizedBox(height: 80)),
                 ],
               ),
             );
@@ -225,7 +235,6 @@ class _LibraryContentState extends State<LibraryContent> {
     );
   }
 
-  /// The most recently opened book that is not finished yet.
   BookEntity? _continueReading(List<BookEntity> books) {
     BookEntity? latest;
     for (final book in books) {
@@ -245,15 +254,17 @@ class _SectionTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SliverPadding(
-      padding: const EdgeInsets.fromLTRB(_gutter + 4, 8, _gutter, 12),
+      padding: const EdgeInsets.fromLTRB(_gutter, 12, _gutter, 8),
       sliver: SliverToBoxAdapter(
         child: Semantics(
           header: true,
           child: Text(
             title,
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+            style: GoogleFonts.newsreader(
+              fontSize: 19,
+              fontWeight: FontWeight.w600,
+              color: WarmEditorialTokens.textPrimaryInk,
+            ),
           ),
         ),
       ),
@@ -268,15 +279,17 @@ class _ContinueReadingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.colors;
-    final text = Theme.of(context).textTheme;
-    final band = context.bands.forFormat(book.format);
     final lastReadDays = _daysSince(book.lastReadAt);
 
     return Card(
+      key: const Key('continue_reading_hero_card'),
       clipBehavior: Clip.antiAlias,
-      // Read once as "title, author, format, progress, recency"; the Resume
-      // button below is the single action.
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(WarmEditorialTokens.cardRadius),
+        side: const BorderSide(color: WarmEditorialTokens.hairlineDivider),
+      ),
+      color: WarmEditorialTokens.cardSurface,
       child: Semantics(
         container: true,
         excludeSemantics: true,
@@ -292,66 +305,158 @@ class _ContinueReadingCard extends StatelessWidget {
         child: InkWell(
           onTap: () => _openBook(context, book),
           child: Padding(
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.all(16),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(width: 96, child: BookCover(book: book)),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        book.title,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: text.titleLarge?.copyWith(
-                          fontSize: 22,
-                          height: 1.15,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                      if (book.author != null) ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          book.author!,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: text.bodyMedium?.copyWith(
-                            color: colors.onSurfaceMuted,
-                          ),
+                SizedBox(
+                  width: 96,
+                  height: 144,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(WarmEditorialTokens.cardRadius / 2),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.12),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
                         ),
                       ],
-                      const SizedBox(height: 16),
-                      BandProgressBar(progress: book.progress, color: band),
-                      const SizedBox(height: 6),
-                      DefaultTextStyle.merge(
-                        style: text.labelMedium?.copyWith(
-                          color: colors.onSurfaceMuted,
-                          fontFeatures: _tabular,
-                        ),
-                        child: Row(
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(WarmEditorialTokens.cardRadius / 2),
+                      child: BookCover(book: book),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: SizedBox(
+                    height: 144,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Flexible(
-                              child: Text(
-                                _progressLabel(context, book),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: WarmEditorialTokens.canvasBackground,
+                                    borderRadius: BorderRadius.circular(4),
+                                    border: Border.all(color: WarmEditorialTokens.hairlineDivider),
+                                  ),
+                                  child: Text(
+                                    formatCode(book.format),
+                                    style: GoogleFonts.inter(
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: 0.5,
+                                      color: WarmEditorialTokens.subtitleSecondary,
+                                    ),
+                                  ),
+                                ),
+                                if (lastReadDays != null)
+                                  Text(
+                                    context.l10n.libraryLastRead(lastReadDays),
+                                    style: GoogleFonts.inter(
+                                      fontSize: 11,
+                                      color: WarmEditorialTokens.subtitleSecondary,
+                                    ),
+                                  ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              book.title,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.newsreader(
+                                fontSize: 18,
+                                height: 1.15,
+                                fontWeight: FontWeight.w600,
+                                color: WarmEditorialTokens.textPrimaryInk,
                               ),
                             ),
-                            const SizedBox(width: 12),
-                            if (lastReadDays != null)
-                              Text(context.l10n.libraryLastRead(lastReadDays)),
+                            if (book.author != null) ...[
+                              const SizedBox(height: 2),
+                              Text(
+                                book.author!,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.inter(
+                                  fontSize: 13,
+                                  color: WarmEditorialTokens.subtitleSecondary,
+                                ),
+                              ),
+                            ],
                           ],
                         ),
-                      ),
-                      const SizedBox(height: 12),
-                      FilledButton(
-                        onPressed: () => _openBook(context, book),
-                        child: Text(context.l10n.libraryResume),
-                      ),
-                    ],
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  book.currentChapterTitle ?? 'Reading',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.inter(
+                                    fontSize: 11,
+                                    color: WarmEditorialTokens.subtitleSecondary,
+                                  ),
+                                ),
+                                Text(
+                                  '${(book.progress * 100).round()}%',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    color: WarmEditorialTokens.accentInkBlue,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(2),
+                              child: LinearProgressIndicator(
+                                value: book.progress.clamp(0.0, 1.0),
+                                minHeight: 4,
+                                backgroundColor: WarmEditorialTokens.hairlineDivider,
+                                valueColor: const AlwaysStoppedAnimation(WarmEditorialTokens.accentInkBlue),
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            SizedBox(
+                              width: double.infinity,
+                              height: 38,
+                              child: FilledButton.icon(
+                                key: const Key('resume_reading_button'),
+                                style: FilledButton.styleFrom(
+                                  backgroundColor: WarmEditorialTokens.accentInkBlue,
+                                  foregroundColor: Colors.white,
+                                  shape: const StadiumBorder(),
+                                ),
+                                onPressed: () => _openBook(context, book),
+                                icon: const Icon(Icons.auto_stories, size: 17),
+                                label: Text(
+                                  context.l10n.libraryResume,
+                                  style: GoogleFonts.inter(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -363,31 +468,121 @@ class _ContinueReadingCard extends StatelessWidget {
   }
 }
 
+class _RecentBooksCarousel extends StatelessWidget {
+  const _RecentBooksCarousel({required this.books});
+
+  final List<BookEntity> books;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      key: const Key('recent_books_carousel'),
+      height: 80,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: _gutter),
+        itemCount: books.length,
+        separatorBuilder: (_, _) => const SizedBox(width: 12),
+        itemBuilder: (context, index) {
+          final book = books[index];
+          return Container(
+            width: 210,
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: WarmEditorialTokens.cardSurface,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: WarmEditorialTokens.hairlineDivider),
+            ),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: () => _openBook(context, book),
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: 36,
+                    height: 54,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: BookCover(book: book, compact: true),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          book.title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.newsreader(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: WarmEditorialTokens.textPrimaryInk,
+                          ),
+                        ),
+                        if (book.author != null)
+                          Text(
+                            book.author!,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.inter(
+                              fontSize: 11,
+                              color: WarmEditorialTokens.subtitleSecondary,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      value: book.progress.clamp(0.0, 1.0),
+                      strokeWidth: 2.5,
+                      backgroundColor: WarmEditorialTokens.hairlineDivider,
+                      valueColor: const AlwaysStoppedAnimation(WarmEditorialTokens.accentInkBlue),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
 class _ShelfHeader extends StatelessWidget {
   const _ShelfHeader({required this.state, required this.onSearch});
 
   final LibraryState state;
-
-  /// Null while the inline search field is open; the field owns closing.
   final VoidCallback? onSearch;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
     final text = Theme.of(context).textTheme;
-    final cubit = context.read<LibraryCubit>();
-    final isGrid = state.viewMode == LibraryViewMode.grid;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(_gutter + 4, 16, 4, 4),
+      padding: const EdgeInsets.fromLTRB(_gutter, 16, 8, 4),
       child: Row(
         children: [
           Expanded(
             child: Text.rich(
               TextSpan(
                 children: [
-                  TextSpan(text: context.l10n.libraryShelf),
-                  // Author and series lists count groups, not books.
+                  TextSpan(
+                    text: context.l10n.libraryShelf,
+                    style: GoogleFonts.newsreader(
+                      fontSize: 19,
+                      fontWeight: FontWeight.w600,
+                      color: WarmEditorialTokens.textPrimaryInk,
+                    ),
+                  ),
                   if (!state.showsGroups) ...[
                     const TextSpan(text: '  '),
                     TextSpan(
@@ -402,41 +597,12 @@ class _ShelfHeader extends StatelessWidget {
                   ],
                 ],
               ),
-              semanticsLabel:
-                  '${context.l10n.libraryShelf}, '
-                  '${context.l10n.libraryBookCount(state.visibleBooks.length)}',
-              style: text.titleMedium?.copyWith(fontWeight: FontWeight.w800),
             ),
-          ),
-          if (onSearch != null)
-            IconButton(
-              onPressed: onSearch,
-              tooltip: context.l10n.librarySearchHint,
-              icon: const Icon(Icons.search_rounded),
-            ),
-          PopupMenuButton<LibrarySort>(
-            initialValue: state.sort,
-            tooltip: context.l10n.librarySort,
-            icon: const Icon(Icons.sort_rounded),
-            onSelected: cubit.changeSort,
-            itemBuilder: (context) => [
-              for (final (sort, label) in [
-                (LibrarySort.recent, context.l10n.librarySortRecent),
-                (LibrarySort.title, context.l10n.librarySortTitle),
-                (LibrarySort.author, context.l10n.librarySortAuthor),
-                (LibrarySort.progress, context.l10n.librarySortProgress),
-              ])
-                PopupMenuItem(value: sort, child: Text(label)),
-            ],
           ),
           IconButton(
-            onPressed: cubit.toggleViewMode,
-            tooltip: isGrid
-                ? context.l10n.libraryListView
-                : context.l10n.libraryGridView,
-            icon: Icon(
-              isGrid ? Icons.view_list_rounded : Icons.grid_view_rounded,
-            ),
+            tooltip: 'Filter & Sort',
+            icon: const Icon(Icons.tune_rounded, size: 20, color: WarmEditorialTokens.subtitleSecondary),
+            onPressed: () => showFilterSortSheet(context),
           ),
         ],
       ),
@@ -456,7 +622,6 @@ class _BookGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     final scaler = MediaQuery.textScalerOf(context);
-    // Two title lines and one caption line, measured at the user's text size.
     final textHeight =
         scaler.scale(text.bodyMedium!.fontSize!) * 1.2 * 2 +
         scaler.scale(text.bodySmall!.fontSize!) * 1.4 +
@@ -467,10 +632,10 @@ class _BookGrid extends StatelessWidget {
       sliver: SliverLayoutBuilder(
         builder: (context, constraints) {
           final width = constraints.crossAxisExtent;
-          final columns = ((width + _spacing) / (_maxTileWidth + _spacing))
-              .ceil();
+          final columns = ((width + _spacing) / (_maxTileWidth + _spacing)).ceil();
           final tileWidth = (width - _spacing * (columns - 1)) / columns;
           return SliverGrid.builder(
+            key: const Key('library_books_3col_grid'),
             itemCount: books.length,
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: columns,
@@ -493,36 +658,57 @@ class _GridBook extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-    // One announcement per book; long-press actions stay reachable from
-    // TalkBack's actions menu.
     return Semantics(
       button: true,
       excludeSemantics: true,
       label:
           '${book.title}, ${formatCode(book.format)}, '
           '${_progressLabel(context, book)}',
-      onTap: () => _openBook(context, book),
+      onTap: () => showBookDetailsSheet(context, book),
       customSemanticsActions: {
         CustomSemanticsAction(label: context.l10n.libraryBookActions): () =>
             showBookActions(context, book),
       },
       child: InkWell(
         borderRadius: BorderRadius.circular(6),
-        onTap: () => _openBook(context, book),
+        onTap: () => showBookDetailsSheet(context, book),
         onLongPress: () => showBookActions(context, book),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            BookCover(book: book, compact: true),
+            Stack(
+              children: [
+                BookCover(book: book, compact: true),
+                if (book.progress >= 1.0)
+                  Positioned(
+                    right: 4,
+                    bottom: 4,
+                    child: Container(
+                      width: 20,
+                      height: 20,
+                      decoration: const BoxDecoration(
+                        color: WarmEditorialTokens.accentInkBlue,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.check,
+                        size: 13,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
             const SizedBox(height: 8),
             Text(
               book.title,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: text.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w700,
+              style: GoogleFonts.newsreader(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
                 height: 1.2,
+                color: WarmEditorialTokens.textPrimaryInk,
               ),
             ),
             const SizedBox(height: 2),
@@ -546,7 +732,7 @@ class _BookList extends StatelessWidget {
       sliver: SliverList.separated(
         itemCount: books.length,
         separatorBuilder: (_, _) =>
-            const Divider(indent: _gutter, endIndent: _gutter),
+            const Divider(indent: _gutter, endIndent: _gutter, color: WarmEditorialTokens.hairlineDivider),
         itemBuilder: (context, index) => _ListBook(book: books[index]),
       ),
     );
@@ -563,14 +749,12 @@ class _ListBook extends StatelessWidget {
     final colors = context.colors;
     final text = Theme.of(context).textTheme;
     return InkWell(
-      onTap: () => _openBook(context, book),
+      onTap: () => showBookDetailsSheet(context, book),
       onLongPress: () => showBookActions(context, book),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(_gutter, 12, 4, 12),
         child: Row(
           children: [
-            // The row announces title, author, format and progress once; the
-            // trailing actions button stays a separate target.
             Expanded(
               child: Semantics(
                 button: true,
@@ -581,7 +765,7 @@ class _ListBook extends StatelessWidget {
                   formatCode(book.format),
                   _progressLabel(context, book),
                 ].join(', '),
-                onTap: () => _openBook(context, book),
+                onTap: () => showBookDetailsSheet(context, book),
                 child: Row(
                   children: [
                     SizedBox(
@@ -597,8 +781,10 @@ class _ListBook extends StatelessWidget {
                             book.title,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: text.bodyLarge?.copyWith(
-                              fontWeight: FontWeight.w700,
+                            style: GoogleFonts.newsreader(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: WarmEditorialTokens.textPrimaryInk,
                             ),
                           ),
                           if (book.author != null) ...[
@@ -607,12 +793,12 @@ class _ListBook extends StatelessWidget {
                               book.author!,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: text.bodyMedium?.copyWith(
+                              style: text.bodySmall?.copyWith(
                                 color: colors.onSurfaceMuted,
                               ),
                             ),
                           ],
-                          const SizedBox(height: 2),
+                          const SizedBox(height: 4),
                           _ProgressCaption(book: book),
                         ],
                       ),
@@ -640,12 +826,14 @@ class _ProgressCaption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
+    final text = Theme.of(context).textTheme;
     return Text(
       _progressLabel(context, book),
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
-      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-        color: context.colors.onSurfaceMuted,
+      style: text.bodySmall?.copyWith(
+        color: colors.onSurfaceMuted,
         fontFeatures: _tabular,
       ),
     );
@@ -667,7 +855,6 @@ String _progressLabel(BuildContext context, BookEntity book) {
   };
 }
 
-/// Whole calendar days since [date], or null when it was never read.
 int? _daysSince(DateTime? date) {
   if (date == null) return null;
   final now = DateTime.now();
@@ -676,16 +863,13 @@ int? _daysSince(DateTime? date) {
   return today.difference(day).inDays.clamp(0, 9999);
 }
 
-/// Opens the reader, then refreshes progress and the continue-reading card.
 Future<void> _openBook(BuildContext context, BookEntity book) async {
-  // A book in Trash is restored before it is read again.
   if (book.isInTrash) return showBookActions(context, book);
   final cubit = context.read<LibraryCubit>();
   await context.router.push(ReaderRoute(book: book));
   await cubit.load();
 }
 
-/// Shelves, collections, authors, series and Trash as one chip row.
 class _ViewChips extends StatelessWidget {
   const _ViewChips({required this.state});
 
@@ -705,102 +889,63 @@ class _ViewChips extends StatelessWidget {
                 ? view != LibraryView.collection
                 : state.viewKey == key),
         onSelected: (_) => cubit.selectView(view, key: key),
+        selectedColor: WarmEditorialTokens.accentInkBlue,
+        backgroundColor: WarmEditorialTokens.cardSurface,
+        labelStyle: TextStyle(
+          color: state.view == view &&
+                  (key == null ? view != LibraryView.collection : state.viewKey == key)
+              ? Colors.white
+              : WarmEditorialTokens.textPrimaryInk,
+          fontWeight: FontWeight.w500,
+        ),
+        shape: const StadiumBorder(side: BorderSide(color: WarmEditorialTokens.hairlineDivider)),
       ),
     );
-    final picked = state.viewKey;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          height: 56,
-          child: ListView(
-            // Keeps the row where it was when the cards above come and go.
-            key: const PageStorageKey('library-views'),
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(
-              horizontal: _gutter,
-              vertical: 4,
-            ),
-            children: [
-              chip(l10n.libraryViewAll, LibraryView.all),
-              chip(l10n.libraryShelfToRead, LibraryView.toRead),
-              chip(l10n.libraryShelfReading, LibraryView.reading),
-              chip(l10n.libraryShelfFinished, LibraryView.finished),
-              chip(l10n.libraryFavorites, LibraryView.favorites),
-              for (final collection in state.collections)
-                GestureDetector(
-                  onLongPress: () => _collectionActions(
-                    context,
-                    collection.id,
-                    collection.name,
-                  ),
-                  child: chip(
-                    collection.name,
-                    LibraryView.collection,
-                    key: collection.id,
-                  ),
-                ),
-              Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: ActionChip(
-                  avatar: const Icon(Icons.add_rounded, size: 18),
-                  label: Text(l10n.libraryNewCollection),
-                  onPressed: () async {
-                    final name = await showCollectionNameDialog(context);
-                    if (name == null) return;
-                    final created = await cubit.createCollection(name);
-                    if (created != null) {
-                      cubit.selectView(LibraryView.collection, key: created.id);
-                    }
-                  },
-                ),
-              ),
-              chip(l10n.libraryAuthors, LibraryView.authors),
-              chip(l10n.librarySeries, LibraryView.series),
-              chip(l10n.libraryTrash, LibraryView.trash),
-            ],
-          ),
+
+    return SizedBox(
+      height: 56,
+      child: ListView(
+        key: const PageStorageKey('library-views'),
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(
+          horizontal: _gutter,
+          vertical: 4,
         ),
-        // An author or series picked from its group list, with a way back.
-        if (picked != null &&
-            (state.view == LibraryView.authors ||
-                state.view == LibraryView.series))
+        children: [
+          chip(l10n.libraryViewAll, LibraryView.all),
+          chip(l10n.libraryShelfReading, LibraryView.reading),
+          chip(l10n.libraryShelfToRead, LibraryView.toRead),
+          chip(l10n.libraryShelfFinished, LibraryView.finished),
+          chip(l10n.libraryFavorites, LibraryView.favorites),
+          for (final collection in state.collections)
+            GestureDetector(
+              onLongPress: () => _collectionActions(
+                context,
+                collection.id,
+                collection.name,
+              ),
+              child: chip(
+                collection.name,
+                LibraryView.collection,
+                key: collection.id,
+              ),
+            ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(_gutter, 0, _gutter, 4),
-            child: InputChip(
-              label: Text(picked),
-              onDeleted: () => cubit.selectView(state.view),
-              deleteButtonTooltipMessage: state.view == LibraryView.authors
-                  ? l10n.libraryAuthors
-                  : l10n.librarySeries,
+            padding: const EdgeInsets.only(right: 8),
+            child: ActionChip(
+              avatar: const Icon(Icons.add_rounded, size: 18),
+              label: Text(l10n.libraryNewCollection),
+              backgroundColor: WarmEditorialTokens.cardSurface,
+              shape: const StadiumBorder(side: BorderSide(color: WarmEditorialTokens.hairlineDivider)),
+              onPressed: () async {
+                final name = await showCollectionNameDialog(context);
+                if (name == null || !context.mounted) return;
+                await cubit.createCollection(name);
+              },
             ),
           ),
-        if (state.selectedCollection case final collection?)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(_gutter, 0, 4, 0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    collection.name,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: context.colors.onSurfaceMuted,
-                    ),
-                  ),
-                ),
-                IconButton(
-                  tooltip: l10n.libraryRenameCollection,
-                  icon: const Icon(Icons.more_horiz_rounded),
-                  onPressed: () => _collectionActions(
-                    context,
-                    collection.id,
-                    collection.name,
-                  ),
-                ),
-              ],
-            ),
-          ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -840,12 +985,10 @@ Future<void> _collectionActions(
     final newName = await showCollectionNameDialog(context, initial: name);
     if (newName != null) await cubit.renameCollection(id, newName);
   } else {
-    // The books stay in the library; only the grouping goes.
     await cubit.deleteCollection(id);
   }
 }
 
-/// Authors or series with their book counts; tapping one shows its books.
 class _GroupList extends StatelessWidget {
   const _GroupList({required this.state});
 
@@ -869,14 +1012,14 @@ class _GroupList extends StatelessWidget {
     return SliverList.separated(
       itemCount: groups.length,
       separatorBuilder: (_, _) =>
-          const Divider(indent: _gutter, endIndent: _gutter),
+          const Divider(indent: _gutter, endIndent: _gutter, color: WarmEditorialTokens.hairlineDivider),
       itemBuilder: (context, index) {
         final (name, count) = groups[index];
         return ListTile(
-          contentPadding: const EdgeInsets.symmetric(horizontal: _gutter + 4),
+          contentPadding: const EdgeInsets.symmetric(horizontal: _gutter),
           title: Text(
             name,
-            style: const TextStyle(fontWeight: FontWeight.w700),
+            style: GoogleFonts.inter(fontWeight: FontWeight.w600),
           ),
           subtitle: Text(context.l10n.libraryGroupCount(count)),
           trailing: const Icon(Icons.chevron_right_rounded),
@@ -921,7 +1064,7 @@ class _TrashHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(_gutter + 4, 0, _gutter, 4),
+      padding: const EdgeInsets.fromLTRB(_gutter, 0, _gutter, 4),
       child: Row(
         children: [
           Expanded(
@@ -952,24 +1095,141 @@ class _LibraryEmpty extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hasQuery = query.trim().isNotEmpty;
-    return StateView(
-      icon: hasQuery ? Icons.search_off_rounded : Icons.auto_stories_outlined,
-      title: hasQuery
-          ? context.l10n.libraryNoResultsTitle
-          : context.l10n.libraryEmptyTitle,
-      body: hasQuery
-          ? context.l10n.libraryNoResultsBody
-          : context.l10n.libraryEmptyBody,
-      action: hasQuery
-          ? OutlinedButton(
-              onPressed: onClearSearch,
-              child: Text(context.l10n.librarySearchClear),
-            )
-          : FilledButton.icon(
-              onPressed: context.read<LibraryCubit>().importDocument,
-              icon: const Icon(Icons.add_rounded),
-              label: Text(context.l10n.libraryImport),
+    if (hasQuery) {
+      return StateView(
+        icon: Icons.search_off_rounded,
+        title: context.l10n.libraryNoResultsTitle,
+        body: context.l10n.libraryNoResultsBody,
+        action: OutlinedButton(
+          onPressed: onClearSearch,
+          child: Text(context.l10n.librarySearchClear),
+        ),
+      );
+    }
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 32),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 280,
+              height: 220,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Image.asset(
+                'assets/images/empty_library_shelf.png',
+                key: const Key('empty_library_shelf_image'),
+                fit: BoxFit.contain,
+                errorBuilder: (_, _, _) => const Icon(
+                  Icons.auto_stories_outlined,
+                  size: 80,
+                  color: WarmEditorialTokens.subtitleSecondary,
+                ),
+              ),
             ),
+            const SizedBox(height: 20),
+            Text(
+              'Your shelf is quiet',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.newsreader(
+                fontSize: 28,
+                fontWeight: FontWeight.normal,
+                color: WarmEditorialTokens.textPrimaryInk,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Import a DRM-free book or a whole folder to start reading.',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.inter(
+                fontSize: 15,
+                color: WarmEditorialTokens.subtitleSecondary,
+                height: 1.4,
+              ),
+            ),
+            const SizedBox(height: 24),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 320),
+              child: Column(
+                children: [
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: FilledButton.icon(
+                      key: const Key('empty_import_files_button'),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: WarmEditorialTokens.accentInkBlue,
+                        foregroundColor: Colors.white,
+                        shape: const StadiumBorder(),
+                      ),
+                      onPressed: () => context.read<LibraryCubit>().importDocument(),
+                      icon: const Icon(Icons.upload_file_rounded, size: 20),
+                      label: Text(
+                        'Import files',
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: OutlinedButton.icon(
+                      key: const Key('empty_import_folder_button'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: WarmEditorialTokens.accentInkBlue,
+                        side: const BorderSide(color: WarmEditorialTokens.accentInkBlue, width: 1.5),
+                        shape: const StadiumBorder(),
+                      ),
+                      onPressed: () => context.read<LibraryCubit>().importFolder(),
+                      icon: const Icon(Icons.folder_open_rounded, size: 20),
+                      label: Text(
+                        'Import a folder',
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              decoration: BoxDecoration(
+                color: WarmEditorialTokens.cardSurface,
+                borderRadius: BorderRadius.circular(100),
+                border: Border.all(color: WarmEditorialTokens.hairlineDivider),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.shield_outlined,
+                    size: 14,
+                    color: WarmEditorialTokens.subtitleSecondary,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Supports EPUB, PDF, TXT, Markdown, HTML, FB2 · Stored locally',
+                    style: GoogleFonts.inter(
+                      fontSize: 11,
+                      color: WarmEditorialTokens.subtitleSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

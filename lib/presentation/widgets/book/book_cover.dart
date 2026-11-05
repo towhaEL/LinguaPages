@@ -91,11 +91,34 @@ class _CoverFace extends StatelessWidget {
   Widget build(BuildContext context) {
     final coverPath = book.coverPath;
     final label = _TitleLabel(book: book, compact: compact);
-    if (coverPath == null) return label;
-    return Image.file(
-      File(coverPath),
-      fit: BoxFit.cover,
-      errorBuilder: (_, _, _) => label,
+    if (coverPath != null) {
+      return Image.file(
+        File(coverPath),
+        fit: BoxFit.cover,
+        errorBuilder: (_, _, _) => _FallbackCover(label: label),
+      );
+    }
+    return _FallbackCover(label: label);
+  }
+}
+
+class _FallbackCover extends StatelessWidget {
+  const _FallbackCover({required this.label});
+
+  final Widget label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        Image.asset(
+          'assets/images/fallback_book_cover_default.png',
+          fit: BoxFit.cover,
+          errorBuilder: (_, _, _) => const SizedBox.shrink(),
+        ),
+        label,
+      ],
     );
   }
 }

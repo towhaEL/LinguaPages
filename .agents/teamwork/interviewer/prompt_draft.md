@@ -1,30 +1,48 @@
-Create a comprehensive screen-wise and component-wise UI generation plan for the LinguaPages app based on the design specification in `design/design.md`. The plan decomposes every screen into discrete components for generation rather than generating complete screens at once, specifies screen-wise image naming for all components, and delivers the plan prior to any image generation.
+Complete the remaining screen UI and components for LinguaPages as production code integrated into the Flutter app, matching the Stitch canvas designs and design implementation guides.
 
-Working directory: /Users/uswer/StudioProjects/linguaPages
+Working directory: /home/tn-99778/Towha/LinguaPages
 Integrity mode: development
 
-Reference material: `/Users/uswer/StudioProjects/linguaPages/design/design.md`
+## Verification Resources
+- Design documentation: `design/STITCH_UI_IMPLEMENTATION_GUIDE.md`, `design/screens/README.md`
+- Stitch Canvas Project ID: `8671147000524611054`
+- Existing tokens and themes: `lib/presentation/theme/app_tokens.dart`, `app_colors.dart`, `app_theme.dart`
 
 ## Requirements
 
-### R1. Screen-Wise and Component-Wise UI Generation Plan
-Produce a complete UI generation plan at `design/ui_generation_plan.md` covering all screens and variants defined in `/Users/uswer/StudioProjects/linguaPages/design/design.md`. Decompose each screen into modular, individually generatable UI components instead of full-screen generations. Execution in this run is strictly limited to authoring the plan; do not generate image assets yet.
+### R1. Settings Screen
+Implement the settings screen (`lib/presentation/screen/settings/`) and its grouped inset cards matching `03_settings` (`0e2582dd`).
 
-### R2. Screen-Wise Image Naming & Component Specifications
-Define a consistent screen-wise naming schema for all component images to be generated in future steps. In `design/ui_generation_plan.md`, detail each component with:
-- Exact screen-wise image filename (e.g., `<screen_number>_<screen_name>_<component_name>.png`)
-- Target output file path within `design/components/`
-- Component role and layout description
-- Visual prompt details and generation parameters aligned with the shared style block in `design/design.md` (colors, typography, shapes, and Material 3 structure)
+### R2. Reader Widgets and Sheets
+Implement the remaining reader UI sheets and overlays matching their respective Stitch canvas designs:
+- Appearance bottom sheet (`lib/presentation/screen/reader/widgets/appearance_sheet.dart`) matching `04b_appearance_sheet` (`d8bb2a41`).
+- Wiktionary definition card & floating text selection toolbar (`lib/presentation/screen/reader/widgets/dictionary_lookup_sheet.dart`, `highlight_editor_sheet.dart`) matching `04c_text_selection_dictionary` (`3377a7d8`).
+- Contents TOC & Annotations side sheet matching `04d_contents_annotations` (`60c9068e`).
+- In-book search overlay (`lib/presentation/screen/reader/widgets/reader_search.dart`) matching `04e_search_in_book` (`c63b6121`).
+- Full-screen Read Aloud player sheet matching `05_read_aloud` (`b44bfe85`).
+
+### R3. Paywall and Annotations Screens
+Implement the remaining application screens:
+- Premium paywall sheet (`lib/presentation/screen/premium/widgets/premium_paywall_sheet.dart`) matching `07_premium_paywall` (`e4e1f706`).
+- All annotations screen (`lib/presentation/screen/annotations/`) matching `08_all_annotations` (`837a423b`).
+
+### R4. Architecture, State Integration, and Navigation Constraints
+Connect screens with existing app state/blocs/services where available, providing fallback/mock data where backend logic is not yet built. Follow Material 3 Warm Editorial Minimalism throughout all components. Strictly zero bottom navigation bars anywhere in the app. All Flutter CLI commands must be executed with `fvm flutter <cmd>`.
 
 ## Acceptance Criteria
 
-### Scope & Structure
-- [ ] `design/ui_generation_plan.md` exists and covers all 8 screens and their variants from `design/design.md` (1. Onboarding, 2. Library, 2b. Empty library, 2c. Filter and sort sheet, 2d. Book details sheet, 3. Settings, 4. Reader with chrome and hidden chrome, 4b. Appearance sheet, 4c. Text selection & dictionary, 4d. Contents & annotations, 4e. Search in book, 5. Read aloud player variants, 6. Lock-screen controls, 7. Premium appearance, 8. All annotations).
-- [ ] Every screen is decomposed into discrete visual components rather than single full-screen generations.
-- [ ] No image generation is executed; the deliverable is strictly the comprehensive planning document.
+### UI Fidelity and Completeness
+- [ ] Settings screen and grouped inset cards match Stitch screen `03_settings` (`0e2582dd`).
+- [ ] Reader appearance sheet matches Stitch screen `04b_appearance_sheet` (`d8bb2a41`).
+- [ ] Wiktionary definition card and floating text selection toolbar match Stitch screen `04c_text_selection_dictionary` (`3377a7d8`).
+- [ ] Contents TOC and annotations side sheet match Stitch screen `04d_contents_annotations` (`60c9068e`).
+- [ ] In-book search overlay matches Stitch screen `04e_search_in_book` (`c63b6121`).
+- [ ] Full-screen Read Aloud player sheet matches Stitch screen `05_read_aloud` (`b44bfe85`).
+- [ ] Premium paywall sheet matches Stitch screen `07_premium_paywall` (`e4e1f706`).
+- [ ] All annotations screen matches Stitch screen `08_all_annotations` (`837a423b`).
+- [ ] Strictly zero bottom navigation bars anywhere in the app.
+- [ ] Presentation widgets connect to existing state/blocs/services where available, using mock or fallback data where backend logic is not yet built.
 
-### Component Specifications & Naming
-- [ ] Every component entry specifies an exact screen-wise image filename adhering to the defined naming scheme.
-- [ ] Every component entry specifies a target image path located in `design/components/`.
-- [ ] Every component entry includes generation prompts and styling parameters reflecting the shared style block of `design/design.md`.
+### Code Quality and Verification
+- [ ] `fvm flutter analyze` produces zero errors or warnings.
+- [ ] `fvm flutter test` runs with 100% of tests passing.

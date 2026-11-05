@@ -36,15 +36,17 @@ import 'package:lingua_pages/domain/use_cases/reader/save_reading_progress_use_c
 import 'package:lingua_pages/l10n/l10n.dart';
 import 'package:lingua_pages/presentation/screen/premium/cubit/premium_cubit.dart';
 import 'package:lingua_pages/presentation/screen/premium/cubit/premium_state.dart';
-import 'package:lingua_pages/presentation/screen/premium/widgets/premium_paywall_sheet.dart';
+import 'package:lingua_pages/presentation/screen/reader/widgets/appearance_sheet.dart';
 import 'package:lingua_pages/presentation/screen/reader/widgets/dictionary_lookup_sheet.dart';
 import 'package:lingua_pages/presentation/screen/reader/widgets/highlight_editor_sheet.dart';
 import 'package:lingua_pages/presentation/screen/reader/widgets/marked_text.dart';
 import 'package:lingua_pages/presentation/screen/reader/widgets/notes_sheet.dart';
+import 'package:lingua_pages/presentation/screen/reader/widgets/reader_search.dart';
 import 'package:lingua_pages/presentation/screen/reader/read_aloud/read_aloud_cubit.dart';
 import 'package:lingua_pages/presentation/screen/reader/read_aloud/read_aloud_player.dart';
 import 'package:lingua_pages/presentation/screen/reader/widgets/reader_chrome.dart';
 import 'package:lingua_pages/presentation/screen/reader/widgets/reader_tap_zones.dart';
+import 'package:lingua_pages/presentation/theme/app_tokens.dart';
 import 'package:lingua_pages/presentation/widgets/state_view.dart';
 import 'package:lingua_pages/presentation/theme/base/theme_extension.dart';
 
@@ -84,6 +86,7 @@ class _ReaderScreenState extends State<ReaderScreen>
 
   /// This book's highlights, drawn on the page by every renderer.
   List<HighlightEntity> _highlights = const [];
+  List<BookmarkEntity> _bookmarks = const [];
   var _readiumReady = false;
 
   /// Top and bottom bars. Readium toggles this on a centre tap and hides it
@@ -155,6 +158,7 @@ class _ReaderScreenState extends State<ReaderScreen>
     });
     _loadReaderSettings();
     unawaited(_loadHighlights());
+    unawaited(_loadBookmarks());
     if (_usesReadium) {
       _readiumSession = ReadiumDocumentSession();
       _readiumStatusSubscription = _readiumSession.onStatusChanged.listen(
@@ -326,9 +330,64 @@ class _ReaderScreenState extends State<ReaderScreen>
         backgroundColor: Color(theme.backgroundArgb),
         body: Stack(
           children: [
-            Positioned.fill(child: SafeArea(child: _buildBody(context, info))),
+            Positioned.fill(
+              child: SafeArea(
+                child: GestureDetector(
+                  key: const Key('reader_viewport_tap_target'),
+                  behavior: HitTestBehavior.translucent,
+                  onTap: _toggleChrome,
+                  child: _buildBody(context, info),
+                ),
+              ),
+            ),
             if (ready && _errorMessage == null && !chromeVisible)
               ..._pageOverlays(context, info),
+            if (_isCurrentPageBookmarked)
+              Positioned(
+                top: 0,
+                right: 28,
+                child: Container(
+                  key: const Key('reader_bookmark_ribbon'),
+                  width: 14,
+                  height: 38,
+                  decoration: const BoxDecoration(
+                    color: WarmEditorialTokens.accentInkBlue,
+                    borderRadius: BorderRadius.vertical(bottom: Radius.circular(2)),
+                  ),
+                ),
+              ),
+            if (chromeVisible)
+              Positioned(
+                left: 10,
+                top: 250,
+                bottom: 250,
+                child: Container(
+                  key: const Key('brightness_rail_capsule'),
+                  width: 32,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.9),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: WarmEditorialTokens.hairlineDivider),
+                  ),
+                  child: RotatedBox(
+                    quarterTurns: 3,
+                    child: SliderTheme(
+                      data: const SliderThemeData(
+                        thumbShape: RoundSliderThumbShape(enabledThumbRadius: 6),
+                      ),
+                      child: Slider(
+                        value: (_readerBrightness ?? 0.65).clamp(0.05, 1.0),
+                        activeColor: WarmEditorialTokens.accentInkBlue,
+                        inactiveColor: WarmEditorialTokens.hairlineDivider,
+                        onChanged: (val) {
+                          setState(() => _readerBrightness = val);
+                          unawaited(_brightness.set(val).catchError((Object _) {}));
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             Positioned(
               top: 0,
               left: 0,
@@ -338,13 +397,10 @@ class _ReaderScreenState extends State<ReaderScreen>
                 edge: VerticalDirection.up,
                 child: ReaderTopBar(
                   title: widget.book.title,
-                  action: ready
-                      ? IconButton(
-                          onPressed: _createBookmark,
-                          icon: const Icon(Icons.bookmark_add_outlined),
-                          tooltip: context.l10n.readerBookmark,
-                        )
-                      : null,
+                  author: widget.book.author,
+                  isBookmarked: _isCurrentPageBookmarked,
+                  onSearchPressed: ready ? _showSearch : null,
+                  onBookmarkPressed: ready ? _createBookmark : null,
                 ),
               ),
             ),
@@ -374,6 +430,7 @@ class _ReaderScreenState extends State<ReaderScreen>
                   child: BlocProvider.value(
                     value: readAloud,
                     child: ReadAloudPlayer(
+                      book: widget.book,
                       onOpenVoiceSettings: () =>
                           unawaited(_readAloudService.openVoiceSettings()),
                     ),
@@ -441,21 +498,42 @@ class _ReaderScreenState extends State<ReaderScreen>
           left: 0,
           right: 0,
           bottom: 0,
-          // A page-coloured strip, so the caption never sits on a text line.
           child: IgnorePointer(
             child: ColoredBox(
               color: Color(_display.readerTheme.backgroundArgb),
               child: SafeArea(
                 top: false,
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: Text(
-                    caption,
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: ink.withValues(alpha: .6),
-                      fontFeatures: const [FontFeature.tabularFigures()],
-                    ),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      if (_estimatedTimeLeft != null)
+                        Expanded(
+                          child: Text(
+                            _estimatedTimeLeft!,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontFamily: 'Inter',
+                              fontSize: 11,
+                              color: ink.withValues(alpha: .6),
+                            ),
+                          ),
+                        ),
+                      Text(
+                        caption,
+                        key: const Key('zen_mode_page_counter'),
+                        textAlign: TextAlign.end,
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          fontFamily: 'Inter',
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: ink.withValues(alpha: .6),
+                          fontFeatures: const [FontFeature.tabularFigures()],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -543,7 +621,6 @@ class _ReaderScreenState extends State<ReaderScreen>
         pageCount != null &&
         !(_display.readerMode == ReaderMode.continuous &&
             info.layout == DocumentLayout.reflowable);
-    final continuous = !_usesReadium && !paged;
     final progress = _currentProgress(info);
 
     return ReaderBottomBar(
@@ -554,6 +631,8 @@ class _ReaderScreenState extends State<ReaderScreen>
           : l10n.libraryProgressPercent((progress * 100).round()),
       previousLabel: paged ? l10n.readerPreviousPage : null,
       nextLabel: paged ? l10n.readerNextPage : null,
+      chapterTitle: _currentChapterTitle,
+      timeLeftLabel: _estimatedTimeLeft,
       onPrevious: paged && _pageIndex > 0 && !_isRendering
           ? () => _renderPage(_pageIndex - 1)
           : null,
@@ -562,36 +641,28 @@ class _ReaderScreenState extends State<ReaderScreen>
           : null,
       tools: [
         ReaderTool(
-          icon: Icons.toc_rounded,
+          icon: Icons.format_list_bulleted,
           label: l10n.readerToolContents,
-          onPressed: _tableOfContents.isEmpty ? null : _showTableOfContents,
+          onPressed: _showTableOfContents,
         ),
         ReaderTool(
-          icon: Icons.search_rounded,
-          label: l10n.readerToolSearch,
-          onPressed: _showSearch,
-        ),
-        ReaderTool(
-          icon: Icons.sticky_note_2_outlined,
-          label: l10n.readerToolNotes,
-          onPressed: _showAnnotations,
-        ),
-        ReaderTool(
-          icon: Icons.text_format_rounded,
+          icon: Icons.text_fields,
           label: l10n.readerToolAppearance,
           onPressed: _showReaderSettings,
         ),
-        if (_usesReadium || info?.layout == DocumentLayout.reflowable)
-          ReaderTool(
-            icon: Icons.headphones_outlined,
-            label: l10n.readerToolListen,
-            onPressed: _publication == null && info == null
-                ? null
-                : _startReadAloud,
-          ),
+        ReaderTool(
+          icon: Icons.headphones,
+          label: l10n.readerToolListen,
+          onPressed: _startReadAloud,
+        ),
+        ReaderTool(
+          icon: Icons.edit_note,
+          label: l10n.readerToolNotes,
+          onPressed: _showAnnotations,
+        ),
         if (!_usesReadium &&
             widget.book.format == DocumentFormat.pdf &&
-            !continuous)
+            !paged)
           ReaderTool(
             icon: Icons.view_module_outlined,
             label: l10n.readerToolPages,
@@ -1037,7 +1108,7 @@ class _ReaderScreenState extends State<ReaderScreen>
     }
   }
 
-  Future<List<_ReaderSearchHit>> _searchReader(String query) async {
+  Future<List<ReaderSearchHit>> _searchReader(String query) async {
     final normalizedQuery = query.trim();
     if (normalizedQuery.isEmpty) return const [];
 
@@ -1045,7 +1116,7 @@ class _ReaderScreenState extends State<ReaderScreen>
       final results = await _readiumSession.search(normalizedQuery);
       return results
           .map(
-            (result) => _ReaderSearchHit(
+            (result) => ReaderSearchHit(
               title: result.chapterTitle ?? context.l10n.readerSearchResult,
               snippet: _readiumSnippet(result),
               onSelected: () => _readiumSession.goToLocator(result.locator),
@@ -1059,7 +1130,7 @@ class _ReaderScreenState extends State<ReaderScreen>
     final results = await engine.search(normalizedQuery);
     return results
         .map(
-          (result) => _ReaderSearchHit(
+          (result) => ReaderSearchHit(
             title: result.chapterTitle,
             snippet: result.text,
             onSelected: () => _goToLocalSearchResult(result),
@@ -1096,12 +1167,27 @@ class _ReaderScreenState extends State<ReaderScreen>
   }
 
   Future<void> _showSearch() async {
+    final progress = _currentProgress(_info);
+    final posPercent = (progress * 100).round();
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
-      builder: (context) => _ReaderSearchSheet(search: _searchReader),
+      builder: (context) => ReaderSearchSheet(
+        search: _searchReader,
+        bookTitle: widget.book.title,
+        bookAuthor: widget.book.author,
+        bookFormat: widget.book.format.name.toUpperCase(),
+        currentPositionLabel: 'Page ${_pageIndex + 1} ($posPercent%)',
+      ),
     );
+  }
+
+  Future<void> _loadBookmarks() async {
+    try {
+      final list = await _bookmarkRepository.getByBookId(widget.book.id);
+      if (mounted) setState(() => _bookmarks = list);
+    } catch (_) {}
   }
 
   Future<void> _createBookmark() async {
@@ -1118,10 +1204,17 @@ class _ReaderScreenState extends State<ReaderScreen>
     try {
       await _bookmarkRepository.create(bookmark);
       if (!mounted) return;
+      setState(() => _bookmarks = [..._bookmarks, bookmark]);
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          SnackBar(content: Text(context.l10n.readerBookmarkAdded)),
+          SnackBar(
+            content: Text(context.l10n.readerBookmarkAdded),
+            action: SnackBarAction(
+              label: 'Undo',
+              onPressed: () => unawaited(_deleteBookmark(bookmark.id)),
+            ),
+          ),
         );
     } catch (_) {
       if (!mounted) return;
@@ -1133,13 +1226,74 @@ class _ReaderScreenState extends State<ReaderScreen>
     }
   }
 
-  Future<void> _showAnnotations() async {
+  Future<void> _deleteBookmark(String id) async {
+    try {
+      await _bookmarkRepository.delete(id);
+      if (mounted) {
+        setState(() {
+          _bookmarks = _bookmarks.where((b) => b.id != id).toList();
+        });
+      }
+    } catch (_) {}
+  }
+
+  bool _locatorsMatch(DocumentLocator a, DocumentLocator b) {
+    return switch ((a, b)) {
+      (EpubLocator a, EpubLocator b) => a.cfi == b.cfi,
+      (PdfLocator a, PdfLocator b) => a.page == b.page,
+      (TextLocator a, TextLocator b) => (a.offset - b.offset).abs() < 500,
+      _ => false,
+    };
+  }
+
+  bool get _isCurrentPageBookmarked {
+    final locator = _currentDocumentLocator;
+    if (locator == null) return _bookmarks.isNotEmpty;
+    return _bookmarks.any((b) => _locatorsMatch(b.locator, locator));
+  }
+
+  int get _currentChapterIndex {
+    if (_tableOfContents.isEmpty) return 0;
+    if (_readiumTableOfContents.isNotEmpty) {
+      for (var i = 0; i < _readiumTableOfContents.length; i++) {
+        if (_isCurrentChapter(_readiumTableOfContents[i])) {
+          return i;
+        }
+      }
+    }
+    final progress = _currentProgress(_info);
+    return (progress * _tableOfContents.length).floor().clamp(0, _tableOfContents.length - 1);
+  }
+
+  String? get _currentChapterTitle {
+    if (_tableOfContents.isEmpty) return null;
+    final index = _currentChapterIndex;
+    if (index >= 0 && index < _tableOfContents.length) {
+      return _tableOfContents[index];
+    }
+    return null;
+  }
+
+  String? get _estimatedTimeLeft {
+    final progress = _currentProgress(_info);
+    final remaining = (1.0 - progress).clamp(0.0, 1.0);
+    final minutes = (remaining * 45).round();
+    if (minutes <= 1) return '1 min left';
+    return '$minutes min left in chapter';
+  }
+
+  Future<void> _showNotesSheet({String initialTab = 'Contents'}) async {
     try {
       final (bookmarks, highlights) = await (
         _bookmarkRepository.getByBookId(widget.book.id),
         _highlightRepository.getByBookId(widget.book.id),
       ).wait;
       if (!mounted) return;
+
+      final progress = _currentProgress(_info);
+      final percentStr = '${(progress * 100).round()}%';
+      final caption = _progressCaption(context, _info) ?? '';
+
       await showModalBottomSheet<void>(
         context: context,
         showDragHandle: true,
@@ -1149,6 +1303,19 @@ class _ReaderScreenState extends State<ReaderScreen>
             ...bookmarks.map(ReaderNote.bookmark),
             ...highlights.map(ReaderNote.highlight),
           ],
+          tableOfContents: _tableOfContents,
+          activeChapterIndex: _currentChapterIndex,
+          bookTitle: widget.book.title,
+          bookAuthor: widget.book.author,
+          readingProgressLabel: _currentChapterTitle != null
+              ? '$_currentChapterTitle · $caption'
+              : caption,
+          readingProgressPercent: percentStr,
+          initialTab: initialTab,
+          onChapterSelected: (index) {
+            Navigator.of(sheetContext).pop();
+            _goToChapter(index);
+          },
           onSelected: (note) {
             Navigator.of(sheetContext).pop();
             unawaited(_goToDocumentLocator(note.locator));
@@ -1177,11 +1344,32 @@ class _ReaderScreenState extends State<ReaderScreen>
       );
       // Notes, colours or deletions may have changed in the sheet.
       await _loadHighlights();
+      await _loadBookmarks();
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(context.l10n.readerAnnotationFailed)),
       );
+    }
+  }
+
+  Future<void> _showTableOfContents() async => _showNotesSheet(initialTab: 'Contents');
+
+  Future<void> _showAnnotations() async => _showNotesSheet(initialTab: 'Bookmarks');
+
+  void _goToChapter(int index) {
+    final isReadium = _readiumTableOfContents.isNotEmpty;
+    if (isReadium) {
+      if (index >= 0 && index < _readiumTableOfContents.length) {
+        unawaited(_goToReadiumContents(_readiumTableOfContents[index]));
+      }
+    } else {
+      if (index >= 0 && index < _localTableOfContents.length) {
+        final localEntry = _localTableOfContents[index];
+        if (localEntry.locator != null) {
+          unawaited(_goToLocalContents(localEntry));
+        }
+      }
     }
   }
 
@@ -1194,10 +1382,27 @@ class _ReaderScreenState extends State<ReaderScreen>
     bookmarks: bookmarks,
   );
 
-  Future<void> _deleteNote(ReaderNote note) {
+  Future<void> _deleteNote(ReaderNote note) async {
     final bookmark = note.bookmark;
-    if (bookmark != null) return _bookmarkRepository.delete(bookmark.id);
-    return _highlightRepository.delete(note.highlight!.id);
+    if (bookmark != null) {
+      await _bookmarkRepository.delete(bookmark.id);
+      if (mounted) {
+        setState(() {
+          _bookmarks = _bookmarks.where((b) => b.id != bookmark.id).toList();
+        });
+      }
+      return;
+    }
+    final highlight = note.highlight;
+    if (highlight != null) {
+      await _highlightRepository.delete(highlight.id);
+      if (mounted) {
+        setState(() {
+          _highlights =
+              _highlights.where((h) => h.id != highlight.id).toList(growable: false);
+        });
+      }
+    }
   }
 
   Future<HighlightEntity?> _editHighlight(HighlightEntity highlight) async {
@@ -1448,6 +1653,14 @@ class _ReaderScreenState extends State<ReaderScreen>
       builder: (context) => DictionaryLookupSheet(
         selectedText: selectedText,
         onHighlight: () => _showHighlightColorSheet(selectedText, locator),
+        onColorSelected: (color) {
+          Navigator.of(context).pop();
+          _saveHighlight(
+            selectedText: selectedText,
+            locator: locator,
+            color: color,
+          );
+        },
       ),
     );
   }
@@ -1523,6 +1736,7 @@ class _ReaderScreenState extends State<ReaderScreen>
             )
             .trim(),
         color: HighlightColor.yellow,
+        customColor: WarmEditorialTokens.spokenHighlight,
       ),
     for (final highlight in _highlights)
       if (highlight.locator case TextLocator(
@@ -1828,13 +2042,14 @@ class _ReaderScreenState extends State<ReaderScreen>
       context: context,
       showDragHandle: true,
       isScrollControlled: true,
-      builder: (context) => _ReaderSettingsSheet(
+      builder: (context) => AppearanceSheet(
         settings: _display,
         isPdf: widget.book.format == DocumentFormat.pdf,
         isFallbackPdf:
             !_usesReadium && widget.book.format == DocumentFormat.pdf,
         usesReadium: _usesReadium,
         onChanged: _handleReaderSettingsChanged,
+        onReset: () => _handleReaderSettingsChanged(const SettingsEntity()),
       ),
     );
     if (!mounted) return;
@@ -1862,61 +2077,6 @@ class _ReaderScreenState extends State<ReaderScreen>
           unawaited(_renderPage(pageIndex));
         },
       ),
-    );
-  }
-
-  Future<void> _showTableOfContents() async {
-    await showModalBottomSheet<void>(
-      context: context,
-      showDragHandle: true,
-      builder: (context) {
-        return SafeArea(
-          child: SizedBox(
-            height: MediaQuery.sizeOf(context).height * .55,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
-                  child: Text(
-                    context.l10n.readerContents,
-                    style: _sheetTitleStyle(context),
-                  ),
-                ),
-                Expanded(
-                  child: ListView.separated(
-                    itemCount: _tableOfContents.length,
-                    separatorBuilder: (_, _) => const Divider(height: 1),
-                    itemBuilder: (context, index) {
-                      final isReadium = _readiumTableOfContents.isNotEmpty;
-                      final localEntry = isReadium
-                          ? null
-                          : _localTableOfContents[index];
-                      final current =
-                          isReadium &&
-                          _isCurrentChapter(_readiumTableOfContents[index]);
-                      return ListTile(
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                        ),
-                        selected: current,
-                        title: Text(_tableOfContents[index]),
-                        onTap: isReadium
-                            ? () => _goToReadiumContents(
-                                _readiumTableOfContents[index],
-                              )
-                            : localEntry?.locator == null
-                            ? null
-                            : () => _goToLocalContents(localEntry!),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
     );
   }
 
@@ -2622,496 +2782,6 @@ TextAlign _readerTextAlign(ReaderTextAlignment alignment) =>
       ReaderTextAlignment.justify => TextAlign.justify,
     };
 
-class _ReaderSettingsSheet extends StatefulWidget {
-  const _ReaderSettingsSheet({
-    required this.settings,
-    required this.isPdf,
-    required this.isFallbackPdf,
-    required this.usesReadium,
-    required this.onChanged,
-  });
-
-  final SettingsEntity settings;
-  final bool isPdf;
-  final bool isFallbackPdf;
-
-  /// The native Readium reader is showing the book; some layout settings
-  /// only exist there.
-  final bool usesReadium;
-  final ValueChanged<SettingsEntity> onChanged;
-
-  @override
-  State<_ReaderSettingsSheet> createState() => _ReaderSettingsSheetState();
-}
-
-class _ReaderSettingsSheetState extends State<_ReaderSettingsSheet> {
-  late SettingsEntity _settings = widget.settings;
-
-  void _update(SettingsEntity settings) {
-    setState(() => _settings = settings);
-    widget.onChanged(settings);
-  }
-
-  String _themeLabel(BuildContext context, ReaderTheme theme) =>
-      switch (theme) {
-        ReaderTheme.light => context.l10n.readerThemeLight,
-        ReaderTheme.sepia => context.l10n.readerThemeSepia,
-        ReaderTheme.dark => context.l10n.readerThemeDark,
-        ReaderTheme.twilight => context.l10n.readerThemeTwilight,
-        ReaderTheme.nightContrast => context.l10n.readerThemeNightContrast,
-        ReaderTheme.sepiaContrast => context.l10n.readerThemeSepiaContrast,
-        ReaderTheme.sage => context.l10n.readerThemeSage,
-      };
-
-  String _fontLabel(BuildContext context, ReaderFont font) => switch (font) {
-    ReaderFont.original => context.l10n.readerFontOriginal,
-    ReaderFont.serif => context.l10n.readerFontSerif,
-    ReaderFont.sans => context.l10n.readerFontSans,
-    // Font names are proper nouns and stay untranslated.
-    _ => font.family!,
-  };
-
-  String _presetLabel(BuildContext context, ReaderStylePresetId id) =>
-      switch (id) {
-        ReaderStylePresetId.standard => context.l10n.readerStyleStandard,
-        ReaderStylePresetId.classic => context.l10n.readerStyleClassic,
-        ReaderStylePresetId.airy => context.l10n.readerStyleAiry,
-        ReaderStylePresetId.compact => context.l10n.readerStyleCompact,
-      };
-
-  /// A choice chip that shows a lock on premium items the user can still
-  /// pick: picking one previews it until the sheet closes.
-  Widget _chip({
-    required String label,
-    required bool selected,
-    required bool locked,
-    required VoidCallback onSelected,
-    String? fontFamily,
-  }) => ChoiceChip(
-    avatar: locked ? const Icon(Icons.lock_outline_rounded, size: 16) : null,
-    label: Text(label, style: TextStyle(fontFamily: fontFamily)),
-    tooltip: locked ? context.l10n.readerPremiumLocked : null,
-    selected: selected,
-    onSelected: (_) => onSelected(),
-  );
-
-  String _alignmentLabel(BuildContext context, ReaderTextAlignment alignment) =>
-      switch (alignment) {
-        ReaderTextAlignment.left => context.l10n.readerAlignmentLeft,
-        ReaderTextAlignment.center => context.l10n.readerAlignmentCenter,
-        ReaderTextAlignment.justify => context.l10n.readerAlignmentJustified,
-      };
-
-  String _modeLabel(BuildContext context, ReaderMode mode) => switch (mode) {
-    ReaderMode.paginated => context.l10n.readerModePaginated,
-    ReaderMode.continuous => context.l10n.readerModeContinuous,
-  };
-
-  String _pdfFitLabel(BuildContext context, ReaderPdfFit fit) => switch (fit) {
-    ReaderPdfFit.page => context.l10n.readerPdfFitPage,
-    ReaderPdfFit.width => context.l10n.readerPdfFitWidth,
-  };
-
-  String _pdfModeLabel(BuildContext context, ReaderPdfMode mode) =>
-      switch (mode) {
-        ReaderPdfMode.visual => context.l10n.readerPdfModeVisual,
-        ReaderPdfMode.text => context.l10n.readerPdfModeText,
-      };
-
-  Widget _choices<T>({
-    required String title,
-    required List<T> values,
-    required T selected,
-    required String Function(T value) label,
-    required SettingsEntity Function(T value) apply,
-  }) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      const SizedBox(height: 20),
-      Text(title, style: _sheetSectionStyle(context)),
-      const SizedBox(height: 8),
-      Wrap(
-        spacing: 8,
-        runSpacing: 8,
-        children: [
-          for (final value in values)
-            ChoiceChip(
-              label: Text(label(value)),
-              selected: selected == value,
-              onSelected: (_) => _update(apply(value)),
-            ),
-        ],
-      ),
-    ],
-  );
-
-  /// A slider whose lowest value means "keep the book's own setting".
-  Widget _bookSlider({
-    required String label,
-    required double value,
-    required double max,
-    required int divisions,
-    required String Function(double value) format,
-    required SettingsEntity Function(double value) apply,
-  }) {
-    final clamped = value.clamp(0.0, max).toDouble();
-    return _ReaderSlider(
-      label: label,
-      valueLabel: clamped == 0
-          ? context.l10n.readerBookDefault
-          : format(clamped),
-      value: clamped,
-      min: 0,
-      max: max,
-      divisions: divisions,
-      onChanged: (value) => _update(apply(value)),
-    );
-  }
-
-  /// Typography and layout settings, shown only where the active engine
-  /// applies them.
-  List<Widget> _comfortControls(BuildContext context) {
-    final l10n = context.l10n;
-    final nativeEpub = widget.usesReadium && !widget.isPdf;
-    final weight = _settings.fontWeight.clamp(.5, 2.0).toDouble();
-    return [
-      if (!widget.isPdf) ...[
-        const SizedBox(height: 20),
-        Text(l10n.readerTextSection, style: _sheetSectionStyle(context)),
-        const SizedBox(height: 8),
-        _ReaderSlider(
-          label: l10n.readerFontWeight,
-          valueLabel: weight == 1
-              ? l10n.readerBookDefault
-              : '${(weight * 400).round()}',
-          value: weight,
-          min: .5,
-          max: 2,
-          divisions: 6,
-          onChanged: (value) => _update(_settings.copyWith(fontWeight: value)),
-        ),
-        _bookSlider(
-          label: l10n.readerLetterSpacing,
-          value: _settings.letterSpacing,
-          max: .5,
-          divisions: 10,
-          format: (value) => '${value.toStringAsFixed(2)} em',
-          apply: (value) => _settings.copyWith(letterSpacing: value),
-        ),
-        _bookSlider(
-          label: l10n.readerWordSpacing,
-          value: _settings.wordSpacing,
-          max: 1,
-          divisions: 10,
-          format: (value) => value.toStringAsFixed(1),
-          apply: (value) => _settings.copyWith(wordSpacing: value),
-        ),
-      ],
-      if (nativeEpub) ...[
-        _bookSlider(
-          label: l10n.readerParagraphSpacing,
-          value: _settings.paragraphSpacing,
-          max: 2,
-          divisions: 8,
-          format: (value) => value.toStringAsFixed(2),
-          apply: (value) => _settings.copyWith(paragraphSpacing: value),
-        ),
-        _bookSlider(
-          label: l10n.readerParagraphIndent,
-          value: _settings.paragraphIndent,
-          max: 3,
-          divisions: 6,
-          format: (value) => value.toStringAsFixed(1),
-          apply: (value) => _settings.copyWith(paragraphIndent: value),
-        ),
-        SwitchListTile.adaptive(
-          contentPadding: EdgeInsets.zero,
-          value: _settings.hyphenation,
-          onChanged: (value) => _update(_settings.copyWith(hyphenation: value)),
-          title: Text(l10n.readerHyphenation),
-        ),
-        SwitchListTile.adaptive(
-          contentPadding: EdgeInsets.zero,
-          value: _settings.publisherStyles,
-          onChanged: (value) =>
-              _update(_settings.copyWith(publisherStyles: value)),
-          title: Text(l10n.readerPublisherStyles),
-          subtitle: Text(l10n.readerPublisherStylesHint),
-        ),
-      ],
-      if (widget.usesReadium) ...[
-        const SizedBox(height: 4),
-        Text(l10n.readerLayoutSection, style: _sheetTitleStyle(context)),
-        _choices(
-          title: l10n.readerColumns,
-          values: ReaderColumns.values,
-          selected: _settings.readerColumns,
-          label: (value) => switch (value) {
-            ReaderColumns.auto => l10n.readerColumnsAuto,
-            ReaderColumns.one => l10n.readerColumnsOne,
-            ReaderColumns.two => l10n.readerColumnsTwo,
-          },
-          apply: (value) => _settings.copyWith(readerColumns: value),
-        ),
-        _choices(
-          title: l10n.readerDirection,
-          // Vertical writing only exists for reflowable text.
-          values: [
-            for (final value in ReaderDirection.values)
-              if (!widget.isPdf || value != ReaderDirection.vertical) value,
-          ],
-          selected: _settings.readerDirection,
-          label: (value) => switch (value) {
-            ReaderDirection.book => l10n.readerDirectionBook,
-            ReaderDirection.leftToRight => l10n.readerDirectionLtr,
-            ReaderDirection.rightToLeft => l10n.readerDirectionRtl,
-            ReaderDirection.vertical => l10n.readerDirectionVertical,
-          },
-          apply: (value) => _settings.copyWith(readerDirection: value),
-        ),
-      ],
-      if (nativeEpub || widget.isFallbackPdf)
-        _choices(
-          title: l10n.readerImageFilter,
-          values: ReaderImageFilter.values,
-          selected: _settings.readerImageFilter,
-          label: (value) => switch (value) {
-            ReaderImageFilter.none => l10n.readerImageFilterNone,
-            ReaderImageFilter.dim => l10n.readerImageFilterDim,
-            ReaderImageFilter.invert => l10n.readerImageFilterInvert,
-          },
-          apply: (value) => _settings.copyWith(readerImageFilter: value),
-        ),
-    ];
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // Unlocking from the preview banner keeps what is being previewed.
-    return BlocConsumer<PremiumCubit, PremiumState>(
-      listenWhen: (previous, current) => !previous.unlocked && current.unlocked,
-      listener: (_, _) => widget.onChanged(_settings),
-      buildWhen: (previous, current) => previous.unlocked != current.unlocked,
-      builder: (context, premium) => _buildSheet(context, premium.unlocked),
-    );
-  }
-
-  Widget _buildSheet(BuildContext context, bool unlocked) {
-    final previewing = !unlocked && AppearanceCatalog.usesPremium(_settings);
-    final fontSize = _settings.fontSize.clamp(14.0, 28.0).toDouble();
-    final lineSpacing = _settings.lineSpacing.clamp(1.2, 2.2).toDouble();
-    final margin = _settings.margin.clamp(8.0, 32.0).toDouble();
-    return SafeArea(
-      child: SizedBox(
-        height: MediaQuery.sizeOf(context).height * .62,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                context.l10n.readerToolAppearance,
-                style: _sheetTitleStyle(context),
-              ),
-              if (previewing) ...[
-                const SizedBox(height: 12),
-                _PremiumPreviewBanner(
-                  onUnlock: () => showPremiumPaywall(context),
-                ),
-              ],
-              const SizedBox(height: 20),
-              Text(
-                context.l10n.readerTheme,
-                style: _sheetSectionStyle(context),
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 12,
-                children: [
-                  for (final theme in ReaderTheme.values)
-                    _ThemeSwatch(
-                      theme: theme,
-                      label: _themeLabel(context, theme),
-                      selected: _settings.readerTheme == theme,
-                      locked: theme.isPremium && !unlocked,
-                      onSelected: () =>
-                          _update(_settings.copyWith(readerTheme: theme)),
-                    ),
-                ],
-              ),
-              if (!widget.isPdf) ...[
-                const SizedBox(height: 20),
-                Text(
-                  context.l10n.readerFont,
-                  style: _sheetSectionStyle(context),
-                ),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    for (final font in ReaderFont.values)
-                      _chip(
-                        label: _fontLabel(context, font),
-                        fontFamily: font.family,
-                        selected: _settings.readerFont == font,
-                        locked: font.isPremium && !unlocked,
-                        onSelected: () =>
-                            _update(_settings.copyWith(readerFont: font)),
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  context.l10n.readerStyle,
-                  style: _sheetSectionStyle(context),
-                ),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    for (final preset in AppearanceCatalog.presets)
-                      _chip(
-                        label: _presetLabel(context, preset.id),
-                        fontFamily: preset.font.family,
-                        selected: preset.matches(_settings),
-                        locked: preset.isPremium && !unlocked,
-                        onSelected: () => _update(preset.applyTo(_settings)),
-                      ),
-                  ],
-                ),
-              ],
-              if (widget.isPdf) ...[
-                const SizedBox(height: 20),
-                Text(
-                  context.l10n.readerPdfFit,
-                  style: _sheetSectionStyle(context),
-                ),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: ReaderPdfFit.values
-                      .map(
-                        (fit) => ChoiceChip(
-                          label: Text(_pdfFitLabel(context, fit)),
-                          selected: _settings.readerPdfFit == fit,
-                          onSelected: (_) =>
-                              _update(_settings.copyWith(readerPdfFit: fit)),
-                        ),
-                      )
-                      .toList(growable: false),
-                ),
-              ],
-              if (widget.isFallbackPdf) ...[
-                const SizedBox(height: 20),
-                Text(
-                  context.l10n.readerPdfMode,
-                  style: _sheetSectionStyle(context),
-                ),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: ReaderPdfMode.values
-                      .map(
-                        (mode) => ChoiceChip(
-                          label: Text(_pdfModeLabel(context, mode)),
-                          selected: _settings.readerPdfMode == mode,
-                          onSelected: (_) =>
-                              _update(_settings.copyWith(readerPdfMode: mode)),
-                        ),
-                      )
-                      .toList(growable: false),
-                ),
-              ],
-              SwitchListTile.adaptive(
-                contentPadding: EdgeInsets.zero,
-                value: _settings.keepScreenAwake,
-                onChanged: (value) =>
-                    _update(_settings.copyWith(keepScreenAwake: value)),
-                title: Text(context.l10n.readerKeepScreenAwake),
-              ),
-              const SizedBox(height: 20),
-              Text(context.l10n.readerMode, style: _sheetSectionStyle(context)),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: ReaderMode.values
-                    .map(
-                      (mode) => ChoiceChip(
-                        label: Text(_modeLabel(context, mode)),
-                        selected: _settings.readerMode == mode,
-                        onSelected: (_) =>
-                            _update(_settings.copyWith(readerMode: mode)),
-                      ),
-                    )
-                    .toList(growable: false),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                context.l10n.readerAlignment,
-                style: _sheetSectionStyle(context),
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: ReaderTextAlignment.values
-                    .map(
-                      (alignment) => ChoiceChip(
-                        label: Text(_alignmentLabel(context, alignment)),
-                        selected: _settings.readerTextAlignment == alignment,
-                        onSelected: (_) => _update(
-                          _settings.copyWith(readerTextAlignment: alignment),
-                        ),
-                      ),
-                    )
-                    .toList(growable: false),
-              ),
-              const SizedBox(height: 20),
-              _ReaderSlider(
-                label: context.l10n.readerTextSize,
-                valueLabel: '${fontSize.round()} px',
-                value: fontSize,
-                min: 14,
-                max: 28,
-                divisions: 14,
-                onChanged: (value) =>
-                    _update(_settings.copyWith(fontSize: value)),
-              ),
-              _ReaderSlider(
-                label: context.l10n.readerLineSpacing,
-                valueLabel: lineSpacing.toStringAsFixed(1),
-                value: lineSpacing,
-                min: 1.2,
-                max: 2.2,
-                divisions: 10,
-                onChanged: (value) =>
-                    _update(_settings.copyWith(lineSpacing: value)),
-              ),
-              _ReaderSlider(
-                label: context.l10n.readerMargins,
-                valueLabel: '${margin.round()} px',
-                value: margin,
-                min: 8,
-                max: 32,
-                divisions: 12,
-                onChanged: (value) =>
-                    _update(_settings.copyWith(margin: value)),
-              ),
-              ..._comfortControls(context),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 /// A rendered page under [filter]: dimmed to 70 % or colour-inverted.
 ColorFilter? _pageColorFilter(ReaderImageFilter filter) => switch (filter) {
   ReaderImageFilter.none => null,
@@ -3134,217 +2804,9 @@ TextStyle? _sheetTitleStyle(BuildContext context) => Theme.of(
   context,
 ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800);
 
-/// Group labels inside a sheet, styled like the Settings section labels.
-TextStyle? _sheetSectionStyle(BuildContext context) =>
-    Theme.of(context).textTheme.titleSmall?.copyWith(
-      color: context.colors.onSurfaceMuted,
-      fontWeight: FontWeight.w700,
-    );
-
-/// A reading theme shown as itself: its page colour with "Aa" in its text
-/// colour, so the choice is visible before it is made.
-class _ThemeSwatch extends StatelessWidget {
-  const _ThemeSwatch({
-    required this.theme,
-    required this.label,
-    required this.selected,
-    required this.locked,
-    required this.onSelected,
-  });
-
-  final ReaderTheme theme;
-  final String label;
-  final bool selected;
-  final bool locked;
-  final VoidCallback onSelected;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-    final text = Theme.of(context).textTheme;
-    final page = Color(theme.backgroundArgb);
-    final ink = Color(theme.textArgb);
-    return Semantics(
-      button: true,
-      selected: selected,
-      excludeSemantics: true,
-      label: locked ? '$label, ${context.l10n.readerPremiumLocked}' : label,
-      onTap: onSelected,
-      child: InkWell(
-        onTap: onSelected,
-        borderRadius: BorderRadius.circular(12),
-        child: SizedBox(
-          width: 68,
-          child: Column(
-            children: [
-              Container(
-                width: 56,
-                height: 56,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: page,
-                  borderRadius: BorderRadius.circular(12),
-                  // Selection is the one orange mark; others get a rule so
-                  // a black or white page still has an edge on the card.
-                  border: Border.all(
-                    color: selected ? colors.primary : colors.border,
-                    width: selected ? 2.5 : 1,
-                  ),
-                ),
-                // Fills the swatch so the lock sits in its corner, not on the
-                // "Aa".
-                child: Stack(
-                  fit: StackFit.expand,
-                  alignment: Alignment.center,
-                  children: [
-                    Center(
-                      child: Text(
-                        'Aa',
-                        style: text.titleLarge?.copyWith(
-                          color: ink,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                    if (locked)
-                      Positioned(
-                        right: 4,
-                        bottom: 4,
-                        child: Icon(
-                          Icons.lock_outline_rounded,
-                          size: 14,
-                          color: ink,
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                label,
-                maxLines: 2,
-                textAlign: TextAlign.center,
-                style: text.labelMedium?.copyWith(
-                  color: selected ? colors.onSurface : colors.onSurfaceMuted,
-                  fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
-                  height: 1.2,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _PremiumPreviewBanner extends StatelessWidget {
-  const _PremiumPreviewBanner({required this.onUnlock});
-
-  final VoidCallback onUnlock;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
-      decoration: BoxDecoration(
-        color: colors.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          Expanded(child: Text(context.l10n.readerPremiumPreview)),
-          const SizedBox(width: 12),
-          FilledButton(
-            onPressed: onUnlock,
-            child: Text(context.l10n.premiumUnlock),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ReaderSlider extends StatelessWidget {
-  const _ReaderSlider({
-    required this.label,
-    required this.valueLabel,
-    required this.value,
-    required this.min,
-    required this.max,
-    required this.divisions,
-    required this.onChanged,
-  });
-
-  final String label;
-  final String valueLabel;
-  final double value;
-  final double min;
-  final double max;
-  final int divisions;
-  final ValueChanged<double> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [Text(label), Text(valueLabel)],
-        ),
-        Slider(
-          value: value,
-          min: min,
-          max: max,
-          divisions: divisions,
-          label: valueLabel,
-          onChanged: onChanged,
-        ),
-      ],
-    );
-  }
-}
-
-class _ReaderSearchHit {
-  const _ReaderSearchHit({
-    required this.title,
-    required this.onSelected,
-    this.snippet,
-  });
-
-  final String title;
-  final String? snippet;
-  final Future<void> Function() onSelected;
-}
-
 /// Reader selection actions. Copy and Send to app only appear in the native
 /// reader's menu; fallback pages get them from the platform's own items.
 enum _SelectionAction { highlight, lookup, copy, share, searchWeb, sendToApp }
-
-/// [snippet] with every case-insensitive occurrence of [query] in bold.
-TextSpan _emphasize(String snippet, String query) {
-  final lower = snippet.toLowerCase();
-  final needle = query.toLowerCase();
-  final spans = <TextSpan>[];
-  var start = 0;
-  while (needle.isNotEmpty) {
-    final index = lower.indexOf(needle, start);
-    if (index < 0) break;
-    if (index > start) {
-      spans.add(TextSpan(text: snippet.substring(start, index)));
-    }
-    spans.add(
-      TextSpan(
-        text: snippet.substring(index, index + needle.length),
-        style: const TextStyle(fontWeight: FontWeight.w800),
-      ),
-    );
-    start = index + needle.length;
-  }
-  spans.add(TextSpan(text: snippet.substring(start)));
-  return TextSpan(children: spans);
-}
 
 /// The fallback pages' selection toolbar: Highlight and Look up first, as in
 /// the EPUB reader, then the platform's own items (Copy, Select all, ...).
@@ -3380,178 +2842,3 @@ EditableTextContextMenuBuilder _readerContextMenu(
     ],
   );
 };
-
-class _ReaderSearchSheet extends StatefulWidget {
-  const _ReaderSearchSheet({required this.search});
-
-  final Future<List<_ReaderSearchHit>> Function(String query) search;
-
-  @override
-  State<_ReaderSearchSheet> createState() => _ReaderSearchSheetState();
-}
-
-class _ReaderSearchSheetState extends State<_ReaderSearchSheet> {
-  final _queryController = TextEditingController();
-  List<_ReaderSearchHit> _results = const [];
-  bool _isSearching = false;
-
-  /// The query the results belong to; null until the first search, so the
-  /// sheet does not claim "no results" before anything was searched.
-  String? _searched;
-  String? _errorMessage;
-
-  @override
-  void dispose() {
-    _queryController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _search() async {
-    final query = _queryController.text.trim();
-    if (query.isEmpty) {
-      setState(() {
-        _results = const [];
-        _errorMessage = null;
-        _searched = null;
-      });
-      return;
-    }
-
-    setState(() {
-      _isSearching = true;
-      _errorMessage = null;
-    });
-    try {
-      final results = await widget.search(query);
-      if (!mounted) return;
-      setState(() {
-        _results = results;
-        _searched = query;
-      });
-    } catch (_) {
-      if (!mounted) return;
-      setState(() {
-        _results = const [];
-        _errorMessage = context.l10n.readerSearchFailed;
-      });
-    } finally {
-      if (mounted) setState(() => _isSearching = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
-    return Padding(
-      padding: EdgeInsets.only(bottom: bottomInset),
-      child: SizedBox(
-        height: MediaQuery.sizeOf(context).height * .72,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
-              child: Text(
-                context.l10n.readerSearch,
-                style: _sheetTitleStyle(context),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: TextField(
-                controller: _queryController,
-                autofocus: true,
-                textInputAction: TextInputAction.search,
-                onSubmitted: (_) => _search(),
-                decoration: InputDecoration(
-                  // One tonal step above the sheet so the field has an edge.
-                  fillColor: context.colors.surfaceElevated,
-                  hintText: context.l10n.readerSearchHint,
-                  prefixIcon: const Icon(Icons.search_rounded),
-                  suffixIcon: IconButton(
-                    onPressed: _isSearching ? null : _search,
-                    icon: const Icon(Icons.arrow_forward_rounded),
-                    tooltip: context.l10n.readerSearch,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Expanded(
-              child: _isSearching
-                  ? const Center(child: CircularProgressIndicator())
-                  : _errorMessage != null
-                  ? Center(child: Text(_errorMessage!))
-                  : _searched == null
-                  ? const SizedBox.shrink()
-                  : _results.isEmpty
-                  ? Center(
-                      child: Text(
-                        context.l10n.readerSearchNoResults,
-                        style: _sheetSectionStyle(context),
-                      ),
-                    )
-                  : ListView.separated(
-                      // One extra row for the count above the results.
-                      itemCount: _results.length + 1,
-                      separatorBuilder: (_, index) => index == 0
-                          ? const SizedBox.shrink()
-                          : const Divider(indent: 20, endIndent: 20),
-                      itemBuilder: (context, index) {
-                        if (index == 0) {
-                          return Padding(
-                            padding: const EdgeInsets.fromLTRB(20, 0, 20, 4),
-                            child: Semantics(
-                              liveRegion: true,
-                              child: Text(
-                                context.l10n.readerSearchResultCount(
-                                  _results.length,
-                                ),
-                                style: _sheetSectionStyle(context),
-                              ),
-                            ),
-                          );
-                        }
-                        final result = _results[index - 1];
-                        final text = Theme.of(context).textTheme;
-                        return InkWell(
-                          onTap: () async {
-                            await result.onSelected();
-                            if (context.mounted) Navigator.of(context).pop();
-                          },
-                          child: Padding(
-                            padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                if (result.snippet != null)
-                                  Text.rich(
-                                    _emphasize(result.snippet!, _searched!),
-                                    maxLines: 3,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: text.bodyLarge?.copyWith(
-                                      height: 1.45,
-                                    ),
-                                  ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  result.title,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: text.bodySmall?.copyWith(
-                                    color: context.colors.onSurfaceMuted,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}

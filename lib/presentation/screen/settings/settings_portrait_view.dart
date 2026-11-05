@@ -6,6 +6,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:lingua_pages/core/constants/app_constant.dart';
 import 'package:lingua_pages/core/injector/injector.dart';
 import 'package:lingua_pages/domain/entity/settings/settings_entity.dart';
@@ -21,6 +22,7 @@ import 'package:lingua_pages/presentation/screen/premium/cubit/premium_cubit.dar
 import 'package:lingua_pages/presentation/screen/premium/cubit/premium_state.dart';
 import 'package:lingua_pages/presentation/screen/premium/widgets/premium_paywall_sheet.dart';
 import 'package:lingua_pages/presentation/screen/settings/widgets/backup_dialogs.dart';
+import 'package:lingua_pages/presentation/theme/app_tokens.dart';
 import 'package:lingua_pages/presentation/theme/base/theme_extension.dart';
 import 'package:lingua_pages/presentation/theme/text/app_text.dart';
 import 'package:lingua_pages/presentation/widgets/app_bar/widgets.dart';
@@ -35,7 +37,33 @@ class SettingsPortraitView extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: theme.background,
-      appBar: CustomAppBar(title: l10n.settingsTitle),
+      appBar: CustomAppBar(
+        title: l10n.settingsTitle,
+        showBackIcon: true,
+        action: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: theme.surfaceContainerLow,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: theme.hairline),
+                ),
+                child: Text(
+                  'Offline',
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: theme.onSurfaceMuted,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
       // A readable column on tablets and in landscape.
       body: Center(
         child: ConstrainedBox(
@@ -48,46 +76,131 @@ class SettingsPortraitView extends StatelessWidget {
               AppConstant.verticalGap24,
             ),
             children: [
+              // 1. Patron Promotion Banner
+              BlocBuilder<PremiumCubit, PremiumState>(
+                builder: (context, premium) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 20),
+                    child: Card(
+                      key: const Key('settings_patron_banner'),
+                      elevation: 0,
+                      color: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        side: const BorderSide(color: Color(0x332F4A7A)),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.verified,
+                                        color: WarmEditorialTokens.accentInkBlue,
+                                        size: 18,
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        'PATRON EDITION',
+                                        style: GoogleFonts.inter(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w700,
+                                          letterSpacing: 0.8,
+                                          color: WarmEditorialTokens.accentInkBlue,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Unlock 12 themes and 8 fonts',
+                                    style: GoogleFonts.newsreader(
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.w600,
+                                      color: WarmEditorialTokens.textPrimaryInk,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    'Support private, DRM-free offline reading.',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 12,
+                                      color: WarmEditorialTokens.subtitleSecondary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            FilledButton(
+                              key: const Key('settings_patron_unlock_cta'),
+                              style: FilledButton.styleFrom(
+                                backgroundColor: WarmEditorialTokens.accentInkBlue,
+                                foregroundColor: Colors.white,
+                                shape: const StadiumBorder(),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 8,
+                                ),
+                              ),
+                              onPressed: () => showPremiumPaywall(context),
+                              child: const Text('Unlock'),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+
+              // 2. Group: Appearance
               _SettingsSection(
+                cardKey: const Key('settings_card_appearance'),
+                title: 'Appearance',
+                children: const [_AppearanceSettings()],
+              ),
+              Gap(AppConstant.verticalGap20),
+
+              // 3. Group: Reading Defaults
+              _SettingsSection(
+                cardKey: const Key('settings_card_reading_defaults'),
                 title: l10n.settingsReadingTitle,
                 footer: l10n.settingsAppearanceHint,
                 children: const [_ReadingSettings()],
               ),
               Gap(AppConstant.verticalGap20),
+
+              // 4. Group: Read Aloud (TTS)
               _SettingsSection(
-                title: l10n.settingsDictionaryTitle,
-                children: const [_DictionarySettings()],
+                cardKey: const Key('settings_card_read_aloud'),
+                title: 'Read Aloud (TTS)',
+                children: const [_ReadAloudSettings()],
               ),
               Gap(AppConstant.verticalGap20),
+
+              // 5. Group: Library & Backup
               _SettingsSection(
+                cardKey: const Key('settings_card_backup'),
                 title: l10n.settingsBackupTitle,
-                children: const [_BackupManager()],
+                children: const [_BackupManager(), _DictionarySettings()],
               ),
               Gap(AppConstant.verticalGap20),
+
+              // 6. Group: About & Licenses
               _SettingsSection(
-                title: l10n.settingsPurchasesTitle,
-                children: [
-                  BlocBuilder<PremiumCubit, PremiumState>(
-                    builder: (context, premium) => _SettingsTile(
-                      icon: Icons.palette_outlined,
-                      title: l10n.premiumTitle,
-                      subtitle: premium.unlocked
-                          ? l10n.settingsPremiumUnlocked
-                          : l10n.settingsPremiumLocked,
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () => showPremiumPaywall(context),
-                    ),
-                  ),
-                ],
-              ),
-              Gap(AppConstant.verticalGap20),
-              _SettingsSection(
+                cardKey: const Key('settings_card_about'),
                 title: l10n.settingsAccount,
                 children: [
                   _SettingsTile(
                     icon: Icons.info_outline_rounded,
                     title: l10n.appName,
-                    subtitle: 'v1.0.0',
+                    subtitle: 'v1.0.0 (Build 104)',
                   ),
                   _SettingsTile(
                     icon: Icons.privacy_tip_outlined,
@@ -107,6 +220,34 @@ class SettingsPortraitView extends StatelessWidget {
                     ),
                   ),
                 ],
+              ),
+              const SizedBox(height: 24),
+
+              // Editorial quote footer
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Column(
+                    children: [
+                      Text(
+                        'OpenPages v1.0.0 · 100% Offline & Private',
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          color: theme.onSurfaceMuted,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '“A serene sanctuary for personal stewardship.”',
+                        style: GoogleFonts.newsreader(
+                          fontSize: 13,
+                          fontStyle: FontStyle.italic,
+                          color: theme.onSurfaceMuted,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ],
           ),
@@ -534,6 +675,7 @@ class _SettingsSection extends StatelessWidget {
     required this.title,
     required this.children,
     this.footer,
+    this.cardKey,
   });
 
   final String title;
@@ -541,6 +683,7 @@ class _SettingsSection extends StatelessWidget {
 
   /// A note under the card, for context that is not a setting itself.
   final String? footer;
+  final Key? cardKey;
 
   @override
   Widget build(BuildContext context) {
@@ -554,17 +697,27 @@ class _SettingsSection extends StatelessWidget {
             left: AppConstant.horizontalGap4,
             bottom: AppConstant.verticalGap8,
           ),
-          child: AppText.titleSmall(
-            title,
-            color: theme.onSurfaceMuted,
-            fontWeight: FontWeight.w700,
+          child: Text(
+            title.toUpperCase(),
+            style: GoogleFonts.inter(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.5,
+              color: theme.onSurfaceMuted,
+            ),
           ),
         ),
-        Container(
-          decoration: BoxDecoration(
-            color: theme.surface,
-            // Cards are told apart by tone, not borders (DESIGN.md).
+        Card(
+          key: cardKey,
+          color: WarmEditorialTokens.cardSurface,
+          elevation: 0,
+          margin: EdgeInsets.zero,
+          shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
+            side: BorderSide(
+              color: theme.hairline,
+              width: 1.0,
+            ),
           ),
           child: Column(children: children),
         ),
@@ -578,6 +731,199 @@ class _SettingsSection extends StatelessWidget {
             ),
             child: AppText.bodySmall(footer!, color: theme.onSurfaceMuted),
           ),
+      ],
+    );
+  }
+}
+
+class _AppearanceSettings extends StatefulWidget {
+  const _AppearanceSettings();
+
+  @override
+  State<_AppearanceSettings> createState() => _AppearanceSettingsState();
+}
+
+class _AppearanceSettingsState extends State<_AppearanceSettings> {
+  double _scale = 100;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        _SettingsTile(
+          icon: Icons.palette_outlined,
+          title: 'App Theme',
+          subtitle: 'Warm Ivory palette',
+          trailing: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: context.colors.surfaceContainerLow,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: context.colors.hairline),
+            ),
+            child: Text(
+              'System',
+              style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600),
+            ),
+          ),
+        ),
+        Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: AppConstant.horizontalGap16,
+            vertical: AppConstant.verticalGap12,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  AppText.bodyLarge(
+                    'Interface scale',
+                    fontWeight: FontWeight.w600,
+                  ),
+                  Text(
+                    '${_scale.round()}%',
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: context.colors.onSurfaceMuted,
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  const Text('A', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                  Expanded(
+                    child: Slider(
+                      value: _scale,
+                      min: 80,
+                      max: 130,
+                      divisions: 5,
+                      activeColor: WarmEditorialTokens.accentInkBlue,
+                      onChanged: (val) => setState(() => _scale = val),
+                    ),
+                  ),
+                  const Text('A', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ReadAloudSettings extends StatefulWidget {
+  const _ReadAloudSettings();
+
+  @override
+  State<_ReadAloudSettings> createState() => _ReadAloudSettingsState();
+}
+
+class _ReadAloudSettingsState extends State<_ReadAloudSettings> {
+  final SettingsRepository _settingsRepository = injector<SettingsRepository>();
+  SettingsEntity? _settings;
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_load());
+  }
+
+  Future<void> _load() async {
+    try {
+      final settings = await _settingsRepository.getSettings();
+      if (mounted) setState(() => _settings = settings);
+    } catch (_) {
+      if (mounted) setState(() => _settings = const SettingsEntity());
+    }
+  }
+
+  Future<void> _update(String key, Object value) async {
+    try {
+      final settings = await _settingsRepository.updateSetting(
+        key: key,
+        value: value,
+      );
+      if (mounted) setState(() => _settings = settings);
+    } catch (_) {
+      if (mounted) setState(() {});
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final settings = _settings;
+    final speed = settings?.readAloudSpeed ?? 1.0;
+
+    return Column(
+      children: [
+        Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: AppConstant.horizontalGap16,
+            vertical: AppConstant.verticalGap12,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  AppText.bodyLarge(
+                    l10n.readAloudSpeed,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: WarmEditorialTokens.spokenHighlight,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      '${speed.toStringAsFixed(1)}x',
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: WarmEditorialTokens.accentInkBlue,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              Slider(
+                value: speed,
+                min: 0.5,
+                max: 2.5,
+                divisions: 8,
+                activeColor: WarmEditorialTokens.accentInkBlue,
+                onChanged: settings == null
+                    ? null
+                    : (val) => _update('readAloudSpeed', val),
+              ),
+            ],
+          ),
+        ),
+        _SettingsSwitchTile(
+          icon: Icons.subtitles_off_outlined,
+          title: 'Skip page numbers & footnotes',
+          subtitle: 'Enhances narrative flow during playback',
+          value: settings?.readAloudSkipPageNumbers ?? true,
+          onChanged: settings == null
+              ? null
+              : (value) => _update('readAloudSkipPageNumbers', value),
+        ),
+        _SettingsSwitchTile(
+          icon: Icons.screen_lock_portrait_outlined,
+          title: 'Keep screen awake while listening',
+          value: settings?.readAloudKeepScreenOn ?? false,
+          onChanged: settings == null
+              ? null
+              : (value) => _update('readAloudKeepScreenOn', value),
+        ),
       ],
     );
   }

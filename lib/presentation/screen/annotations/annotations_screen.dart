@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:lingua_pages/core/injector/injector.dart';
 import 'package:lingua_pages/domain/entity/premium/appearance_catalog.dart';
@@ -11,6 +12,7 @@ import 'package:lingua_pages/presentation/route/app_router.gr.dart';
 import 'package:lingua_pages/presentation/screen/annotations/cubit/annotations_cubit.dart';
 import 'package:lingua_pages/presentation/screen/annotations/cubit/annotations_state.dart';
 import 'package:lingua_pages/presentation/screen/reader/widgets/notes_sheet.dart';
+import 'package:lingua_pages/presentation/theme/app_tokens.dart';
 import 'package:lingua_pages/presentation/theme/base/theme_extension.dart';
 import 'package:lingua_pages/presentation/widgets/state_view.dart';
 import 'package:share_plus/share_plus.dart';
@@ -74,6 +76,7 @@ class _AnnotationsView extends StatelessWidget {
               ),
               Builder(
                 builder: (buttonContext) => IconButton(
+                  key: const Key('export_markdown_button'),
                   tooltip: l10n.readerNotesShareMarkdown,
                   icon: const Icon(Icons.ios_share_outlined),
                   onPressed: visible.isEmpty
@@ -117,12 +120,10 @@ class _AnnotationsView extends StatelessWidget {
                     ),
                   )
                 else
-                  SliverList.separated(
+                  SliverList.builder(
                     itemCount: visible.length,
-                    separatorBuilder: (_, _) =>
-                        const Divider(indent: _gutter, endIndent: _gutter),
                     itemBuilder: (context, index) =>
-                        _AnnotationRow(item: visible[index]),
+                        _AnnotationRow(item: visible[index], index: index),
                   ),
                 const SliverToBoxAdapter(child: SizedBox(height: 32)),
               ],
@@ -250,9 +251,10 @@ class _Filters extends StatelessWidget {
 }
 
 class _AnnotationRow extends StatelessWidget {
-  const _AnnotationRow({required this.item});
+  const _AnnotationRow({required this.item, required this.index});
 
   final AnnotationItem item;
+  final int index;
 
   Future<void> _open(BuildContext context) async {
     final cubit = context.read<AnnotationsCubit>();
@@ -275,69 +277,109 @@ class _AnnotationRow extends StatelessWidget {
       DateFormat.MMMd().format(note.createdAt),
     ].join(' · ');
 
-    return InkWell(
-      onTap: () => _open(context),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(_gutter + 4, 12, _gutter, 12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (highlight != null)
-              // The quote wears its highlight, as in the reader's notes.
-              Text.rich(
-                TextSpan(
-                  text: highlight.selectedText,
-                  style: TextStyle(
-                    backgroundColor: Color(
-                      highlight.color.tintArgb(darkPage: true),
-                    ),
+    final stripColor = highlight != null
+        ? Color(highlight.color.tintArgb(darkPage: false))
+        : WarmEditorialTokens.accentInkBlue;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: _gutter, vertical: 6),
+      child: Card(
+        key: Key('annotation_item_card_${index + 1}'),
+        elevation: 0,
+        color: WarmEditorialTokens.cardSurface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: WarmEditorialTokens.hairlineDivider),
+        ),
+        child: InkWell(
+          onTap: () => _open(context),
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 4,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: stripColor,
+                    borderRadius: BorderRadius.circular(2),
                   ),
                 ),
-                maxLines: 4,
-                overflow: TextOverflow.ellipsis,
-                style: text.bodyLarge?.copyWith(height: 1.5),
-              )
-            else
-              Row(
-                children: [
-                  Icon(
-                    Icons.bookmark_rounded,
-                    size: 18,
-                    color: colors.onSurfaceMuted,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      note.bookmark!.title,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: text.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.w700,
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (highlight != null)
+                        Text(
+                          '“${highlight.selectedText}”',
+                          maxLines: 4,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.newsreader(
+                            fontSize: 16,
+                            fontStyle: FontStyle.italic,
+                            color: colors.onSurface,
+                            height: 1.45,
+                          ),
+                        )
+                      else
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.bookmark_rounded,
+                              size: 18,
+                              color: WarmEditorialTokens.accentInkBlue,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                note.bookmark!.title,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.newsreader(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      if (highlight?.note case final noteText?) ...[
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: colors.surfaceContainerLow,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: colors.hairline),
+                          ),
+                          child: Text(
+                            noteText,
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.inter(fontSize: 13, height: 1.4),
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 10),
+                      Text(
+                        meta,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: text.bodySmall?.copyWith(
+                          color: colors.onSurfaceMuted,
+                          fontSize: 11,
+                          fontFeatures: const [FontFeature.tabularFigures()],
+                        ),
                       ),
-                    ),
+                    ],
                   ),
-                ],
-              ),
-            if (highlight?.note case final noteText?) ...[
-              const SizedBox(height: 8),
-              Text(
-                noteText,
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-                style: text.bodyMedium?.copyWith(height: 1.45),
-              ),
-            ],
-            const SizedBox(height: 6),
-            Text(
-              meta,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: text.bodySmall?.copyWith(
-                color: colors.onSurfaceMuted,
-                fontFeatures: const [FontFeature.tabularFigures()],
-              ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

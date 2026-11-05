@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:lingua_pages/domain/entity/premium/appearance_catalog.dart';
 import 'package:lingua_pages/domain/entity/settings/settings_entity.dart';
 import 'package:lingua_pages/l10n/l10n.dart';
 import 'package:lingua_pages/presentation/screen/premium/cubit/premium_cubit.dart';
 import 'package:lingua_pages/presentation/screen/premium/cubit/premium_state.dart';
+import 'package:lingua_pages/presentation/theme/app_tokens.dart';
 import 'package:lingua_pages/presentation/theme/base/theme_extension.dart';
 
 /// Opens the premium appearance offer.
@@ -45,20 +47,32 @@ class PremiumPaywallSheet extends StatelessWidget {
                   Semantics(
                     header: true,
                     child: Text(
-                      l10n.premiumTitle,
-                      style: text.headlineSmall?.copyWith(
-                        fontSize: 28,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -0.3,
+                      'Make every page yours',
+                      style: GoogleFonts.newsreader(
+                        fontSize: 26,
+                        fontWeight: FontWeight.w600,
+                        color: colors.onSurface,
                       ),
                     ),
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    l10n.premiumSubtitle,
-                    style: text.bodyLarge?.copyWith(
+                    'Unlock premium reading themes, handcrafted fonts, and visual style presets.',
+                    style: text.bodyMedium?.copyWith(
                       color: colors.onSurfaceMuted,
+                      height: 1.4,
                     ),
+                  ),
+                  const SizedBox(height: 20),
+                  // 3-Theme Hero Carousel Preview
+                  Row(
+                    key: const Key('paywall_3theme_preview'),
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _buildHeroThemeCard('Warm Linen', const Color(0xFFF5EFEB), const Color(0xFF2D2A26)),
+                      _buildHeroThemeCard('Midnight', const Color(0xFF161E2E), const Color(0xFFFAF7F2)),
+                      _buildHeroThemeCard('Forest', const Color(0xFF1B2921), const Color(0xFFF3EFEA)),
+                    ],
                   ),
                   const SizedBox(height: 24),
                   _Heading(l10n.premiumThemesHeading),
@@ -86,14 +100,55 @@ class PremiumPaywallSheet extends StatelessWidget {
                   const SizedBox(height: 6),
                   Text(l10n.premiumPresets, style: text.bodyMedium),
                   const SizedBox(height: 24),
-                  Text(
-                    l10n.premiumFreeNote,
-                    style: text.bodyMedium?.copyWith(
-                      color: colors.onSurfaceMuted,
-                      height: 1.45,
+                  // Reassuring Ethos Note
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: colors.surfaceContainerLow,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: colors.hairline),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(Icons.verified_user_outlined, size: 20, color: colors.onSurfaceMuted),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            l10n.premiumFreeNote,
+                            style: text.bodySmall?.copyWith(
+                              color: colors.onSurfaceMuted,
+                              height: 1.4,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 20),
+                  // Plan Option Card (Lifetime)
+                  Card(
+                    key: const Key('paywall_lifetime_plan_card'),
+                    elevation: 0,
+                    color: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      side: const BorderSide(color: WarmEditorialTokens.accentInkBlue, width: 2),
+                    ),
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                      leading: const Icon(Icons.radio_button_checked, color: WarmEditorialTokens.accentInkBlue),
+                      title: Text(
+                        'Lifetime — \$14.99 one-time',
+                        style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 15),
+                      ),
+                      subtitle: Text(
+                        'Pay once. Own it forever.',
+                        style: GoogleFonts.inter(fontSize: 12, color: colors.onSurfaceMuted),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
                   if (message != null) ...[
                     Semantics(
                       liveRegion: true,
@@ -112,28 +167,29 @@ class PremiumPaywallSheet extends StatelessWidget {
                     )
                   else ...[
                     FilledButton(
+                      key: const Key('paywall_unlock_button'),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: WarmEditorialTokens.accentInkBlue,
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size.fromHeight(48),
+                        shape: const StadiumBorder(),
+                      ),
                       onPressed: state.isBusy ? null : cubit.buy,
                       child: state.status == PremiumStatus.purchasing
                           ? const SizedBox.square(
                               dimension: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
+                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                             )
                           : Text(
                               state.product == null
-                                  ? l10n.premiumUnlock
+                                  ? 'Unlock Premium'
                                   : l10n.premiumUnlockFor(state.product!.price),
+                              style: GoogleFonts.inter(fontWeight: FontWeight.w600),
                             ),
                     ),
                     const SizedBox(height: 8),
-                    Text(
-                      l10n.premiumOneTime,
-                      textAlign: TextAlign.center,
-                      style: text.bodySmall?.copyWith(
-                        color: colors.onSurfaceMuted,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
                     TextButton(
+                      key: const Key('paywall_restore_button'),
                       onPressed: state.isBusy ? null : cubit.restore,
                       child: state.status == PremiumStatus.restoring
                           ? const SizedBox.square(
@@ -169,6 +225,55 @@ class PremiumPaywallSheet extends StatelessWidget {
       PremiumStatus.failed => l10n.premiumFailed,
       _ => null,
     };
+  }
+
+  Widget _buildHeroThemeCard(String name, Color bg, Color textColor) {
+    return Container(
+      width: 96,
+      height: 110,
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: WarmEditorialTokens.hairlineDivider),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            name,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              color: textColor.withValues(alpha: 0.8),
+            ),
+          ),
+          Text(
+            '“A book has a soul…”',
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.newsreader(
+              fontSize: 11,
+              fontStyle: FontStyle.italic,
+              color: textColor,
+            ),
+          ),
+          Container(
+            height: 2,
+            width: 24,
+            color: textColor.withValues(alpha: 0.3),
+          ),
+        ],
+      ),
+    );
   }
 }
 

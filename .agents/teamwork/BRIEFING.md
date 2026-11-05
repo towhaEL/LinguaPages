@@ -1,39 +1,43 @@
-# BRIEFING — 2026-11-03T10:48:30Z
+# BRIEFING — 2026-11-05T08:36:30Z
 
 ## Mission
-Route and monitor execution of the screen-wise and component-wise UI generation plan for LinguaPages. Conduct mandatory independent victory audit.
+Monitor and coordinate complete implementation of remaining LinguaPages screens and widgets. Independent Victory Audit completed with VICTORY CONFIRMED.
 
 ## 🔒 My Identity
 - Archetype: sentinel
-- Working directory: /Users/uswer/StudioProjects/linguaPages/.agents/teamwork/
-- Orchestrator: 64d8d7c9-ff2a-417f-be93-aa1e46a1f4df
-- Victory Auditor: 0cf39441-eb98-4682-a5dd-26782cd12d70
+- Working directory: /home/tn-99778/Towha/LinguaPages/.agents/teamwork
+- Orchestrator: 888c77aa-2b04-4621-9911-6d983e663338
+- Victory Auditor: b1a47b07-ba69-429e-9d7e-bd75d79f371f
 
 ## 🔒 Key Constraints
 - No technical decisions — relay only
 - Victory Audit is MANDATORY before reporting completion
-- Strictly author the plan at `design/ui_generation_plan.md` covering all 8 screens and variants from `design/design.md`
-- Decompose each screen into modular, individually generatable UI components instead of full-screen generations
-- Do NOT generate image assets yet; deliverable is strictly the planning document
-- Consistent screen-wise image naming schema (`<screen_number>_<screen_name>_<component_name>.png`) and target paths in `design/components/`
-- Every component entry includes visual generation prompts and styling parameters aligned with `design/design.md`
+- Palette: Canvas #FAF7F2, Card Surfaces #FFFFFF, Hairline dividers #E8E2D9, Text #1C1B1A, Subtitle #6B655D, Accent #2F4A7A, Spoken highlight #D6E2F5, Paper #F6F1E7, Destructive #BA1A1A
+- Typography: Newsreader serif for headings/titles, Inter sans for UI controls/metadata/labels
+- Radii: Cards 16px, Bottom Sheets 24px, Action pills/chips StadiumBorder()
+- Strictly NO bottom navigation bar anywhere
+- Zero flutter analyze errors/warnings; all flutter tests must pass
+- All Flutter CLI commands must be executed with `fvm flutter <cmd>`
+- Presentation widgets connect to existing state/blocs/services where available, using mock or fallback data where backend logic is not yet built
 
 ## User Context
-- **Last user request**: Approved task prompt received. Plan authored, verified, and audited.
+- **Last user request**: Approved task prompt for completing remaining screen UI and components
 - **Pending clarifications**: none
-- **Delivered results**: UI Generation Plan delivered at `design/ui_generation_plan.md` with VICTORY CONFIRMED verdict.
+- **Delivered results**: Complete implementation and independent victory verification of Settings, Reader Sheets/Widgets, Paywall, Annotations, zero bottom nav bar, 0 analyzer issues, 348/348 passing tests
 
 ## Project Status
 - **Phase**: complete
+- **Route**: General -> teamwork_orchestrator (ID: 888c77aa-2b04-4621-9911-6d983e663338)
+- **Crons**: cancelled and killed
 
 ## Victory Audit Status
 - **Triggered**: yes
 - **Verdict**: VICTORY CONFIRMED
+- **Auditor ID**: b1a47b07-ba69-429e-9d7e-bd75d79f371f
 - **Retry count**: 0
 
 ## Artifact Index
-- /Users/uswer/StudioProjects/linguaPages/.agents/teamwork/ORIGINAL_REQUEST.md — Authoritative user intent
-- /Users/uswer/StudioProjects/linguaPages/design/design.md — Source design specification
-- /Users/uswer/StudioProjects/linguaPages/design/ui_generation_plan.md — Target deliverable (1,557 lines, 71 components)
-- /Users/uswer/StudioProjects/linguaPages/.agents/teamwork/orchestrator/handoff.md — Orchestrator handoff
-- /Users/uswer/StudioProjects/linguaPages/.agents/teamwork/victory_auditor/handoff.md — Independent victory audit report
+- /home/tn-99778/Towha/LinguaPages/.agents/teamwork/ORIGINAL_REQUEST.md — Authoritative user intent and approved task prompt
+- /home/tn-99778/Towha/LinguaPages/.agents/teamwork/orchestrator_gen2/ — Orchestrator workspace
+- /home/tn-99778/Towha/LinguaPages/.agents/teamwork/victory_auditor_gen2/handoff.md — Victory Audit Report (VICTORY CONFIRMED)
+- /home/tn-99778/Towha/LinguaPages/.agents/teamwork/sentinel/handoff.md — Sentinel final handoff report

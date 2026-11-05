@@ -10,6 +10,7 @@ class PageMark {
     required this.start,
     required this.text,
     required this.color,
+    this.customColor,
   });
 
   /// Where the selection began on the page. The saved text was trimmed, so
@@ -17,6 +18,7 @@ class PageMark {
   final int start;
   final String text;
   final HighlightColor color;
+  final Color? customColor;
 }
 
 /// [text] with each mark drawn behind its words. Marks whose text is no
@@ -26,28 +28,29 @@ TextSpan markedText(
   List<PageMark> marks, {
   required bool darkPage,
 }) {
-  final ranges = <(int, int, HighlightColor)>[];
+  final ranges = <(int, int, HighlightColor, Color?)>[];
   for (final mark in marks) {
     if (mark.text.isEmpty || mark.start > text.length) continue;
     final start = text.indexOf(mark.text, math.max(0, mark.start));
     if (start < 0) continue;
-    ranges.add((start, start + mark.text.length, mark.color));
+    ranges.add((start, start + mark.text.length, mark.color, mark.customColor));
   }
   if (ranges.isEmpty) return TextSpan(text: text);
   ranges.sort((a, b) => a.$1.compareTo(b.$1));
 
   final spans = <TextSpan>[];
   var cursor = 0;
-  for (final (start, end, color) in ranges) {
+  for (final (start, end, color, customColor) in ranges) {
     // Overlapping highlights: the earlier one wins the shared characters.
     if (end <= cursor) continue;
     final from = math.max(start, cursor);
     if (from > cursor) spans.add(TextSpan(text: text.substring(cursor, from)));
+    final background = customColor ?? Color(color.tintArgb(darkPage: darkPage));
     spans.add(
       TextSpan(
         text: text.substring(from, end),
         style: TextStyle(
-          backgroundColor: Color(color.tintArgb(darkPage: darkPage)),
+          backgroundColor: background,
         ),
       ),
     );
