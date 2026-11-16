@@ -427,25 +427,22 @@ class _ReaderScreenState extends State<ReaderScreen>
               ),
             if (_readAloud case final readAloud? when readAloud.state.active)
               Positioned(
-                left: 0,
-                right: 0,
+                left: 12,
+                right: 12,
                 // Docked above the reader bar, or at the bottom without it.
                 bottom: chromeVisible
                     ? readerBottomBarHeight +
-                          MediaQuery.paddingOf(context).bottom
-                    : 0,
-                child: MediaQuery.removePadding(
-                  context: context,
-                  removeBottom: chromeVisible,
-                  child: BlocProvider.value(
-                    value: readAloud,
-                    child: ReadAloudPlayer(
-                      book: widget.book,
-                      onOpenVoiceSettings: () =>
-                          unawaited(_readAloudService.openVoiceSettings()),
-                      onBookmark: ready ? _createBookmark : null,
-                      onMore: ready ? _showReaderSettings : null,
-                    ),
+                          MediaQuery.paddingOf(context).bottom + 8
+                    : MediaQuery.paddingOf(context).bottom + 12,
+                child: BlocProvider.value(
+                  value: readAloud,
+                  child: ReadAloudPlayer(
+                    book: widget.book,
+                    onOpenVoiceSettings: () =>
+                        unawaited(_readAloudService.openVoiceSettings()),
+                    onBookmark: ready ? _createBookmark : null,
+                    onMore: ready ? _showReaderSettings : null,
+                    onMinimize: () => unawaited(readAloud.stop()),
                   ),
                 ),
               ),
@@ -900,10 +897,28 @@ class _ReaderScreenState extends State<ReaderScreen>
       final initialPage = ((pageCount * widget.book.progress).round() - 1)
           .clamp(0, pageCount - 1);
       if (!mounted) return;
+      var tocEntries = contents;
+      var tocTitles = contents.map((entry) => entry.title).toList();
+      if (tocTitles.isEmpty && widget.book.tableOfContents.isNotEmpty) {
+        tocTitles = widget.book.tableOfContents;
+      }
+      if (tocTitles.isEmpty && (info.pageCount ?? 0) > 0) {
+        final count = info.pageCount!;
+        tocTitles = List.generate(count, (i) => 'Page ${i + 1}');
+        tocEntries = List.generate(
+          count,
+          (i) => DocumentTocEntry(
+            title: 'Page ${i + 1}',
+            locator: widget.book.format == DocumentFormat.pdf
+                ? PdfLocator(page: i + 1)
+                : const TextLocator(offset: 0),
+          ),
+        );
+      }
       setState(() {
         _info = info;
-        _localTableOfContents = contents;
-        _tableOfContents = contents.map((entry) => entry.title).toList();
+        _localTableOfContents = tocEntries;
+        _tableOfContents = tocTitles;
         _pageIndex = initialPage;
         _continuousProgress = widget.book.progress;
         _continuousPages = null;
@@ -985,19 +1000,29 @@ class _ReaderScreenState extends State<ReaderScreen>
         settings: _display,
         format: widget.book.format,
       );
-      final contents = publication.tocFlattened;
+      final contents = publication.tocFlattened.isNotEmpty
+          ? publication.tocFlattened
+          : publication.tableOfContents.isNotEmpty
+              ? publication.tableOfContents
+              : publication.readingOrder;
       if (!mounted) return;
+      List<String> titles;
+      final rawTitles = contents
+          .map((link) => link.title?.trim())
+          .map((title) => (title != null && title.isNotEmpty) ? title : null)
+          .toList(growable: false);
+      if (rawTitles.every((t) => t == null) && widget.book.tableOfContents.isNotEmpty) {
+        titles = widget.book.tableOfContents;
+      } else {
+        titles = rawTitles.indexed
+            .map((e) => e.$2 ?? 'Section ${e.$1 + 1}')
+            .toList(growable: false);
+      }
       setState(() {
         _publication = publication;
         _currentReadiumLocator = _savedLocator;
         _readiumTableOfContents = contents;
-        _tableOfContents = contents
-            .map((link) => link.title?.trim())
-            .map(
-              (title) =>
-                  title == null || title.isEmpty ? 'Untitled section' : title,
-            )
-            .toList(growable: false);
+        _tableOfContents = titles;
       });
     } catch (error) {
       if (!mounted) return;
@@ -1270,8 +1295,39 @@ class _ReaderScreenState extends State<ReaderScreen>
     return _bookmarks.any((b) => _locatorsMatch(b.locator, locator));
   }
 
+  List<String> get _effectiveTableOfContents {
+    if (_tableOfContents.isNotEmpty) return _tableOfContents;
+    if (_localTableOfContents.isNotEmpty) {
+      return _localTableOfContents.map((e) => e.title).toList();
+    }
+    if (widget.book.tableOfContents.isNotEmpty) {
+      return widget.book.tableOfContents;
+    }
+    if (_publication != null) {
+      final links = _publication!.tableOfContents.isNotEmpty
+          ? _publication!.tableOfContents
+          : _publication!.readingOrder;
+      if (links.isNotEmpty) {
+        return links.indexed
+            .map((e) {
+              final title = e.$2.title?.trim();
+              return (title != null && title.isNotEmpty)
+                  ? title
+                  : 'Section ${e.$1 + 1}';
+            })
+            .toList();
+      }
+    }
+    final pageCount = _info?.pageCount;
+    if (pageCount != null && pageCount > 0) {
+      return List.generate(pageCount, (i) => 'Page ${i + 1}');
+    }
+    return const [];
+  }
+
   int get _currentChapterIndex {
-    if (_tableOfContents.isEmpty) return 0;
+    final effective = _effectiveTableOfContents;
+    if (effective.isEmpty) return 0;
     if (_readiumTableOfContents.isNotEmpty) {
       for (var i = 0; i < _readiumTableOfContents.length; i++) {
         if (_isCurrentChapter(_readiumTableOfContents[i])) {
@@ -1280,17 +1336,18 @@ class _ReaderScreenState extends State<ReaderScreen>
       }
     }
     final progress = _currentProgress(_info);
-    return (progress * _tableOfContents.length).floor().clamp(
+    return (progress * effective.length).floor().clamp(
       0,
-      _tableOfContents.length - 1,
+      effective.length - 1,
     );
   }
 
   String? get _currentChapterTitle {
-    if (_tableOfContents.isEmpty) return null;
+    final effective = _effectiveTableOfContents;
+    if (effective.isEmpty) return null;
     final index = _currentChapterIndex;
-    if (index >= 0 && index < _tableOfContents.length) {
-      return _tableOfContents[index];
+    if (index >= 0 && index < effective.length) {
+      return effective[index];
     }
     return null;
   }
@@ -1324,7 +1381,7 @@ class _ReaderScreenState extends State<ReaderScreen>
             ...bookmarks.map(ReaderNote.bookmark),
             ...highlights.map(ReaderNote.highlight),
           ],
-          tableOfContents: const [],
+          tableOfContents: _effectiveTableOfContents,
           activeChapterIndex: _currentChapterIndex,
           bookTitle: widget.book.title,
           bookAuthor: widget.book.author,
@@ -1384,7 +1441,7 @@ class _ReaderScreenState extends State<ReaderScreen>
       pageBuilder: (dialogContext, anim1, anim2) => Align(
         alignment: Alignment.centerLeft,
         child: TableOfContentsDrawer(
-          tableOfContents: const [],
+          tableOfContents: _effectiveTableOfContents,
           activeChapterIndex: _currentChapterIndex,
           onChapterSelected: _goToChapter,
         ),
@@ -1401,7 +1458,8 @@ class _ReaderScreenState extends State<ReaderScreen>
     );
   }
 
-  Future<void> _showAnnotations() async => _showNotesSheet(initialTab: 'Highlights');
+  Future<void> _showAnnotations() async =>
+      _showNotesSheet(initialTab: 'Highlights');
 
   void _goToChapter(int index) {
     final isReadium = _readiumTableOfContents.isNotEmpty;
@@ -1414,6 +1472,20 @@ class _ReaderScreenState extends State<ReaderScreen>
         final localEntry = _localTableOfContents[index];
         if (localEntry.locator != null) {
           unawaited(_goToLocalContents(localEntry));
+          return;
+        }
+      }
+      final info = _info;
+      final pageCount = info?.pageCount;
+      if (pageCount != null && index >= 0 && index < pageCount) {
+        if (info?.layout == DocumentLayout.reflowable &&
+            _settings.readerMode == ReaderMode.continuous) {
+          _continuousPageKey.currentState?.jumpToPage(
+            index,
+            pageCount: pageCount,
+          );
+        } else {
+          unawaited(_renderPage(index));
         }
       }
     }
@@ -2112,14 +2184,17 @@ class _ReaderScreenState extends State<ReaderScreen>
   Future<void> _showReaderMenu() async {
     final progress = _currentProgress(_info);
     final percentStr = '${(progress * 100).round()}%';
-    final chapter = _currentChapterTitle ?? _progressCaption(context, _info) ?? '';
+    final chapter =
+        _currentChapterTitle ?? _progressCaption(context, _info) ?? '';
 
     await showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(WarmEditorialTokens.bottomSheetRadius)),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(WarmEditorialTokens.bottomSheetRadius),
+        ),
       ),
       builder: (sheetContext) => SafeArea(
         child: Padding(
@@ -2153,7 +2228,10 @@ class _ReaderScreenState extends State<ReaderScreen>
               ],
               const SizedBox(height: 10),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: WarmEditorialTokens.surfaceContainerLow,
                   borderRadius: BorderRadius.circular(10),
@@ -2161,7 +2239,10 @@ class _ReaderScreenState extends State<ReaderScreen>
                 child: Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: WarmEditorialTokens.surfaceContainerHighest,
                         borderRadius: BorderRadius.circular(4),
@@ -2180,7 +2261,9 @@ class _ReaderScreenState extends State<ReaderScreen>
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        chapter.isNotEmpty ? '$chapter · $percentStr' : percentStr,
+                        chapter.isNotEmpty
+                            ? '$chapter · $percentStr'
+                            : percentStr,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
@@ -2194,34 +2277,61 @@ class _ReaderScreenState extends State<ReaderScreen>
                 ),
               ),
               const SizedBox(height: 8),
-              const Divider(height: 1, color: WarmEditorialTokens.hairlineDivider),
+              const Divider(
+                height: 1,
+                color: WarmEditorialTokens.hairlineDivider,
+              ),
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
                 title: const Text(
                   'Keep screen on',
-                  style: TextStyle(fontFamily: 'Inter', fontSize: 14, fontWeight: FontWeight.w500),
+                  style: TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
                 subtitle: const Text(
                   'Prevent display sleep while reading',
-                  style: TextStyle(fontFamily: 'Inter', fontSize: 12, color: WarmEditorialTokens.subtitleSecondary),
+                  style: TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 12,
+                    color: WarmEditorialTokens.subtitleSecondary,
+                  ),
                 ),
-                secondary: const Icon(Icons.screen_lock_portrait_outlined, color: WarmEditorialTokens.accentInkBlue),
+                secondary: const Icon(
+                  Icons.screen_lock_portrait_outlined,
+                  color: WarmEditorialTokens.accentInkBlue,
+                ),
                 value: _settings.keepScreenAwake,
                 onChanged: (val) {
                   Navigator.of(sheetContext).pop();
-                  _handleReaderSettingsChanged(_settings.copyWith(keepScreenAwake: val));
+                  _handleReaderSettingsChanged(
+                    _settings.copyWith(keepScreenAwake: val),
+                  );
                 },
               ),
               ListTile(
                 contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.fullscreen, color: WarmEditorialTokens.subtitleSecondary),
+                leading: const Icon(
+                  Icons.fullscreen,
+                  color: WarmEditorialTokens.subtitleSecondary,
+                ),
                 title: const Text(
                   'Distraction-free mode',
-                  style: TextStyle(fontFamily: 'Inter', fontSize: 14, fontWeight: FontWeight.w500),
+                  style: TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
                 subtitle: const Text(
                   'Hide toolbars for focused reading',
-                  style: TextStyle(fontFamily: 'Inter', fontSize: 12, color: WarmEditorialTokens.subtitleSecondary),
+                  style: TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 12,
+                    color: WarmEditorialTokens.subtitleSecondary,
+                  ),
                 ),
                 onTap: () {
                   Navigator.of(sheetContext).pop();
@@ -2230,16 +2340,24 @@ class _ReaderScreenState extends State<ReaderScreen>
               ),
               ListTile(
                 contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.share_outlined, color: WarmEditorialTokens.subtitleSecondary),
+                leading: const Icon(
+                  Icons.share_outlined,
+                  color: WarmEditorialTokens.subtitleSecondary,
+                ),
                 title: const Text(
                   'Share book info',
-                  style: TextStyle(fontFamily: 'Inter', fontSize: 14, fontWeight: FontWeight.w500),
+                  style: TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
                 onTap: () {
                   Navigator.of(sheetContext).pop();
                   SharePlus.instance.share(
                     ShareParams(
-                      text: '${widget.book.title}${widget.book.author != null ? ' by ${widget.book.author}' : ''}',
+                      text:
+                          '${widget.book.title}${widget.book.author != null ? ' by ${widget.book.author}' : ''}',
                       subject: widget.book.title,
                     ),
                   );

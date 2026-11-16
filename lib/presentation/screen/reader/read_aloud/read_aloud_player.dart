@@ -11,7 +11,7 @@ import 'package:lingua_pages/presentation/widgets/book/book_cover.dart';
 
 const _speeds = [0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.5, 3.0];
 
-/// Expanded Read Aloud Player bottom sheet matching Stitch screen 05_read_aloud (b44bfe85).
+/// Spotify-style compact mini player for Read Aloud.
 class ReadAloudPlayer extends StatefulWidget {
   const ReadAloudPlayer({
     this.onOpenVoiceSettings,
@@ -43,18 +43,27 @@ class ReadAloudPlayer extends StatefulWidget {
 }
 
 class _ReadAloudPlayerState extends State<ReadAloudPlayer> {
-  double _progress = 0.35;
+  late double _progress = (widget.book?.progress ?? 0.35).clamp(0.0, 1.0);
 
-  static final _defaultBook = BookEntity(
+  static final _fallbackBook = BookEntity(
     id: 'active-reading-book',
-    title: 'The Shadow of the Wind',
-    author: 'Carlos Ruiz Zafón',
+    title: 'Document',
+    author: null,
     format: DocumentFormat.epub,
     sourceUri: '',
-    sourceFileName: 'shadow_of_the_wind.epub',
-    contentFingerprint: 'shadow-wind-fp',
-    addedAt: DateTime(2026, 10, 14),
+    sourceFileName: '',
+    contentFingerprint: '',
+    addedAt: DateTime(2026, 1, 1),
   );
+
+  @override
+  void didUpdateWidget(ReadAloudPlayer oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.book?.progress != null &&
+        widget.book!.progress != oldWidget.book?.progress) {
+      _progress = widget.book!.progress.clamp(0.0, 1.0);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -68,10 +77,10 @@ class _ReadAloudPlayerState extends State<ReadAloudPlayer> {
     }
 
     final isPlaying = widget.isPlaying ?? state?.isPlaying ?? true;
-    final book = widget.book ?? _defaultBook;
+    final book = widget.book ?? _fallbackBook;
 
-    final speedText = state != null ? '${state.speed}x' : '1.25x';
-    final voiceText = state?.voice?.name ?? 'Natural Voice 2';
+    final speedText = state != null ? '${state.speed}x' : '1.0x';
+    final voiceText = state?.voice?.name ?? 'Natural Voice 1';
     final sleepText = state != null && state.sleep != SleepTimerChoice.off
         ? _sleepLabel(context, state.sleep)
         : '30 min timer';
@@ -80,154 +89,63 @@ class _ReadAloudPlayerState extends State<ReadAloudPlayer> {
       return Material(
         key: const Key('read_aloud_player_sheet'),
         color: Colors.white,
-        borderRadius: const BorderRadius.vertical(
-          top: Radius.circular(WarmEditorialTokens.bottomSheetRadiusLarge),
-        ),
-        child: SafeArea(
-          top: false,
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: _Problem(
-              problem: state!.problem!,
-              onOpenSettings: widget.onOpenVoiceSettings ?? () {},
-              onClose: cubit?.stop ?? () {},
-            ),
+        borderRadius: BorderRadius.circular(16),
+        elevation: 6,
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: _Problem(
+            problem: state!.problem!,
+            onOpenSettings: widget.onOpenVoiceSettings ?? () {},
+            onClose: cubit?.stop ?? () {},
           ),
         ),
       );
     }
 
+    final effectiveProgress = (widget.book?.progress ?? _progress).clamp(0.0, 1.0);
+
     return Material(
       key: const Key('read_aloud_player_sheet'),
       color: Colors.white,
-      borderRadius: const BorderRadius.vertical(
-        top: Radius.circular(WarmEditorialTokens.bottomSheetRadiusLarge),
-      ),
-      elevation: 12,
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Top Drag Handle Pill
-              Center(
-                child: Container(
-                  width: 36,
-                  height: 3,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFDCDAD5),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
+      borderRadius: BorderRadius.circular(16),
+      elevation: 6,
+      shadowColor: Colors.black.withValues(alpha: 0.16),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Top Scrubber: Slim Spotify-style track across the top
+            SliderTheme(
+              data: SliderTheme.of(context).copyWith(
+                activeTrackColor: WarmEditorialTokens.accentInkBlue,
+                inactiveTrackColor: WarmEditorialTokens.surfaceContainerHighest,
+                thumbColor: WarmEditorialTokens.accentInkBlue,
+                trackHeight: 2.5,
+                thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 4.5),
+                overlayShape: const RoundSliderOverlayShape(overlayRadius: 8),
+                trackShape: const RectangularSliderTrackShape(),
+              ),
+              child: SizedBox(
+                height: 8,
+                child: Slider(
+                  value: _progress.clamp(0.0, 1.0),
+                  onChanged: (val) => setState(() => _progress = val.clamp(0.0, 1.0)),
                 ),
               ),
-              const SizedBox(height: 8),
+            ),
 
-              // Header: Book cover thumbnail, metadata, minimize button
-              Row(
-                children: [
-                  SizedBox(
-                    width: 36,
-                    height: 50,
-                    child: BookCover(book: book, compact: true),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 5,
-                                vertical: 1,
-                              ),
-                              decoration: BoxDecoration(
-                                color:
-                                    WarmEditorialTokens.surfaceContainerHighest,
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: Text(
-                                book.format.name.toUpperCase(),
-                                style: const TextStyle(
-                                  fontFamily: 'Inter',
-                                  fontSize: 9,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: 0.8,
-                                  color: WarmEditorialTokens.subtitleSecondary,
-                                ),
-                              ),
-                            ),
-                            if (book.author != null) ...[
-                              const SizedBox(width: 6),
-                              Expanded(
-                                child: Text(
-                                  book.author!,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    fontFamily: 'Inter',
-                                    fontSize: 11,
-                                    color:
-                                        WarmEditorialTokens.subtitleSecondary,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          book.title,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontFamily: 'Newsreader',
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                            color: WarmEditorialTokens.textPrimaryInk,
-                          ),
-                        ),
-                        const SizedBox(height: 1),
-                        Text(
-                          book.currentChapterTitle ?? 'Reading in progress',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontFamily: 'Inter',
-                            fontSize: 11,
-                            color: WarmEditorialTokens.subtitleSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(
-                      Icons.keyboard_arrow_down,
-                      size: 22,
-                      color: WarmEditorialTokens.subtitleSecondary,
-                    ),
-                    tooltip: 'Minimize player',
-                    onPressed:
-                        widget.onMinimize ??
-                        () => Navigator.of(context).maybePop(),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 6),
-
-              // Spoken sentence quote card: only rendered when explicitly passed (e.g. tests); omitted in reading mode to keep player minimal
-              if (widget.spokenSentence != null) ...[
-                Container(
+            // Spoken sentence quote card: only rendered when explicitly passed (e.g. tests); omitted in reading mode to keep player minimal
+            if (widget.spokenSentence != null) ...[
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 4, 12, 0),
+                child: Container(
                   key: const Key('player_sentence_quote_card'),
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
                     color: WarmEditorialTokens.canvasBackground,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(8),
                     border: const Border(
                       left: BorderSide(
                         color: WarmEditorialTokens.accentInkBlue,
@@ -239,169 +157,178 @@ class _ReadAloudPlayerState extends State<ReadAloudPlayer> {
                     '“${widget.spokenSentence}”',
                     style: const TextStyle(
                       fontFamily: 'Newsreader',
-                      fontSize: 14,
+                      fontSize: 13,
                       fontStyle: FontStyle.italic,
                       fontWeight: FontWeight.w500,
                       color: WarmEditorialTokens.textPrimaryInk,
                     ),
                   ),
                 ),
-                const SizedBox(height: 6),
-              ],
+              ),
+            ],
 
-              // Timeline Scrubber & Timestamps
-              Column(
+            // Main Mini Player Row: Cover + Info + Controls
+            Padding(
+              padding: const EdgeInsets.fromLTRB(10, 4, 8, 4),
+              child: Row(
                 children: [
-                  SliderTheme(
-                    data: SliderTheme.of(context).copyWith(
-                      activeTrackColor: WarmEditorialTokens.accentInkBlue,
-                      thumbColor: WarmEditorialTokens.accentInkBlue,
-                      trackHeight: 2.0,
-                      thumbShape: const RoundSliderThumbShape(
-                        enabledThumbRadius: 5,
-                      ),
-                      overlayShape: const RoundSliderOverlayShape(
-                        overlayRadius: 8,
-                      ),
-                    ),
+                  // Book cover thumbnail
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(6),
                     child: SizedBox(
-                      height: 16,
-                      child: Slider(
-                        value: _progress,
-                        onChanged: (val) => setState(() => _progress = val),
-                      ),
+                      width: 34,
+                      height: 44,
+                      child: BookCover(book: book, compact: true),
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 6),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  const SizedBox(width: 8),
+
+                  // Metadata: Title, format, author, real progress %
+                  Expanded(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '${(book.progress * 100).round()}%',
+                          book.title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
-                            fontFamily: 'Inter',
-                            fontSize: 10,
-                            color: WarmEditorialTokens.subtitleSecondary,
-                            fontFeatures: [FontFeature.tabularFigures()],
+                            fontFamily: 'Newsreader',
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: WarmEditorialTokens.textPrimaryInk,
                           ),
                         ),
-                        Text(
-                          isPlaying ? 'Reading Aloud' : 'Paused',
-                          style: const TextStyle(
-                            fontFamily: 'Inter',
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
-                            color: WarmEditorialTokens.accentInkBlue,
-                          ),
-                        ),
-                        const Text(
-                          '-08:42',
-                          style: TextStyle(
-                            fontFamily: 'Inter',
-                            fontSize: 10,
-                            color: WarmEditorialTokens.subtitleSecondary,
-                            fontFeatures: [FontFeature.tabularFigures()],
-                          ),
+                        const SizedBox(height: 1),
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 4,
+                                vertical: 1,
+                              ),
+                              decoration: BoxDecoration(
+                                color: WarmEditorialTokens.surfaceContainerHighest,
+                                borderRadius: BorderRadius.circular(3),
+                              ),
+                              child: Text(
+                                book.format.name.toUpperCase(),
+                                style: const TextStyle(
+                                  fontFamily: 'Inter',
+                                  fontSize: 8.5,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 0.6,
+                                  color: WarmEditorialTokens.subtitleSecondary,
+                                ),
+                              ),
+                            ),
+                            if (book.author != null && book.author!.isNotEmpty) ...[
+                              const SizedBox(width: 5),
+                              Flexible(
+                                child: Text(
+                                  book.author!,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontFamily: 'Inter',
+                                    fontSize: 11,
+                                    color: WarmEditorialTokens.subtitleSecondary,
+                                  ),
+                                ),
+                              ),
+                            ],
+                            const SizedBox(width: 6),
+                            Text(
+                              '${(effectiveProgress * 100).round()}%',
+                              style: const TextStyle(
+                                fontFamily: 'Inter',
+                                fontSize: 10.5,
+                                color: WarmEditorialTokens.subtitleSecondary,
+                                fontFeatures: [FontFeature.tabularFigures()],
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 6),
 
-              // Primary Playback Controls Row with 64px hero play/pause
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  IconButton(
-                    icon: const Icon(
-                      Icons.bookmark_add_outlined,
-                      size: 22,
-                      color: WarmEditorialTokens.subtitleSecondary,
-                    ),
-                    tooltip: 'Bookmark',
-                    onPressed: widget.onBookmark,
-                  ),
+                  // Controls: Skip Back + Hero Play/Pause + Skip Forward + Close
                   IconButton(
                     key: const Key('read_aloud_skip_back'),
-                    icon: const Icon(
-                      Icons.replay_10,
-                      size: 28,
-                      color: WarmEditorialTokens.textPrimaryInk,
-                    ),
+                    icon: const Icon(Icons.replay_10, size: 22),
+                    color: WarmEditorialTokens.textPrimaryInk,
+                    tooltip: 'Skip back 10s',
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
                     onPressed: widget.onSkipBack ?? cubit?.previous,
                   ),
+                  const SizedBox(width: 2),
                   GestureDetector(
                     key: const Key('read_aloud_play_pause_hero'),
-                    onTap:
-                        widget.onPlayPause ??
-                        (isPlaying ? cubit?.pause : cubit?.play),
+                    onTap: widget.onPlayPause ?? (isPlaying ? cubit?.pause : cubit?.play),
                     child: Container(
-                      width: 64,
-                      height: 64,
+                      width: 38,
+                      height: 38,
                       decoration: const BoxDecoration(
                         color: WarmEditorialTokens.accentInkBlue,
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: Color(0x472F4A7A),
-                            blurRadius: 16,
-                            offset: Offset(0, 4),
+                            color: Color(0x332F4A7A),
+                            blurRadius: 6,
+                            offset: Offset(0, 2),
                           ),
                         ],
                       ),
                       child: Icon(
                         isPlaying ? Icons.pause : Icons.play_arrow,
                         color: Colors.white,
-                        size: 32,
+                        size: 22,
                       ),
                     ),
                   ),
+                  const SizedBox(width: 2),
                   IconButton(
                     key: const Key('read_aloud_skip_forward'),
-                    icon: const Icon(
-                      Icons.forward_10,
-                      size: 28,
-                      color: WarmEditorialTokens.textPrimaryInk,
-                    ),
+                    icon: const Icon(Icons.forward_10, size: 22),
+                    color: WarmEditorialTokens.textPrimaryInk,
+                    tooltip: 'Skip forward 10s',
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
                     onPressed: widget.onSkipForward ?? cubit?.next,
                   ),
+                  const SizedBox(width: 2),
                   IconButton(
-                    icon: const Icon(
-                      Icons.more_vert,
-                      size: 22,
-                      color: WarmEditorialTokens.subtitleSecondary,
-                    ),
-                    tooltip: 'More options',
-                    onPressed: widget.onMore ?? widget.onOpenVoiceSettings,
+                    icon: const Icon(Icons.close, size: 18),
+                    color: WarmEditorialTokens.subtitleSecondary,
+                    tooltip: 'Stop player',
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                    onPressed: widget.onMinimize ?? cubit?.stop ?? () => Navigator.of(context).maybePop(),
                   ),
                 ],
               ),
-              const SizedBox(height: 14),
+            ),
 
-              // Adjustment Chips: Speed, Voice, Sleep timer
-              SingleChildScrollView(
+            // Secondary Row: Quick Setting Chips (Speed, Voice, Sleep)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(10, 0, 10, 8),
+              child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     ActionChip(
-                      avatar: const Icon(
-                        Icons.speed,
-                        size: 16,
-                        color: Colors.white,
-                      ),
+                      avatar: const Icon(Icons.speed, size: 14, color: WarmEditorialTokens.accentInkBlue),
                       label: Text(speedText),
-                      backgroundColor: WarmEditorialTokens.accentInkBlue,
                       labelStyle: const TextStyle(
                         fontFamily: 'Inter',
-                        color: Colors.white,
-                        fontSize: 12,
+                        fontSize: 11,
                         fontWeight: FontWeight.w600,
+                        color: WarmEditorialTokens.accentInkBlue,
                       ),
+                      backgroundColor: WarmEditorialTokens.surfaceContainerLow,
                       onPressed: () {
                         if (cubit != null) {
                           _pickSpeed(context, cubit.state.speed, cubit);
@@ -412,16 +339,16 @@ class _ReadAloudPlayerState extends State<ReadAloudPlayer> {
                     ActionChip(
                       avatar: const Icon(
                         Icons.record_voice_over_outlined,
-                        size: 16,
+                        size: 14,
                         color: WarmEditorialTokens.subtitleSecondary,
                       ),
                       label: Text(voiceText),
-                      backgroundColor: WarmEditorialTokens.surfaceContainerLow,
                       labelStyle: const TextStyle(
                         fontFamily: 'Inter',
+                        fontSize: 11,
                         color: WarmEditorialTokens.textPrimaryInk,
-                        fontSize: 12,
                       ),
+                      backgroundColor: WarmEditorialTokens.surfaceContainerLow,
                       onPressed: () {
                         if (cubit != null && state != null) {
                           _pickVoice(context, state, cubit);
@@ -432,16 +359,16 @@ class _ReadAloudPlayerState extends State<ReadAloudPlayer> {
                     ActionChip(
                       avatar: const Icon(
                         Icons.bedtime_outlined,
-                        size: 16,
+                        size: 14,
                         color: WarmEditorialTokens.subtitleSecondary,
                       ),
                       label: Text(sleepText),
-                      backgroundColor: WarmEditorialTokens.surfaceContainerLow,
                       labelStyle: const TextStyle(
                         fontFamily: 'Inter',
+                        fontSize: 11,
                         color: WarmEditorialTokens.textPrimaryInk,
-                        fontSize: 12,
                       ),
+                      backgroundColor: WarmEditorialTokens.surfaceContainerLow,
                       onPressed: () {
                         if (cubit != null && state != null) {
                           _pickSleep(context, state.sleep, cubit);
@@ -451,36 +378,8 @@ class _ReadAloudPlayerState extends State<ReadAloudPlayer> {
                   ],
                 ),
               ),
-              const SizedBox(height: 10),
-
-              // Trust & Offline Identity Footer Note
-              const Center(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.lock,
-                      size: 12,
-                      color: WarmEditorialTokens.subtitleSecondary,
-                    ),
-                    SizedBox(width: 4),
-                    Flexible(
-                      child: Text(
-                        'Local On-Device TTS · 0 KB network used',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontFamily: 'Inter',
-                          fontSize: 11,
-                          color: WarmEditorialTokens.subtitleSecondary,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
