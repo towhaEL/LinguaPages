@@ -48,7 +48,9 @@ class BookDetailsSheet extends StatelessWidget {
       ),
       decoration: const BoxDecoration(
         color: WarmEditorialTokens.canvasBackground,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(WarmEditorialTokens.bottomSheetRadius)),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(WarmEditorialTokens.bottomSheetRadius),
+        ),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -91,7 +93,9 @@ class BookDetailsSheet extends StatelessWidget {
                       height: 180,
                       child: Container(
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(WarmEditorialTokens.cardRadius / 2),
+                          borderRadius: BorderRadius.circular(
+                            WarmEditorialTokens.cardRadius / 2,
+                          ),
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withValues(alpha: 0.18),
@@ -101,7 +105,9 @@ class BookDetailsSheet extends StatelessWidget {
                           ],
                         ),
                         child: ClipRRect(
-                          borderRadius: BorderRadius.circular(WarmEditorialTokens.cardRadius / 2),
+                          borderRadius: BorderRadius.circular(
+                            WarmEditorialTokens.cardRadius / 2,
+                          ),
                           child: BookCover(book: book),
                         ),
                       ),
@@ -112,7 +118,8 @@ class BookDetailsSheet extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          if (book.series != null && book.series!.isNotEmpty) ...[
+                          if (book.series != null &&
+                              book.series!.isNotEmpty) ...[
                             Text(
                               book.seriesIndex != null
                                   ? '${book.series!.toUpperCase()} · BOOK ${book.seriesIndex!.toInt()}'
@@ -163,7 +170,9 @@ class BookDetailsSheet extends StatelessWidget {
                             decoration: BoxDecoration(
                               color: WarmEditorialTokens.cardSurface,
                               borderRadius: BorderRadius.circular(100),
-                              border: Border.all(color: WarmEditorialTokens.hairlineDivider),
+                              border: Border.all(
+                                color: WarmEditorialTokens.hairlineDivider,
+                              ),
                             ),
                             child: Text(
                               '${formatCode(book.format)} · Offline',
@@ -181,29 +190,36 @@ class BookDetailsSheet extends StatelessWidget {
                             decoration: BoxDecoration(
                               color: WarmEditorialTokens.cardSurface,
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: WarmEditorialTokens.hairlineDivider),
+                              border: Border.all(
+                                color: WarmEditorialTokens.hairlineDivider,
+                              ),
                             ),
                             child: Column(
                               children: [
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Text(
-                                      book.currentChapterTitle ?? 'Reading progress',
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: GoogleFonts.inter(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w500,
-                                        color: WarmEditorialTokens.textPrimaryInk,
+                                    Expanded(
+                                      child: Text(
+                                        book.currentChapterTitle ?? 'Reading progress',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: GoogleFonts.inter(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w500,
+                                          color: WarmEditorialTokens.textPrimaryInk,
+                                        ),
                                       ),
                                     ),
+                                    const SizedBox(width: 8),
                                     Text(
                                       '${(book.progress * 100).round()}%',
                                       style: GoogleFonts.inter(
                                         fontSize: 11,
                                         fontWeight: FontWeight.w700,
-                                        color: WarmEditorialTokens.accentInkBlue,
+                                        color:
+                                            WarmEditorialTokens.accentInkBlue,
                                       ),
                                     ),
                                   ],
@@ -214,7 +230,8 @@ class BookDetailsSheet extends StatelessWidget {
                                   child: LinearProgressIndicator(
                                     value: book.progress.clamp(0.0, 1.0),
                                     minHeight: 4,
-                                    backgroundColor: WarmEditorialTokens.hairlineDivider,
+                                    backgroundColor:
+                                        WarmEditorialTokens.hairlineDivider,
                                     valueColor: const AlwaysStoppedAnimation(
                                       WarmEditorialTokens.accentInkBlue,
                                     ),
@@ -243,7 +260,8 @@ class BookDetailsSheet extends StatelessWidget {
                             foregroundColor: Colors.white,
                             shape: const StadiumBorder(),
                           ),
-                          onPressed: onRead ??
+                          onPressed:
+                              onRead ??
                               () {
                                 Navigator.of(context).pop();
                                 context.router.push(ReaderRoute(book: book));
@@ -262,26 +280,21 @@ class BookDetailsSheet extends StatelessWidget {
                     const SizedBox(width: 8),
                     // Collect Button
                     SizedBox(
+                      width: 48,
                       height: 48,
-                      child: OutlinedButton.icon(
-                        style: OutlinedButton.styleFrom(
+                      child: IconButton.outlined(
+                        style: IconButton.styleFrom(
                           backgroundColor: WarmEditorialTokens.cardSurface,
-                          foregroundColor: WarmEditorialTokens.textPrimaryInk,
-                          side: const BorderSide(color: WarmEditorialTokens.hairlineDivider),
-                          shape: const StadiumBorder(),
+                          side: const BorderSide(
+                            color: WarmEditorialTokens.hairlineDivider,
+                          ),
                         ),
                         onPressed: () {
                           Navigator.of(context).pop();
                           showBookActions(context, book);
                         },
                         icon: const Icon(Icons.bookmark_add_outlined, size: 20),
-                        label: Text(
-                          'Collect',
-                          style: GoogleFonts.inter(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
+                        tooltip: 'Collect',
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -292,7 +305,9 @@ class BookDetailsSheet extends StatelessWidget {
                       child: IconButton.outlined(
                         style: IconButton.styleFrom(
                           backgroundColor: WarmEditorialTokens.cardSurface,
-                          side: const BorderSide(color: WarmEditorialTokens.hairlineDivider),
+                          side: const BorderSide(
+                            color: WarmEditorialTokens.hairlineDivider,
+                          ),
                         ),
                         onPressed: () {
                           Navigator.of(context).pop();
@@ -310,14 +325,17 @@ class BookDetailsSheet extends StatelessWidget {
                       child: IconButton.outlined(
                         style: IconButton.styleFrom(
                           backgroundColor: WarmEditorialTokens.cardSurface,
-                          side: const BorderSide(color: WarmEditorialTokens.hairlineDivider),
+                          side: const BorderSide(
+                            color: WarmEditorialTokens.hairlineDivider,
+                          ),
                         ),
                         onPressed: () {
                           final hasFile = book.sourceUri.isNotEmpty;
                           SharePlus.instance.share(
                             ShareParams(
                               files: hasFile ? [XFile(book.sourceUri)] : null,
-                              text: '${book.title} by ${book.author ?? "Unknown"}',
+                              text:
+                                  '${book.title} by ${book.author ?? "Unknown"}',
                               subject: book.title,
                             ),
                           );
@@ -329,25 +347,51 @@ class BookDetailsSheet extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 20),
-                const Divider(height: 1, color: WarmEditorialTokens.hairlineDivider),
+                const Divider(
+                  height: 1,
+                  color: WarmEditorialTokens.hairlineDivider,
+                ),
                 const SizedBox(height: 16),
                 // Detailed Metadata Grid Card
                 Container(
                   decoration: BoxDecoration(
                     color: WarmEditorialTokens.cardSurface,
-                    borderRadius: BorderRadius.circular(WarmEditorialTokens.cardRadius),
-                    border: Border.all(color: WarmEditorialTokens.hairlineDivider),
+                    borderRadius: BorderRadius.circular(
+                      WarmEditorialTokens.cardRadius,
+                    ),
+                    border: Border.all(
+                      color: WarmEditorialTokens.hairlineDivider,
+                    ),
                   ),
                   child: Column(
                     children: [
-                      _metaRow('Language', book.languageCode ?? 'English (en-US)'),
-                      const Divider(height: 1, color: WarmEditorialTokens.hairlineDivider),
-                      _metaRow('Encoding', _formatEncoding(book.format), isCode: true),
-                      const Divider(height: 1, color: WarmEditorialTokens.hairlineDivider),
+                      _metaRow(
+                        'Language',
+                        book.languageCode ?? 'English (en-US)',
+                      ),
+                      const Divider(
+                        height: 1,
+                        color: WarmEditorialTokens.hairlineDivider,
+                      ),
+                      _metaRow(
+                        'Encoding',
+                        _formatEncoding(book.format),
+                        isCode: true,
+                      ),
+                      const Divider(
+                        height: 1,
+                        color: WarmEditorialTokens.hairlineDivider,
+                      ),
                       _metaRow('Source', book.sourceFileName, isCode: true),
                       if (book.lastReadAt != null) ...[
-                        const Divider(height: 1, color: WarmEditorialTokens.hairlineDivider),
-                        _metaRow('Last read', '${book.lastReadAt!.day}/${book.lastReadAt!.month}/${book.lastReadAt!.year}'),
+                        const Divider(
+                          height: 1,
+                          color: WarmEditorialTokens.hairlineDivider,
+                        ),
+                        _metaRow(
+                          'Last read',
+                          '${book.lastReadAt!.day}/${book.lastReadAt!.month}/${book.lastReadAt!.year}',
+                        ),
                       ],
                     ],
                   ),
@@ -380,10 +424,15 @@ class BookDetailsSheet extends StatelessWidget {
                     key: const Key('book_details_trash_button'),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: WarmEditorialTokens.destructive,
-                      side: BorderSide(color: WarmEditorialTokens.destructive.withValues(alpha: 0.4)),
+                      side: BorderSide(
+                        color: WarmEditorialTokens.destructive.withValues(
+                          alpha: 0.4,
+                        ),
+                      ),
                       shape: const StadiumBorder(),
                     ),
-                    onPressed: onTrash ??
+                    onPressed:
+                        onTrash ??
                         () async {
                           Navigator.of(context).pop();
                           final moved = await cubit.moveToTrash(book);
@@ -398,7 +447,8 @@ class BookDetailsSheet extends StatelessWidget {
                               action: moved
                                   ? SnackBarAction(
                                       label: l10n.libraryUndo,
-                                      onPressed: () => cubit.restoreFromTrash(book),
+                                      onPressed: () =>
+                                          cubit.restoreFromTrash(book),
                                     )
                                   : null,
                             ),

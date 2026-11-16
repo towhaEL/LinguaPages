@@ -65,7 +65,6 @@ class _ReaderSearchSheetState extends State<ReaderSearchSheet> {
   String? _searched;
   String? _errorMessage;
   late int _activeMatchIndex = widget.currentMatchIndex ?? 1;
-  String _activeScope = 'This book';
 
   @override
   void initState() {
@@ -216,220 +215,120 @@ class _ReaderSearchSheetState extends State<ReaderSearchSheet> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Top Book Context Sub-Header (Editorial Breadcrumb)
+                // Clean Single-Row Search Header
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 8, 16, 4),
+                  padding: const EdgeInsets.fromLTRB(8, 8, 12, 4),
                   child: Row(
                     children: [
                       IconButton(
                         icon: const Icon(Icons.arrow_back, color: WarmEditorialTokens.subtitleSecondary),
                         onPressed: () => Navigator.of(context).maybePop(),
                       ),
-                      const SizedBox(width: 4),
                       Expanded(
-                        child: Row(
-                          children: [
-                            Flexible(
-                              child: Text(
-                                widget.bookTitle ?? 'The Shadow of the Wind',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  fontFamily: 'Newsreader',
-                                  fontSize: 16,
-                                  fontStyle: FontStyle.italic,
-                                  fontWeight: FontWeight.w600,
-                                  color: WarmEditorialTokens.textPrimaryInk,
-                                ),
-                              ),
-                            ),
-                            if (widget.bookAuthor != null) ...[
-                              const Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 6),
-                                child: Text('·', style: TextStyle(color: WarmEditorialTokens.subtitleSecondary)),
-                              ),
-                              Flexible(
-                                child: Text(
-                                  widget.bookAuthor!,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
+                        child: Container(
+                          height: 44,
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(22),
+                            border: Border.all(color: WarmEditorialTokens.hairlineDivider),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.search, color: WarmEditorialTokens.accentInkBlue, size: 20),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: TextField(
+                                  controller: _queryController,
+                                  autofocus: false,
+                                  textInputAction: TextInputAction.search,
+                                  onSubmitted: _performSearch,
                                   style: const TextStyle(
                                     fontFamily: 'Inter',
-                                    fontSize: 12,
-                                    color: WarmEditorialTokens.subtitleSecondary,
+                                    fontSize: 15,
+                                    color: WarmEditorialTokens.textPrimaryInk,
+                                  ),
+                                  decoration: const InputDecoration(
+                                    hintText: 'Search in book...',
+                                    hintStyle: TextStyle(
+                                      fontFamily: 'Inter',
+                                      fontSize: 14,
+                                      color: WarmEditorialTokens.subtitleSecondary,
+                                    ),
+                                    border: InputBorder.none,
+                                    isDense: true,
+                                    contentPadding: EdgeInsets.zero,
                                   ),
                                 ),
                               ),
+                              if (_queryController.text.isNotEmpty)
+                                GestureDetector(
+                                  onTap: () {
+                                    _queryController.clear();
+                                    _performSearch('');
+                                  },
+                                  child: const Icon(Icons.close, size: 18, color: WarmEditorialTokens.subtitleSecondary),
+                                ),
                             ],
-                          ],
+                          ),
                         ),
                       ),
+                    ],
+                  ),
+                ),
+
+                // Match Status & Stepper Bar
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  child: Row(
+                    children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        key: const Key('search_match_counter_badge'),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                         decoration: BoxDecoration(
-                          color: WarmEditorialTokens.surfaceContainerHighest,
-                          borderRadius: BorderRadius.circular(4),
+                          color: WarmEditorialTokens.spokenHighlight,
+                          borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                          widget.bookFormat,
+                          '$totalMatches ${totalMatches == 1 ? 'result' : 'results'}',
                           style: const TextStyle(
                             fontFamily: 'Inter',
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 1.0,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: WarmEditorialTokens.accentInkBlue,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Match $currentMatch of $totalMatches in current chapter',
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontFamily: 'Inter',
+                            fontSize: 12,
                             color: WarmEditorialTokens.subtitleSecondary,
                           ),
                         ),
                       ),
+                      IconButton(
+                        key: const Key('search_prev_match'),
+                        icon: const Icon(Icons.arrow_upward, size: 18),
+                        color: WarmEditorialTokens.subtitleSecondary,
+                        tooltip: 'Previous match',
+                        onPressed: totalMatches > 0 ? _prevMatch : null,
+                      ),
+                      IconButton(
+                        key: const Key('search_next_match'),
+                        icon: const Icon(Icons.arrow_downward, size: 18),
+                        color: WarmEditorialTokens.accentInkBlue,
+                        tooltip: 'Next match',
+                        onPressed: totalMatches > 0 ? _nextMatch : null,
+                      ),
                     ],
                   ),
                 ),
-
-                // Active Search Header Card & Stepper
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: WarmEditorialTokens.hairlineDivider),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.04),
-                          blurRadius: 16,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      children: [
-                        // Input Row
-                        Row(
-                          children: [
-                            const Icon(Icons.search, color: WarmEditorialTokens.accentInkBlue, size: 22),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: TextField(
-                                controller: _queryController,
-                                autofocus: false,
-                                textInputAction: TextInputAction.search,
-                                onSubmitted: _performSearch,
-                                style: const TextStyle(
-                                  fontFamily: 'Newsreader',
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.w500,
-                                  color: WarmEditorialTokens.textPrimaryInk,
-                                ),
-                                decoration: const InputDecoration(
-                                  hintText: 'Search in book...',
-                                  border: InputBorder.none,
-                                  isDense: true,
-                                  contentPadding: EdgeInsets.zero,
-                                ),
-                              ),
-                            ),
-                            // Results counter badge
-                            Container(
-                              key: const Key('search_match_counter_badge'),
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: WarmEditorialTokens.spokenHighlight,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Text(
-                                '$totalMatches ${totalMatches == 1 ? 'result' : 'results'}',
-                                style: const TextStyle(
-                                  fontFamily: 'Inter',
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                  color: WarmEditorialTokens.accentInkBlue,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            if (_queryController.text.isNotEmpty)
-                              IconButton(
-                                icon: const Icon(Icons.close, size: 18, color: WarmEditorialTokens.subtitleSecondary),
-                                onPressed: () {
-                                  _queryController.clear();
-                                  _performSearch('');
-                                },
-                              ),
-                          ],
-                        ),
-                        // Stepper Sub-Row
-                        const SizedBox(height: 8),
-                        const Divider(height: 1, color: WarmEditorialTokens.hairlineDivider),
-                        const SizedBox(height: 6),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: Text(
-                                'Match $currentMatch of $totalMatches in current chapter',
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  fontFamily: 'Inter',
-                                  fontSize: 12,
-                                  color: WarmEditorialTokens.subtitleSecondary,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Row(
-                              children: [
-                                IconButton(
-                                  key: const Key('search_prev_match'),
-                                  icon: const Icon(Icons.arrow_upward, size: 18),
-                                  color: WarmEditorialTokens.subtitleSecondary,
-                                  onPressed: totalMatches > 0 ? _prevMatch : null,
-                                ),
-                                IconButton(
-                                  key: const Key('search_next_match'),
-                                  icon: const Icon(Icons.arrow_downward, size: 18),
-                                  color: WarmEditorialTokens.accentInkBlue,
-                                  onPressed: totalMatches > 0 ? _nextMatch : null,
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-
-                // Scope Filter Chips
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                  child: Row(
-                    children: [
-                      for (final scope in [
-                        'This book',
-                        'All chapters',
-                        'Notes & Highlights',
-                        'Case sensitive',
-                      ])
-                        Padding(
-                          padding: const EdgeInsets.only(right: 8),
-                          child: ChoiceChip(
-                            label: Text(scope == 'This book' ? 'This book ($totalMatches)' : scope),
-                            selected: _activeScope == scope,
-                            selectedColor: WarmEditorialTokens.accentInkBlue,
-                            labelStyle: TextStyle(
-                              fontFamily: 'Inter',
-                              fontSize: 12,
-                              fontWeight: _activeScope == scope ? FontWeight.w600 : FontWeight.w500,
-                              color: _activeScope == scope ? Colors.white : WarmEditorialTokens.subtitleSecondary,
-                            ),
-                            onSelected: (_) => setState(() => _activeScope = scope),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
+                const Divider(height: 1, color: WarmEditorialTokens.hairlineDivider),
 
                 // Results list
                 Expanded(

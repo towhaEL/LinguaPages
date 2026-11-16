@@ -38,15 +38,6 @@ class HomePortraitView extends StatelessWidget {
         titleSpacing: 12,
         actions: [
           IconButton(
-            key: const Key('library_search_button'),
-            tooltip: context.l10n.librarySearchHint,
-            icon: const Icon(Icons.search, size: 22),
-            color: WarmEditorialTokens.subtitleSecondary,
-            onPressed: () {
-              context.read<LibraryCubit>().toggleSearch();
-            },
-          ),
-          IconButton(
             key: const Key('library_settings_button'),
             tooltip: 'Settings',
             icon: const Icon(Icons.settings_outlined, size: 22),
@@ -85,7 +76,9 @@ class HomePortraitView extends StatelessWidget {
       context: context,
       backgroundColor: WarmEditorialTokens.cardSurface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(WarmEditorialTokens.bottomSheetRadius)),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(WarmEditorialTokens.bottomSheetRadius),
+        ),
       ),
       builder: (sheetContext) => SafeArea(
         child: Column(
@@ -103,7 +96,10 @@ class HomePortraitView extends StatelessWidget {
             const SizedBox(height: 8),
             ListTile(
               contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-              leading: const Icon(Icons.upload_file_rounded, color: WarmEditorialTokens.accentInkBlue),
+              leading: const Icon(
+                Icons.upload_file_rounded,
+                color: WarmEditorialTokens.accentInkBlue,
+              ),
               title: Text(
                 l10n.libraryImportFile,
                 style: GoogleFonts.inter(fontWeight: FontWeight.w500),
@@ -112,14 +108,20 @@ class HomePortraitView extends StatelessWidget {
             ),
             ListTile(
               contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-              leading: const Icon(Icons.folder_open_rounded, color: WarmEditorialTokens.accentInkBlue),
+              leading: const Icon(
+                Icons.folder_open_rounded,
+                color: WarmEditorialTokens.accentInkBlue,
+              ),
               title: Text(
                 l10n.libraryImportFolder,
                 style: GoogleFonts.inter(fontWeight: FontWeight.w500),
               ),
               subtitle: Text(
                 l10n.libraryImportFolderSubtitle,
-                style: GoogleFonts.inter(fontSize: 12, color: WarmEditorialTokens.subtitleSecondary),
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  color: WarmEditorialTokens.subtitleSecondary,
+                ),
               ),
               onTap: () => Navigator.of(sheetContext).pop(true),
             ),

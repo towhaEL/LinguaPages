@@ -34,7 +34,6 @@ import 'package:lingua_pages/domain/service/volume_key_service.dart';
 import 'package:lingua_pages/domain/service/annotation_markdown_exporter.dart';
 import 'package:lingua_pages/domain/use_cases/reader/save_reading_progress_use_case.dart';
 import 'package:lingua_pages/l10n/l10n.dart';
-import 'package:lingua_pages/presentation/screen/home/components/book_details_sheet.dart';
 import 'package:lingua_pages/presentation/screen/premium/cubit/premium_cubit.dart';
 import 'package:lingua_pages/presentation/screen/premium/cubit/premium_state.dart';
 import 'package:lingua_pages/presentation/screen/reader/widgets/appearance_sheet.dart';
@@ -43,6 +42,7 @@ import 'package:lingua_pages/presentation/screen/reader/widgets/highlight_editor
 import 'package:lingua_pages/presentation/screen/reader/widgets/marked_text.dart';
 import 'package:lingua_pages/presentation/screen/reader/widgets/notes_sheet.dart';
 import 'package:lingua_pages/presentation/screen/reader/widgets/reader_search.dart';
+import 'package:lingua_pages/presentation/screen/reader/widgets/table_of_contents_drawer.dart';
 import 'package:lingua_pages/presentation/screen/reader/read_aloud/read_aloud_cubit.dart';
 import 'package:lingua_pages/presentation/screen/reader/read_aloud/read_aloud_player.dart';
 import 'package:lingua_pages/presentation/screen/reader/widgets/reader_chrome.dart';
@@ -353,7 +353,9 @@ class _ReaderScreenState extends State<ReaderScreen>
                   height: 38,
                   decoration: const BoxDecoration(
                     color: WarmEditorialTokens.accentInkBlue,
-                    borderRadius: BorderRadius.vertical(bottom: Radius.circular(2)),
+                    borderRadius: BorderRadius.vertical(
+                      bottom: Radius.circular(2),
+                    ),
                   ),
                 ),
               ),
@@ -368,13 +370,17 @@ class _ReaderScreenState extends State<ReaderScreen>
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.9),
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: WarmEditorialTokens.hairlineDivider),
+                    border: Border.all(
+                      color: WarmEditorialTokens.hairlineDivider,
+                    ),
                   ),
                   child: RotatedBox(
                     quarterTurns: 3,
                     child: SliderTheme(
                       data: const SliderThemeData(
-                        thumbShape: RoundSliderThumbShape(enabledThumbRadius: 6),
+                        thumbShape: RoundSliderThumbShape(
+                          enabledThumbRadius: 6,
+                        ),
                       ),
                       child: Slider(
                         value: (_readerBrightness ?? 0.65).clamp(0.05, 1.0),
@@ -382,7 +388,9 @@ class _ReaderScreenState extends State<ReaderScreen>
                         inactiveColor: WarmEditorialTokens.hairlineDivider,
                         onChanged: (val) {
                           setState(() => _readerBrightness = val);
-                          unawaited(_brightness.set(val).catchError((Object _) {}));
+                          unawaited(
+                            _brightness.set(val).catchError((Object _) {}),
+                          );
                         },
                       ),
                     ),
@@ -402,7 +410,7 @@ class _ReaderScreenState extends State<ReaderScreen>
                   isBookmarked: _isCurrentPageBookmarked,
                   onSearchPressed: ready ? _showSearch : null,
                   onBookmarkPressed: ready ? _createBookmark : null,
-                  onMenuPressed: ready ? () => showBookDetailsSheet(context, widget.book) : null,
+                  onMenuPressed: ready ? _showReaderMenu : null,
                 ),
               ),
             ),
@@ -508,7 +516,10 @@ class _ReaderScreenState extends State<ReaderScreen>
               child: SafeArea(
                 top: false,
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 8,
+                  ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -664,9 +675,7 @@ class _ReaderScreenState extends State<ReaderScreen>
           label: l10n.readerToolNotes,
           onPressed: _showAnnotations,
         ),
-        if (!_usesReadium &&
-            widget.book.format == DocumentFormat.pdf &&
-            !paged)
+        if (!_usesReadium && widget.book.format == DocumentFormat.pdf && !paged)
           ReaderTool(
             icon: Icons.view_module_outlined,
             label: l10n.readerToolPages,
@@ -1065,7 +1074,6 @@ class _ReaderScreenState extends State<ReaderScreen>
   }
 
   Future<void> _goToReadiumContents(Link link) async {
-    Navigator.of(context).pop();
     try {
       var locator = link.toLocator();
       // TOC links often lack a media type, which the navigator needs; take
@@ -1089,7 +1097,6 @@ class _ReaderScreenState extends State<ReaderScreen>
   }
 
   Future<void> _goToLocalContents(DocumentTocEntry entry) async {
-    Navigator.of(context).pop();
     final locator = entry.locator;
     final engine = _engine;
     final info = _info;
@@ -1273,7 +1280,10 @@ class _ReaderScreenState extends State<ReaderScreen>
       }
     }
     final progress = _currentProgress(_info);
-    return (progress * _tableOfContents.length).floor().clamp(0, _tableOfContents.length - 1);
+    return (progress * _tableOfContents.length).floor().clamp(
+      0,
+      _tableOfContents.length - 1,
+    );
   }
 
   String? get _currentChapterTitle {
@@ -1314,7 +1324,7 @@ class _ReaderScreenState extends State<ReaderScreen>
             ...bookmarks.map(ReaderNote.bookmark),
             ...highlights.map(ReaderNote.highlight),
           ],
-          tableOfContents: _tableOfContents,
+          tableOfContents: const [],
           activeChapterIndex: _currentChapterIndex,
           bookTitle: widget.book.title,
           bookAuthor: widget.book.author,
@@ -1364,9 +1374,34 @@ class _ReaderScreenState extends State<ReaderScreen>
     }
   }
 
-  Future<void> _showTableOfContents() async => _showNotesSheet(initialTab: 'Contents');
+  Future<void> _showTableOfContents() async {
+    await showGeneralDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'Table of Contents',
+      barrierColor: Colors.black45,
+      transitionDuration: const Duration(milliseconds: 250),
+      pageBuilder: (dialogContext, anim1, anim2) => Align(
+        alignment: Alignment.centerLeft,
+        child: TableOfContentsDrawer(
+          tableOfContents: const [],
+          activeChapterIndex: _currentChapterIndex,
+          onChapterSelected: _goToChapter,
+        ),
+      ),
+      transitionBuilder: (context, anim1, anim2, child) {
+        return SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(-1, 0),
+            end: Offset.zero,
+          ).animate(CurvedAnimation(parent: anim1, curve: Curves.easeOutCubic)),
+          child: child,
+        );
+      },
+    );
+  }
 
-  Future<void> _showAnnotations() async => _showNotesSheet(initialTab: 'Bookmarks');
+  Future<void> _showAnnotations() async => _showNotesSheet(initialTab: 'Highlights');
 
   void _goToChapter(int index) {
     final isReadium = _readiumTableOfContents.isNotEmpty;
@@ -1409,8 +1444,9 @@ class _ReaderScreenState extends State<ReaderScreen>
       await _highlightRepository.delete(highlight.id);
       if (mounted) {
         setState(() {
-          _highlights =
-              _highlights.where((h) => h.id != highlight.id).toList(growable: false);
+          _highlights = _highlights
+              .where((h) => h.id != highlight.id)
+              .toList(growable: false);
         });
       }
     }
@@ -2053,6 +2089,7 @@ class _ReaderScreenState extends State<ReaderScreen>
       context: context,
       showDragHandle: true,
       isScrollControlled: true,
+      barrierColor: Colors.black12,
       builder: (context) => AppearanceSheet(
         settings: _display,
         isPdf: widget.book.format == DocumentFormat.pdf,
@@ -2070,6 +2107,149 @@ class _ReaderScreenState extends State<ReaderScreen>
     final previous = _display;
     setState(() => _sheetSettings = null);
     _applyDisplay(previous);
+  }
+
+  Future<void> _showReaderMenu() async {
+    final progress = _currentProgress(_info);
+    final percentStr = '${(progress * 100).round()}%';
+    final chapter = _currentChapterTitle ?? _progressCaption(context, _info) ?? '';
+
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(WarmEditorialTokens.bottomSheetRadius)),
+      ),
+      builder: (sheetContext) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                widget.book.title,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontFamily: 'Newsreader',
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  fontStyle: FontStyle.italic,
+                  color: WarmEditorialTokens.textPrimaryInk,
+                ),
+              ),
+              if (widget.book.author != null) ...[
+                const SizedBox(height: 2),
+                Text(
+                  widget.book.author!,
+                  style: const TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 13,
+                    color: WarmEditorialTokens.subtitleSecondary,
+                  ),
+                ),
+              ],
+              const SizedBox(height: 10),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: WarmEditorialTokens.surfaceContainerLow,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: WarmEditorialTokens.surfaceContainerHighest,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        widget.book.format.name.toUpperCase(),
+                        style: const TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.8,
+                          color: WarmEditorialTokens.subtitleSecondary,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        chapter.isNotEmpty ? '$chapter · $percentStr' : percentStr,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 12,
+                          color: WarmEditorialTokens.subtitleSecondary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Divider(height: 1, color: WarmEditorialTokens.hairlineDivider),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: const Text(
+                  'Keep screen on',
+                  style: TextStyle(fontFamily: 'Inter', fontSize: 14, fontWeight: FontWeight.w500),
+                ),
+                subtitle: const Text(
+                  'Prevent display sleep while reading',
+                  style: TextStyle(fontFamily: 'Inter', fontSize: 12, color: WarmEditorialTokens.subtitleSecondary),
+                ),
+                secondary: const Icon(Icons.screen_lock_portrait_outlined, color: WarmEditorialTokens.accentInkBlue),
+                value: _settings.keepScreenAwake,
+                onChanged: (val) {
+                  Navigator.of(sheetContext).pop();
+                  _handleReaderSettingsChanged(_settings.copyWith(keepScreenAwake: val));
+                },
+              ),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.fullscreen, color: WarmEditorialTokens.subtitleSecondary),
+                title: const Text(
+                  'Distraction-free mode',
+                  style: TextStyle(fontFamily: 'Inter', fontSize: 14, fontWeight: FontWeight.w500),
+                ),
+                subtitle: const Text(
+                  'Hide toolbars for focused reading',
+                  style: TextStyle(fontFamily: 'Inter', fontSize: 12, color: WarmEditorialTokens.subtitleSecondary),
+                ),
+                onTap: () {
+                  Navigator.of(sheetContext).pop();
+                  _toggleChrome();
+                },
+              ),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.share_outlined, color: WarmEditorialTokens.subtitleSecondary),
+                title: const Text(
+                  'Share book info',
+                  style: TextStyle(fontFamily: 'Inter', fontSize: 14, fontWeight: FontWeight.w500),
+                ),
+                onTap: () {
+                  Navigator.of(sheetContext).pop();
+                  SharePlus.instance.share(
+                    ShareParams(
+                      text: '${widget.book.title}${widget.book.author != null ? ' by ${widget.book.author}' : ''}',
+                      subject: widget.book.title,
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   Future<void> _showPdfThumbnails() async {

@@ -16,8 +16,9 @@ String formatCode(DocumentFormat format) => switch (format) {
   DocumentFormat.fb2 => 'FB2',
 };
 
-/// A 2:3 paperback cover: a format-coloured band top and bottom, with the
-/// extracted cover image (or a cream title label) between them.
+/// A 2:3 paperback cover: displays the extracted full-bleed cover image, or
+/// gracefully falls back to a format-coloured paperback band layout with title
+/// label for books without embedded cover art.
 class BookCover extends StatelessWidget {
   const BookCover({super.key, required this.book, this.compact = false});
 
@@ -31,6 +32,44 @@ class BookCover extends StatelessWidget {
     final bands = context.bands;
     final band = bands.forFormat(book.format);
     final code = formatCode(book.format);
+    final coverPath = book.coverPath;
+
+    Widget buildFallback() => Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Expanded(flex: 3, child: ColoredBox(color: band)),
+        Expanded(
+          flex: 4,
+          child: _CoverFace(book: book, compact: compact),
+        ),
+        Expanded(
+          flex: 3,
+          child: ColoredBox(
+            color: band,
+            child: Align(
+              alignment: const Alignment(0, .55),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: Text(
+                    code,
+                    // Cover art keeps its size; the caption scales.
+                    textScaler: TextScaler.noScaling,
+                    style: TextStyle(
+                      color: bands.onBand,
+                      fontSize: compact ? 9 : 11,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
 
     return Semantics(
       label: '${book.title}, $code',
@@ -38,43 +77,14 @@ class BookCover extends StatelessWidget {
       child: AspectRatio(
         aspectRatio: 2 / 3,
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(compact ? 3 : 4),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(flex: 3, child: ColoredBox(color: band)),
-              Expanded(
-                flex: 4,
-                child: _CoverFace(book: book, compact: compact),
-              ),
-              Expanded(
-                flex: 3,
-                child: ColoredBox(
-                  color: band,
-                  child: Align(
-                    alignment: const Alignment(0, .55),
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 4),
-                        child: Text(
-                          code,
-                          // Cover art keeps its size; the caption scales.
-                          textScaler: TextScaler.noScaling,
-                          style: TextStyle(
-                            color: bands.onBand,
-                            fontSize: compact ? 9 : 11,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 1.2,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
+          borderRadius: BorderRadius.circular(compact ? 4 : 6),
+          child: coverPath != null && coverPath.isNotEmpty
+              ? Image.file(
+                  File(coverPath),
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, _, _) => buildFallback(),
+                )
+              : buildFallback(),
         ),
       ),
     );

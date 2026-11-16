@@ -43,43 +43,47 @@ class AppearanceSheet extends StatefulWidget {
 
 class _AppearanceSheetState extends State<AppearanceSheet> {
   late SettingsEntity _settings = widget.settings ?? const SettingsEntity();
-  late String _activeThemeName = widget.selectedTheme ?? _themeToName(_settings.readerTheme);
-  late double _fontSize = widget.fontSize ?? _settings.fontSize.clamp(12.0, 28.0);
+  late String _activeThemeName =
+      widget.selectedTheme ?? _themeToName(_settings.readerTheme);
+  late double _fontSize =
+      widget.fontSize ?? _settings.fontSize.clamp(12.0, 28.0);
   late double _lineSpacing = _settings.lineSpacing.clamp(1.1, 2.2);
   late double _margin = _settings.margin.clamp(12.0, 44.0);
   double _brightness = 0.85;
   bool _followSystemBrightness = false;
 
   static String _themeToName(ReaderTheme theme) => switch (theme) {
-        ReaderTheme.light => 'Paper',
-        ReaderTheme.sepia => 'Sepia',
-        ReaderTheme.dark => 'Night',
-        ReaderTheme.nightContrast => 'OLED',
-        ReaderTheme.sage => 'Grey',
-        _ => 'White',
-      };
+    ReaderTheme.light => 'Paper',
+    ReaderTheme.sepia => 'Sepia',
+    ReaderTheme.dark => 'Night',
+    ReaderTheme.nightContrast => 'OLED',
+    ReaderTheme.sage => 'Grey',
+    _ => 'White',
+  };
 
   static ReaderTheme _nameToTheme(String name) => switch (name) {
-        'Paper' => ReaderTheme.light,
-        'White' => ReaderTheme.light,
-        'Sepia' => ReaderTheme.sepia,
-        'Grey' => ReaderTheme.sage,
-        'Night' => ReaderTheme.dark,
-        'OLED' => ReaderTheme.nightContrast,
-        _ => ReaderTheme.light,
-      };
+    'Paper' => ReaderTheme.light,
+    'White' => ReaderTheme.light,
+    'Sepia' => ReaderTheme.sepia,
+    'Grey' => ReaderTheme.sage,
+    'Night' => ReaderTheme.dark,
+    'OLED' => ReaderTheme.nightContrast,
+    _ => ReaderTheme.light,
+  };
 
   @override
   void didUpdateWidget(covariant AppearanceSheet oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.settings != null && widget.settings != oldWidget.settings) {
       _settings = widget.settings!;
-      _activeThemeName = widget.selectedTheme ?? _themeToName(_settings.readerTheme);
+      _activeThemeName =
+          widget.selectedTheme ?? _themeToName(_settings.readerTheme);
       _fontSize = widget.fontSize ?? _settings.fontSize.clamp(12.0, 28.0);
       _lineSpacing = _settings.lineSpacing.clamp(1.1, 2.2);
       _margin = _settings.margin.clamp(12.0, 44.0);
     }
-    if (widget.selectedTheme != null && widget.selectedTheme != oldWidget.selectedTheme) {
+    if (widget.selectedTheme != null &&
+        widget.selectedTheme != oldWidget.selectedTheme) {
       _activeThemeName = widget.selectedTheme!;
     }
     if (widget.fontSize != null && widget.fontSize != oldWidget.fontSize) {
@@ -157,12 +161,14 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
 
     return Material(
       color: Colors.white,
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(WarmEditorialTokens.bottomSheetRadius)),
+      borderRadius: const BorderRadius.vertical(
+        top: Radius.circular(WarmEditorialTokens.bottomSheetRadius),
+      ),
       child: SafeArea(
         top: false,
         child: ConstrainedBox(
           constraints: BoxConstraints(
-            maxHeight: MediaQuery.sizeOf(context).height,
+            maxHeight: MediaQuery.sizeOf(context).height * 0.52,
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -181,7 +187,10 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
 
               // Header
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 8,
+                ),
                 child: Row(
                   children: [
                     Expanded(
@@ -223,13 +232,20 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.close, size: 20, color: WarmEditorialTokens.subtitleSecondary),
+                      icon: const Icon(
+                        Icons.close,
+                        size: 20,
+                        color: WarmEditorialTokens.subtitleSecondary,
+                      ),
                       onPressed: () => Navigator.of(context).pop(),
                     ),
                   ],
                 ),
               ),
-              const Divider(height: 1, color: WarmEditorialTokens.hairlineDivider),
+              const Divider(
+                height: 1,
+                color: WarmEditorialTokens.hairlineDivider,
+              ),
 
               // Scrollable Settings
               Expanded(
@@ -268,10 +284,16 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                         children: [
                           for (final (name, color, isLocked) in swatches)
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 7),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 7,
+                              ),
                               child: GestureDetector(
                                 key: Key('swatch_$name'),
-                                onTap: () => _selectTheme(name, isLocked, premiumUnlocked),
+                                onTap: () => _selectTheme(
+                                  name,
+                                  isLocked,
+                                  premiumUnlocked,
+                                ),
                                 child: Column(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
@@ -283,16 +305,22 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                                         shape: BoxShape.circle,
                                         border: Border.all(
                                           color: _activeThemeName == name
-                                              ? WarmEditorialTokens.accentInkBlue
+                                              ? WarmEditorialTokens
+                                                    .accentInkBlue
                                               : (color == Colors.white
-                                                  ? WarmEditorialTokens.hairlineDivider
-                                                  : Colors.transparent),
-                                          width: _activeThemeName == name ? 2.5 : 1.0,
+                                                    ? WarmEditorialTokens
+                                                          .hairlineDivider
+                                                    : Colors.transparent),
+                                          width: _activeThemeName == name
+                                              ? 2.5
+                                              : 1.0,
                                         ),
                                         boxShadow: [
                                           if (_activeThemeName == name)
                                             BoxShadow(
-                                              color: WarmEditorialTokens.accentInkBlue.withValues(alpha: 0.2),
+                                              color: WarmEditorialTokens
+                                                  .accentInkBlue
+                                                  .withValues(alpha: 0.2),
                                               blurRadius: 4,
                                               spreadRadius: 1,
                                             ),
@@ -307,14 +335,23 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                                               ),
                                             )
                                           : (_activeThemeName == name
-                                              ? Icon(
-                                                  Icons.check,
-                                                  size: 18,
-                                                  color: (color == const Color(0xFF23272A) || color == const Color(0xFF121212))
-                                                      ? Colors.white
-                                                      : WarmEditorialTokens.accentInkBlue,
-                                                )
-                                              : null),
+                                                ? Icon(
+                                                    Icons.check,
+                                                    size: 18,
+                                                    color:
+                                                        (color ==
+                                                                const Color(
+                                                                  0xFF23272A,
+                                                                ) ||
+                                                            color ==
+                                                                const Color(
+                                                                  0xFF121212,
+                                                                ))
+                                                        ? Colors.white
+                                                        : WarmEditorialTokens
+                                                              .accentInkBlue,
+                                                  )
+                                                : null),
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
@@ -322,10 +359,13 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                                       style: TextStyle(
                                         fontFamily: 'Inter',
                                         fontSize: 11,
-                                        fontWeight: _activeThemeName == name ? FontWeight.w600 : FontWeight.w400,
+                                        fontWeight: _activeThemeName == name
+                                            ? FontWeight.w600
+                                            : FontWeight.w400,
                                         color: _activeThemeName == name
                                             ? WarmEditorialTokens.accentInkBlue
-                                            : WarmEditorialTokens.subtitleSecondary,
+                                            : WarmEditorialTokens
+                                                  .subtitleSecondary,
                                       ),
                                     ),
                                   ],
@@ -336,7 +376,10 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    const Divider(height: 1, color: WarmEditorialTokens.hairlineDivider),
+                    const Divider(
+                      height: 1,
+                      color: WarmEditorialTokens.hairlineDivider,
+                    ),
                     const SizedBox(height: 10),
 
                     // PDF Display Mode Toggle
@@ -371,7 +414,9 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                         decoration: BoxDecoration(
                           color: WarmEditorialTokens.surfaceContainerLow,
                           borderRadius: BorderRadius.circular(100),
-                          border: Border.all(color: WarmEditorialTokens.hairlineDivider),
+                          border: Border.all(
+                            color: WarmEditorialTokens.hairlineDivider,
+                          ),
                         ),
                         child: Row(
                           children: [
@@ -379,19 +424,29 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                               child: InkWell(
                                 borderRadius: BorderRadius.circular(100),
                                 onTap: () => _updateSettings(
-                                  _settings.copyWith(readerPdfMode: ReaderPdfMode.visual),
+                                  _settings.copyWith(
+                                    readerPdfMode: ReaderPdfMode.visual,
+                                  ),
                                 ),
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(vertical: 8),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 8,
+                                  ),
                                   decoration: BoxDecoration(
-                                    color: _settings.readerPdfMode == ReaderPdfMode.visual
+                                    color:
+                                        _settings.readerPdfMode ==
+                                            ReaderPdfMode.visual
                                         ? WarmEditorialTokens.cardSurface
                                         : Colors.transparent,
                                     borderRadius: BorderRadius.circular(100),
-                                    boxShadow: _settings.readerPdfMode == ReaderPdfMode.visual
+                                    boxShadow:
+                                        _settings.readerPdfMode ==
+                                            ReaderPdfMode.visual
                                         ? [
                                             BoxShadow(
-                                              color: Colors.black.withValues(alpha: 0.06),
+                                              color: Colors.black.withValues(
+                                                alpha: 0.06,
+                                              ),
                                               blurRadius: 4,
                                               offset: const Offset(0, 1),
                                             ),
@@ -405,9 +460,12 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                                         fontFamily: 'Inter',
                                         fontSize: 13,
                                         fontWeight: FontWeight.w600,
-                                        color: _settings.readerPdfMode == ReaderPdfMode.visual
+                                        color:
+                                            _settings.readerPdfMode ==
+                                                ReaderPdfMode.visual
                                             ? WarmEditorialTokens.accentInkBlue
-                                            : WarmEditorialTokens.subtitleSecondary,
+                                            : WarmEditorialTokens
+                                                  .subtitleSecondary,
                                       ),
                                     ),
                                   ),
@@ -418,19 +476,29 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                               child: InkWell(
                                 borderRadius: BorderRadius.circular(100),
                                 onTap: () => _updateSettings(
-                                  _settings.copyWith(readerPdfMode: ReaderPdfMode.text),
+                                  _settings.copyWith(
+                                    readerPdfMode: ReaderPdfMode.text,
+                                  ),
                                 ),
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(vertical: 8),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 8,
+                                  ),
                                   decoration: BoxDecoration(
-                                    color: _settings.readerPdfMode == ReaderPdfMode.text
+                                    color:
+                                        _settings.readerPdfMode ==
+                                            ReaderPdfMode.text
                                         ? WarmEditorialTokens.cardSurface
                                         : Colors.transparent,
                                     borderRadius: BorderRadius.circular(100),
-                                    boxShadow: _settings.readerPdfMode == ReaderPdfMode.text
+                                    boxShadow:
+                                        _settings.readerPdfMode ==
+                                            ReaderPdfMode.text
                                         ? [
                                             BoxShadow(
-                                              color: Colors.black.withValues(alpha: 0.06),
+                                              color: Colors.black.withValues(
+                                                alpha: 0.06,
+                                              ),
                                               blurRadius: 4,
                                               offset: const Offset(0, 1),
                                             ),
@@ -444,9 +512,12 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                                         fontFamily: 'Inter',
                                         fontSize: 13,
                                         fontWeight: FontWeight.w600,
-                                        color: _settings.readerPdfMode == ReaderPdfMode.text
+                                        color:
+                                            _settings.readerPdfMode ==
+                                                ReaderPdfMode.text
                                             ? WarmEditorialTokens.accentInkBlue
-                                            : WarmEditorialTokens.subtitleSecondary,
+                                            : WarmEditorialTokens
+                                                  .subtitleSecondary,
                                       ),
                                     ),
                                   ),
@@ -457,12 +528,16 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                         ),
                       ),
                       const SizedBox(height: 12),
-                      const Divider(height: 1, color: WarmEditorialTokens.hairlineDivider),
+                      const Divider(
+                        height: 1,
+                        color: WarmEditorialTokens.hairlineDivider,
+                      ),
                       const SizedBox(height: 10),
                     ],
 
                     // SECTION 2: Typeface Selection
-                    if (!widget.isPdf || _settings.readerPdfMode == ReaderPdfMode.text) ...[
+                    if (!widget.isPdf ||
+                        _settings.readerPdfMode == ReaderPdfMode.text) ...[
                       const Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -492,16 +567,22 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                         scrollDirection: Axis.horizontal,
                         child: Row(
                           children: [
-                            for (final (font, title, subtitle, family) in typefaces)
+                            for (final (font, title, subtitle, family)
+                                in typefaces)
                               Padding(
                                 padding: const EdgeInsets.only(right: 8),
                                 child: InkWell(
                                   onTap: () {
-                                    _updateSettings(_settings.copyWith(readerFont: font));
+                                    _updateSettings(
+                                      _settings.copyWith(readerFont: font),
+                                    );
                                   },
                                   borderRadius: BorderRadius.circular(12),
                                   child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 6,
+                                    ),
                                     decoration: BoxDecoration(
                                       color: _settings.readerFont == font
                                           ? WarmEditorialTokens.accentInkBlue
@@ -510,7 +591,8 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                                       border: Border.all(
                                         color: _settings.readerFont == font
                                             ? WarmEditorialTokens.accentInkBlue
-                                            : WarmEditorialTokens.hairlineDivider,
+                                            : WarmEditorialTokens
+                                                  .hairlineDivider,
                                       ),
                                     ),
                                     child: Row(
@@ -523,12 +605,14 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                                             fontWeight: FontWeight.w500,
                                             color: _settings.readerFont == font
                                                 ? Colors.white
-                                                : WarmEditorialTokens.textPrimaryInk,
+                                                : WarmEditorialTokens
+                                                      .textPrimaryInk,
                                           ),
                                         ),
                                         const SizedBox(width: 8),
                                         Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
                                             Text(
@@ -537,9 +621,11 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                                                 fontFamily: 'Inter',
                                                 fontSize: 12,
                                                 fontWeight: FontWeight.w600,
-                                                color: _settings.readerFont == font
+                                                color:
+                                                    _settings.readerFont == font
                                                     ? Colors.white
-                                                    : WarmEditorialTokens.textPrimaryInk,
+                                                    : WarmEditorialTokens
+                                                          .textPrimaryInk,
                                               ),
                                             ),
                                             Text(
@@ -547,16 +633,22 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                                               style: TextStyle(
                                                 fontFamily: 'Inter',
                                                 fontSize: 10,
-                                                color: _settings.readerFont == font
+                                                color:
+                                                    _settings.readerFont == font
                                                     ? Colors.white70
-                                                    : WarmEditorialTokens.subtitleSecondary,
+                                                    : WarmEditorialTokens
+                                                          .subtitleSecondary,
                                               ),
                                             ),
                                           ],
                                         ),
                                         if (_settings.readerFont == font) ...[
                                           const SizedBox(width: 6),
-                                          const Icon(Icons.check, size: 16, color: Colors.white),
+                                          const Icon(
+                                            Icons.check,
+                                            size: 16,
+                                            color: Colors.white,
+                                          ),
                                         ],
                                       ],
                                     ),
@@ -567,7 +659,10 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                         ),
                       ),
                       const SizedBox(height: 10),
-                      const Divider(height: 1, color: WarmEditorialTokens.hairlineDivider),
+                      const Divider(
+                        height: 1,
+                        color: WarmEditorialTokens.hairlineDivider,
+                      ),
                       const SizedBox(height: 8),
                     ],
 
@@ -589,7 +684,9 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                       decoration: BoxDecoration(
                         color: WarmEditorialTokens.surfaceContainerLow,
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: WarmEditorialTokens.hairlineDivider),
+                        border: Border.all(
+                          color: WarmEditorialTokens.hairlineDivider,
+                        ),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -603,7 +700,8 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                                   style: TextStyle(
                                     fontFamily: 'Inter',
                                     fontSize: 12,
-                                    color: WarmEditorialTokens.subtitleSecondary,
+                                    color:
+                                        WarmEditorialTokens.subtitleSecondary,
                                   ),
                                 ),
                               ),
@@ -621,12 +719,20 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                           const SizedBox(height: 6),
                           Row(
                             children: [
-                              const Text('A−', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+                              const Text(
+                                'A−',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
                               Expanded(
                                 child: SliderTheme(
                                   data: SliderTheme.of(context).copyWith(
-                                    activeTrackColor: WarmEditorialTokens.accentInkBlue,
-                                    thumbColor: WarmEditorialTokens.accentInkBlue,
+                                    activeTrackColor:
+                                        WarmEditorialTokens.accentInkBlue,
+                                    thumbColor:
+                                        WarmEditorialTokens.accentInkBlue,
                                   ),
                                   child: Slider(
                                     key: const Key('appearance_font_slider'),
@@ -637,7 +743,13 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                                   ),
                                 ),
                               ),
-                              const Text('A+', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+                              const Text(
+                                'A+',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
                             ],
                           ),
                         ],
@@ -651,7 +763,9 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                       decoration: BoxDecoration(
                         color: WarmEditorialTokens.surfaceContainerLow,
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: WarmEditorialTokens.hairlineDivider),
+                        border: Border.all(
+                          color: WarmEditorialTokens.hairlineDivider,
+                        ),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -665,7 +779,8 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                                   style: TextStyle(
                                     fontFamily: 'Inter',
                                     fontSize: 12,
-                                    color: WarmEditorialTokens.subtitleSecondary,
+                                    color:
+                                        WarmEditorialTokens.subtitleSecondary,
                                   ),
                                 ),
                               ),
@@ -683,12 +798,18 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                           const SizedBox(height: 6),
                           Row(
                             children: [
-                              const Icon(Icons.format_line_spacing, size: 18, color: WarmEditorialTokens.subtitleSecondary),
+                              const Icon(
+                                Icons.format_line_spacing,
+                                size: 18,
+                                color: WarmEditorialTokens.subtitleSecondary,
+                              ),
                               Expanded(
                                 child: SliderTheme(
                                   data: SliderTheme.of(context).copyWith(
-                                    activeTrackColor: WarmEditorialTokens.accentInkBlue,
-                                    thumbColor: WarmEditorialTokens.accentInkBlue,
+                                    activeTrackColor:
+                                        WarmEditorialTokens.accentInkBlue,
+                                    thumbColor:
+                                        WarmEditorialTokens.accentInkBlue,
                                   ),
                                   child: Slider(
                                     value: _lineSpacing.clamp(1.1, 2.2),
@@ -697,12 +818,18 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                                     divisions: 11,
                                     onChanged: (val) {
                                       setState(() => _lineSpacing = val);
-                                      _updateSettings(_settings.copyWith(lineSpacing: val));
+                                      _updateSettings(
+                                        _settings.copyWith(lineSpacing: val),
+                                      );
                                     },
                                   ),
                                 ),
                               ),
-                              const Icon(Icons.density_medium, size: 20, color: WarmEditorialTokens.subtitleSecondary),
+                              const Icon(
+                                Icons.density_medium,
+                                size: 20,
+                                color: WarmEditorialTokens.subtitleSecondary,
+                              ),
                             ],
                           ),
                         ],
@@ -716,7 +843,9 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                       decoration: BoxDecoration(
                         color: WarmEditorialTokens.surfaceContainerLow,
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: WarmEditorialTokens.hairlineDivider),
+                        border: Border.all(
+                          color: WarmEditorialTokens.hairlineDivider,
+                        ),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -730,7 +859,8 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                                   style: TextStyle(
                                     fontFamily: 'Inter',
                                     fontSize: 12,
-                                    color: WarmEditorialTokens.subtitleSecondary,
+                                    color:
+                                        WarmEditorialTokens.subtitleSecondary,
                                   ),
                                 ),
                               ),
@@ -748,12 +878,18 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                           const SizedBox(height: 6),
                           Row(
                             children: [
-                              const Icon(Icons.width_normal, size: 18, color: WarmEditorialTokens.subtitleSecondary),
+                              const Icon(
+                                Icons.width_normal,
+                                size: 18,
+                                color: WarmEditorialTokens.subtitleSecondary,
+                              ),
                               Expanded(
                                 child: SliderTheme(
                                   data: SliderTheme.of(context).copyWith(
-                                    activeTrackColor: WarmEditorialTokens.accentInkBlue,
-                                    thumbColor: WarmEditorialTokens.accentInkBlue,
+                                    activeTrackColor:
+                                        WarmEditorialTokens.accentInkBlue,
+                                    thumbColor:
+                                        WarmEditorialTokens.accentInkBlue,
                                   ),
                                   child: Slider(
                                     value: _margin.clamp(12.0, 44.0),
@@ -762,19 +898,28 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                                     divisions: 16,
                                     onChanged: (val) {
                                       setState(() => _margin = val);
-                                      _updateSettings(_settings.copyWith(margin: val));
+                                      _updateSettings(
+                                        _settings.copyWith(margin: val),
+                                      );
                                     },
                                   ),
                                 ),
                               ),
-                              const Icon(Icons.width_wide, size: 18, color: WarmEditorialTokens.subtitleSecondary),
+                              const Icon(
+                                Icons.width_wide,
+                                size: 18,
+                                color: WarmEditorialTokens.subtitleSecondary,
+                              ),
                             ],
                           ),
                         ],
                       ),
                     ),
                     const SizedBox(height: 12),
-                    const Divider(height: 1, color: WarmEditorialTokens.hairlineDivider),
+                    const Divider(
+                      height: 1,
+                      color: WarmEditorialTokens.hairlineDivider,
+                    ),
                     const SizedBox(height: 10),
 
                     // SECTION 4: Layout & Flow
@@ -809,16 +954,24 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                                 );
                               },
                               child: Container(
-                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8,
+                                ),
                                 decoration: BoxDecoration(
-                                  color: _settings.readerMode == ReaderMode.continuous
+                                  color:
+                                      _settings.readerMode ==
+                                          ReaderMode.continuous
                                       ? Colors.white
                                       : Colors.transparent,
                                   borderRadius: BorderRadius.circular(20),
-                                  boxShadow: _settings.readerMode == ReaderMode.continuous
+                                  boxShadow:
+                                      _settings.readerMode ==
+                                          ReaderMode.continuous
                                       ? [
                                           BoxShadow(
-                                            color: Colors.black.withValues(alpha: 0.05),
+                                            color: Colors.black.withValues(
+                                              alpha: 0.05,
+                                            ),
                                             blurRadius: 4,
                                           ),
                                         ]
@@ -830,10 +983,14 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                                   style: TextStyle(
                                     fontFamily: 'Inter',
                                     fontSize: 12,
-                                    fontWeight: _settings.readerMode == ReaderMode.continuous
+                                    fontWeight:
+                                        _settings.readerMode ==
+                                            ReaderMode.continuous
                                         ? FontWeight.w600
                                         : FontWeight.w500,
-                                    color: _settings.readerMode == ReaderMode.continuous
+                                    color:
+                                        _settings.readerMode ==
+                                            ReaderMode.continuous
                                         ? WarmEditorialTokens.accentInkBlue
                                         : WarmEditorialTokens.subtitleSecondary,
                                   ),
@@ -852,18 +1009,28 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                                 );
                               },
                               child: Container(
-                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8,
+                                ),
                                 decoration: BoxDecoration(
-                                  color: _settings.readerMode == ReaderMode.paginated &&
-                                          _settings.readerColumns != ReaderColumns.two
+                                  color:
+                                      _settings.readerMode ==
+                                              ReaderMode.paginated &&
+                                          _settings.readerColumns !=
+                                              ReaderColumns.two
                                       ? Colors.white
                                       : Colors.transparent,
                                   borderRadius: BorderRadius.circular(20),
-                                  boxShadow: _settings.readerMode == ReaderMode.paginated &&
-                                          _settings.readerColumns != ReaderColumns.two
+                                  boxShadow:
+                                      _settings.readerMode ==
+                                              ReaderMode.paginated &&
+                                          _settings.readerColumns !=
+                                              ReaderColumns.two
                                       ? [
                                           BoxShadow(
-                                            color: Colors.black.withValues(alpha: 0.05),
+                                            color: Colors.black.withValues(
+                                              alpha: 0.05,
+                                            ),
                                             blurRadius: 4,
                                           ),
                                         ]
@@ -875,12 +1042,18 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                                   style: TextStyle(
                                     fontFamily: 'Inter',
                                     fontSize: 12,
-                                    fontWeight: _settings.readerMode == ReaderMode.paginated &&
-                                            _settings.readerColumns != ReaderColumns.two
+                                    fontWeight:
+                                        _settings.readerMode ==
+                                                ReaderMode.paginated &&
+                                            _settings.readerColumns !=
+                                                ReaderColumns.two
                                         ? FontWeight.w600
                                         : FontWeight.w500,
-                                    color: _settings.readerMode == ReaderMode.paginated &&
-                                            _settings.readerColumns != ReaderColumns.two
+                                    color:
+                                        _settings.readerMode ==
+                                                ReaderMode.paginated &&
+                                            _settings.readerColumns !=
+                                                ReaderColumns.two
                                         ? WarmEditorialTokens.accentInkBlue
                                         : WarmEditorialTokens.subtitleSecondary,
                                   ),
@@ -899,16 +1072,24 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                                 );
                               },
                               child: Container(
-                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8,
+                                ),
                                 decoration: BoxDecoration(
-                                  color: _settings.readerColumns == ReaderColumns.two
+                                  color:
+                                      _settings.readerColumns ==
+                                          ReaderColumns.two
                                       ? Colors.white
                                       : Colors.transparent,
                                   borderRadius: BorderRadius.circular(20),
-                                  boxShadow: _settings.readerColumns == ReaderColumns.two
+                                  boxShadow:
+                                      _settings.readerColumns ==
+                                          ReaderColumns.two
                                       ? [
                                           BoxShadow(
-                                            color: Colors.black.withValues(alpha: 0.05),
+                                            color: Colors.black.withValues(
+                                              alpha: 0.05,
+                                            ),
                                             blurRadius: 4,
                                           ),
                                         ]
@@ -920,10 +1101,14 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                                   style: TextStyle(
                                     fontFamily: 'Inter',
                                     fontSize: 12,
-                                    fontWeight: _settings.readerColumns == ReaderColumns.two
+                                    fontWeight:
+                                        _settings.readerColumns ==
+                                            ReaderColumns.two
                                         ? FontWeight.w600
                                         : FontWeight.w500,
-                                    color: _settings.readerColumns == ReaderColumns.two
+                                    color:
+                                        _settings.readerColumns ==
+                                            ReaderColumns.two
                                         ? WarmEditorialTokens.accentInkBlue
                                         : WarmEditorialTokens.subtitleSecondary,
                                   ),
@@ -941,12 +1126,17 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                       color: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
-                        side: const BorderSide(color: WarmEditorialTokens.hairlineDivider),
+                        side: const BorderSide(
+                          color: WarmEditorialTokens.hairlineDivider,
+                        ),
                       ),
                       child: Column(
                         children: [
                           SwitchListTile.adaptive(
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 2,
+                            ),
                             activeTrackColor: WarmEditorialTokens.accentInkBlue,
                             title: const Text(
                               'Justify text',
@@ -965,18 +1155,30 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                                 color: WarmEditorialTokens.subtitleSecondary,
                               ),
                             ),
-                            value: _settings.readerTextAlignment == ReaderTextAlignment.justify,
+                            value:
+                                _settings.readerTextAlignment ==
+                                ReaderTextAlignment.justify,
                             onChanged: (val) {
                               _updateSettings(
                                 _settings.copyWith(
-                                  readerTextAlignment: val ? ReaderTextAlignment.justify : ReaderTextAlignment.left,
+                                  readerTextAlignment: val
+                                      ? ReaderTextAlignment.justify
+                                      : ReaderTextAlignment.left,
                                 ),
                               );
                             },
                           ),
-                          const Divider(height: 1, indent: 16, endIndent: 16, color: WarmEditorialTokens.hairlineDivider),
+                          const Divider(
+                            height: 1,
+                            indent: 16,
+                            endIndent: 16,
+                            color: WarmEditorialTokens.hairlineDivider,
+                          ),
                           SwitchListTile.adaptive(
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 2,
+                            ),
                             activeTrackColor: WarmEditorialTokens.accentInkBlue,
                             title: const Text(
                               'Hyphenation',
@@ -997,12 +1199,22 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                             ),
                             value: _settings.hyphenation,
                             onChanged: (val) {
-                              _updateSettings(_settings.copyWith(hyphenation: val));
+                              _updateSettings(
+                                _settings.copyWith(hyphenation: val),
+                              );
                             },
                           ),
-                          const Divider(height: 1, indent: 16, endIndent: 16, color: WarmEditorialTokens.hairlineDivider),
+                          const Divider(
+                            height: 1,
+                            indent: 16,
+                            endIndent: 16,
+                            color: WarmEditorialTokens.hairlineDivider,
+                          ),
                           SwitchListTile.adaptive(
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 2,
+                            ),
                             activeTrackColor: WarmEditorialTokens.accentInkBlue,
                             title: const Text(
                               'Publisher styles',
@@ -1023,14 +1235,19 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                             ),
                             value: _settings.publisherStyles,
                             onChanged: (val) {
-                              _updateSettings(_settings.copyWith(publisherStyles: val));
+                              _updateSettings(
+                                _settings.copyWith(publisherStyles: val),
+                              );
                             },
                           ),
                         ],
                       ),
                     ),
                     const SizedBox(height: 12),
-                    const Divider(height: 1, color: WarmEditorialTokens.hairlineDivider),
+                    const Divider(
+                      height: 1,
+                      color: WarmEditorialTokens.hairlineDivider,
+                    ),
                     const SizedBox(height: 10),
 
                     // SECTION 5: Display Brightness
@@ -1065,18 +1282,26 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                       decoration: BoxDecoration(
                         color: WarmEditorialTokens.surfaceContainerLow,
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: WarmEditorialTokens.hairlineDivider),
+                        border: Border.all(
+                          color: WarmEditorialTokens.hairlineDivider,
+                        ),
                       ),
                       child: Column(
                         children: [
                           Row(
                             children: [
-                              const Icon(Icons.light_mode, size: 18, color: WarmEditorialTokens.subtitleSecondary),
+                              const Icon(
+                                Icons.light_mode,
+                                size: 18,
+                                color: WarmEditorialTokens.subtitleSecondary,
+                              ),
                               Expanded(
                                 child: SliderTheme(
                                   data: SliderTheme.of(context).copyWith(
-                                    activeTrackColor: WarmEditorialTokens.accentInkBlue,
-                                    thumbColor: WarmEditorialTokens.accentInkBlue,
+                                    activeTrackColor:
+                                        WarmEditorialTokens.accentInkBlue,
+                                    thumbColor:
+                                        WarmEditorialTokens.accentInkBlue,
                                   ),
                                   child: Slider(
                                     value: _brightness,
@@ -1086,15 +1311,24 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                                         ? null
                                         : (val) {
                                             setState(() => _brightness = val);
-                                            widget.onBrightnessChanged?.call(val);
+                                            widget.onBrightnessChanged?.call(
+                                              val,
+                                            );
                                           },
                                   ),
                                 ),
                               ),
-                              const Icon(Icons.brightness_high, size: 20, color: WarmEditorialTokens.accentInkBlue),
+                              const Icon(
+                                Icons.brightness_high,
+                                size: 20,
+                                color: WarmEditorialTokens.accentInkBlue,
+                              ),
                             ],
                           ),
-                          const Divider(height: 1, color: WarmEditorialTokens.hairlineDivider),
+                          const Divider(
+                            height: 1,
+                            color: WarmEditorialTokens.hairlineDivider,
+                          ),
                           const SizedBox(height: 6),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1105,20 +1339,26 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                                   style: TextStyle(
                                     fontFamily: 'Inter',
                                     fontSize: 12,
-                                    color: WarmEditorialTokens.subtitleSecondary,
+                                    color:
+                                        WarmEditorialTokens.subtitleSecondary,
                                   ),
                                 ),
                               ),
                               Switch.adaptive(
-                                key: const Key('switch_follow_system_brightness'),
+                                key: const Key(
+                                  'switch_follow_system_brightness',
+                                ),
                                 value: _followSystemBrightness,
-                                activeTrackColor: WarmEditorialTokens.accentInkBlue,
+                                activeTrackColor:
+                                    WarmEditorialTokens.accentInkBlue,
                                 onChanged: (val) {
                                   setState(() => _followSystemBrightness = val);
                                   if (val) {
                                     widget.onResetBrightness?.call();
                                   } else {
-                                    widget.onBrightnessChanged?.call(_brightness);
+                                    widget.onBrightnessChanged?.call(
+                                      _brightness,
+                                    );
                                   }
                                 },
                               ),

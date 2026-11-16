@@ -69,8 +69,6 @@ class _ReadAloudPlayerState extends State<ReadAloudPlayer> {
 
     final isPlaying = widget.isPlaying ?? state?.isPlaying ?? true;
     final book = widget.book ?? _defaultBook;
-    final sentence = widget.spokenSentence ??
-        'I still remember the day that my father took me to the Cemetery of Forgotten Books for the first time.';
 
     final speedText = state != null ? '${state.speed}x' : '1.25x';
     final voiceText = state?.voice?.name ?? 'Natural Voice 2';
@@ -82,7 +80,9 @@ class _ReadAloudPlayerState extends State<ReadAloudPlayer> {
       return Material(
         key: const Key('read_aloud_player_sheet'),
         color: Colors.white,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(WarmEditorialTokens.bottomSheetRadiusLarge)),
+        borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(WarmEditorialTokens.bottomSheetRadiusLarge),
+        ),
         child: SafeArea(
           top: false,
           child: Padding(
@@ -100,12 +100,14 @@ class _ReadAloudPlayerState extends State<ReadAloudPlayer> {
     return Material(
       key: const Key('read_aloud_player_sheet'),
       color: Colors.white,
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(WarmEditorialTokens.bottomSheetRadiusLarge)),
+      borderRadius: const BorderRadius.vertical(
+        top: Radius.circular(WarmEditorialTokens.bottomSheetRadiusLarge),
+      ),
       elevation: 12,
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -113,25 +115,25 @@ class _ReadAloudPlayerState extends State<ReadAloudPlayer> {
               // Top Drag Handle Pill
               Center(
                 child: Container(
-                  width: 40,
-                  height: 4,
+                  width: 36,
+                  height: 3,
                   decoration: BoxDecoration(
                     color: const Color(0xFFDCDAD5),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
 
               // Header: Book cover thumbnail, metadata, minimize button
               Row(
                 children: [
                   SizedBox(
-                    width: 44,
-                    height: 64,
+                    width: 36,
+                    height: 50,
                     child: BookCover(book: book, compact: true),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -139,9 +141,13 @@ class _ReadAloudPlayerState extends State<ReadAloudPlayer> {
                         Row(
                           children: [
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 5,
+                                vertical: 1,
+                              ),
                               decoration: BoxDecoration(
-                                color: WarmEditorialTokens.surfaceContainerHighest,
+                                color:
+                                    WarmEditorialTokens.surfaceContainerHighest,
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text(
@@ -164,27 +170,28 @@ class _ReadAloudPlayerState extends State<ReadAloudPlayer> {
                                   overflow: TextOverflow.ellipsis,
                                   style: const TextStyle(
                                     fontFamily: 'Inter',
-                                    fontSize: 12,
-                                    color: WarmEditorialTokens.subtitleSecondary,
+                                    fontSize: 11,
+                                    color:
+                                        WarmEditorialTokens.subtitleSecondary,
                                   ),
                                 ),
                               ),
                             ],
                           ],
                         ),
-                        const SizedBox(height: 3),
+                        const SizedBox(height: 2),
                         Text(
                           book.title,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                             fontFamily: 'Newsreader',
-                            fontSize: 16,
+                            fontSize: 15,
                             fontWeight: FontWeight.w600,
                             color: WarmEditorialTokens.textPrimaryInk,
                           ),
                         ),
-                        const SizedBox(height: 2),
+                        const SizedBox(height: 1),
                         Text(
                           book.currentChapterTitle ?? 'Reading in progress',
                           maxLines: 1,
@@ -199,46 +206,48 @@ class _ReadAloudPlayerState extends State<ReadAloudPlayer> {
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.keyboard_arrow_down, size: 24, color: WarmEditorialTokens.subtitleSecondary),
+                    icon: const Icon(
+                      Icons.keyboard_arrow_down,
+                      size: 22,
+                      color: WarmEditorialTokens.subtitleSecondary,
+                    ),
                     tooltip: 'Minimize player',
-                    onPressed: widget.onMinimize ?? () => Navigator.of(context).maybePop(),
+                    onPressed:
+                        widget.onMinimize ??
+                        () => Navigator.of(context).maybePop(),
                   ),
                 ],
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 6),
 
-              // Spoken sentence quote card with vertical left border in #2F4A7A
-              Container(
-                key: const Key('player_sentence_quote_card'),
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: WarmEditorialTokens.canvasBackground,
-                  borderRadius: BorderRadius.circular(16),
-                  border: const Border(
-                    left: BorderSide(
-                      color: WarmEditorialTokens.accentInkBlue,
-                      width: 3.5,
+              // Spoken sentence quote card: only rendered when explicitly passed (e.g. tests); omitted in reading mode to keep player minimal
+              if (widget.spokenSentence != null) ...[
+                Container(
+                  key: const Key('player_sentence_quote_card'),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: WarmEditorialTokens.canvasBackground,
+                    borderRadius: BorderRadius.circular(12),
+                    border: const Border(
+                      left: BorderSide(
+                        color: WarmEditorialTokens.accentInkBlue,
+                        width: 3,
+                      ),
+                    ),
+                  ),
+                  child: Text(
+                    '“${widget.spokenSentence}”',
+                    style: const TextStyle(
+                      fontFamily: 'Newsreader',
+                      fontSize: 14,
+                      fontStyle: FontStyle.italic,
+                      fontWeight: FontWeight.w500,
+                      color: WarmEditorialTokens.textPrimaryInk,
                     ),
                   ),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '“$sentence”',
-                      style: const TextStyle(
-                        fontFamily: 'Newsreader',
-                        fontSize: 15,
-                        fontStyle: FontStyle.italic,
-                        fontWeight: FontWeight.w500,
-                        color: WarmEditorialTokens.textPrimaryInk,
-                        height: 1.4,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 14),
+                const SizedBox(height: 6),
+              ],
 
               // Timeline Scrubber & Timestamps
               Column(
@@ -247,12 +256,20 @@ class _ReadAloudPlayerState extends State<ReadAloudPlayer> {
                     data: SliderTheme.of(context).copyWith(
                       activeTrackColor: WarmEditorialTokens.accentInkBlue,
                       thumbColor: WarmEditorialTokens.accentInkBlue,
-                      trackHeight: 3.0,
-                      thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+                      trackHeight: 2.0,
+                      thumbShape: const RoundSliderThumbShape(
+                        enabledThumbRadius: 5,
+                      ),
+                      overlayShape: const RoundSliderOverlayShape(
+                        overlayRadius: 8,
+                      ),
                     ),
-                    child: Slider(
-                      value: _progress,
-                      onChanged: (val) => setState(() => _progress = val),
+                    child: SizedBox(
+                      height: 16,
+                      child: Slider(
+                        value: _progress,
+                        onChanged: (val) => setState(() => _progress = val),
+                      ),
                     ),
                   ),
                   Padding(
@@ -264,7 +281,7 @@ class _ReadAloudPlayerState extends State<ReadAloudPlayer> {
                           '${(book.progress * 100).round()}%',
                           style: const TextStyle(
                             fontFamily: 'Inter',
-                            fontSize: 11,
+                            fontSize: 10,
                             color: WarmEditorialTokens.subtitleSecondary,
                             fontFeatures: [FontFeature.tabularFigures()],
                           ),
@@ -273,16 +290,16 @@ class _ReadAloudPlayerState extends State<ReadAloudPlayer> {
                           isPlaying ? 'Reading Aloud' : 'Paused',
                           style: const TextStyle(
                             fontFamily: 'Inter',
-                            fontSize: 11,
+                            fontSize: 10,
                             fontWeight: FontWeight.w600,
                             color: WarmEditorialTokens.accentInkBlue,
                           ),
                         ),
-                        Text(
-                          book.format.name.toUpperCase(),
-                          style: const TextStyle(
+                        const Text(
+                          '-08:42',
+                          style: TextStyle(
                             fontFamily: 'Inter',
-                            fontSize: 11,
+                            fontSize: 10,
                             color: WarmEditorialTokens.subtitleSecondary,
                             fontFeatures: [FontFeature.tabularFigures()],
                           ),
@@ -292,7 +309,7 @@ class _ReadAloudPlayerState extends State<ReadAloudPlayer> {
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 6),
 
               // Primary Playback Controls Row with 64px hero play/pause
               Row(
@@ -300,18 +317,28 @@ class _ReadAloudPlayerState extends State<ReadAloudPlayer> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.bookmark_add_outlined, size: 22, color: WarmEditorialTokens.subtitleSecondary),
+                    icon: const Icon(
+                      Icons.bookmark_add_outlined,
+                      size: 22,
+                      color: WarmEditorialTokens.subtitleSecondary,
+                    ),
                     tooltip: 'Bookmark',
                     onPressed: widget.onBookmark,
                   ),
                   IconButton(
                     key: const Key('read_aloud_skip_back'),
-                    icon: const Icon(Icons.replay_10, size: 28, color: WarmEditorialTokens.textPrimaryInk),
+                    icon: const Icon(
+                      Icons.replay_10,
+                      size: 28,
+                      color: WarmEditorialTokens.textPrimaryInk,
+                    ),
                     onPressed: widget.onSkipBack ?? cubit?.previous,
                   ),
                   GestureDetector(
                     key: const Key('read_aloud_play_pause_hero'),
-                    onTap: widget.onPlayPause ?? (isPlaying ? cubit?.pause : cubit?.play),
+                    onTap:
+                        widget.onPlayPause ??
+                        (isPlaying ? cubit?.pause : cubit?.play),
                     child: Container(
                       width: 64,
                       height: 64,
@@ -335,11 +362,19 @@ class _ReadAloudPlayerState extends State<ReadAloudPlayer> {
                   ),
                   IconButton(
                     key: const Key('read_aloud_skip_forward'),
-                    icon: const Icon(Icons.forward_10, size: 28, color: WarmEditorialTokens.textPrimaryInk),
+                    icon: const Icon(
+                      Icons.forward_10,
+                      size: 28,
+                      color: WarmEditorialTokens.textPrimaryInk,
+                    ),
                     onPressed: widget.onSkipForward ?? cubit?.next,
                   ),
                   IconButton(
-                    icon: const Icon(Icons.more_vert, size: 22, color: WarmEditorialTokens.subtitleSecondary),
+                    icon: const Icon(
+                      Icons.more_vert,
+                      size: 22,
+                      color: WarmEditorialTokens.subtitleSecondary,
+                    ),
                     tooltip: 'More options',
                     onPressed: widget.onMore ?? widget.onOpenVoiceSettings,
                   ),
@@ -354,7 +389,11 @@ class _ReadAloudPlayerState extends State<ReadAloudPlayer> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     ActionChip(
-                      avatar: const Icon(Icons.speed, size: 16, color: Colors.white),
+                      avatar: const Icon(
+                        Icons.speed,
+                        size: 16,
+                        color: Colors.white,
+                      ),
                       label: Text(speedText),
                       backgroundColor: WarmEditorialTokens.accentInkBlue,
                       labelStyle: const TextStyle(
@@ -371,7 +410,11 @@ class _ReadAloudPlayerState extends State<ReadAloudPlayer> {
                     ),
                     const SizedBox(width: 8),
                     ActionChip(
-                      avatar: const Icon(Icons.record_voice_over_outlined, size: 16, color: WarmEditorialTokens.subtitleSecondary),
+                      avatar: const Icon(
+                        Icons.record_voice_over_outlined,
+                        size: 16,
+                        color: WarmEditorialTokens.subtitleSecondary,
+                      ),
                       label: Text(voiceText),
                       backgroundColor: WarmEditorialTokens.surfaceContainerLow,
                       labelStyle: const TextStyle(
@@ -387,7 +430,11 @@ class _ReadAloudPlayerState extends State<ReadAloudPlayer> {
                     ),
                     const SizedBox(width: 8),
                     ActionChip(
-                      avatar: const Icon(Icons.bedtime_outlined, size: 16, color: WarmEditorialTokens.subtitleSecondary),
+                      avatar: const Icon(
+                        Icons.bedtime_outlined,
+                        size: 16,
+                        color: WarmEditorialTokens.subtitleSecondary,
+                      ),
                       label: Text(sleepText),
                       backgroundColor: WarmEditorialTokens.surfaceContainerLow,
                       labelStyle: const TextStyle(
@@ -411,7 +458,11 @@ class _ReadAloudPlayerState extends State<ReadAloudPlayer> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.lock, size: 12, color: WarmEditorialTokens.subtitleSecondary),
+                    Icon(
+                      Icons.lock,
+                      size: 12,
+                      color: WarmEditorialTokens.subtitleSecondary,
+                    ),
                     SizedBox(width: 4),
                     Flexible(
                       child: Text(
@@ -444,19 +495,25 @@ class _ReadAloudPlayerState extends State<ReadAloudPlayer> {
         SleepTimerChoice.endOfChapter => 'End of chapter',
       };
 
-  Future<void> _pickSpeed(BuildContext context, double current, ReadAloudCubit cubit) async {
+  Future<void> _pickSpeed(
+    BuildContext context,
+    double current,
+    ReadAloudCubit cubit,
+  ) async {
     final speed = await _choose<double>(
       context,
       title: 'Speech Rate',
-      options: [
-        for (final sp in _speeds) (sp, '${sp}x'),
-      ],
+      options: [for (final sp in _speeds) (sp, '${sp}x')],
       selected: current,
     );
     if (speed != null) await cubit.setSpeed(speed);
   }
 
-  Future<void> _pickSleep(BuildContext context, SleepTimerChoice current, ReadAloudCubit cubit) async {
+  Future<void> _pickSleep(
+    BuildContext context,
+    SleepTimerChoice current,
+    ReadAloudCubit cubit,
+  ) async {
     final choice = await _choose<SleepTimerChoice>(
       context,
       title: 'Sleep Timer',
@@ -472,13 +529,16 @@ class _ReadAloudPlayerState extends State<ReadAloudPlayer> {
     if (choice != null) cubit.setSleep(choice);
   }
 
-  Future<void> _pickVoice(BuildContext context, ReadAloudState state, ReadAloudCubit cubit) async {
+  Future<void> _pickVoice(
+    BuildContext context,
+    ReadAloudState state,
+    ReadAloudCubit cubit,
+  ) async {
+    final availableVoices = state.voices.take(5).toList();
     final voice = await _choose<ReadAloudVoice>(
       context,
       title: 'Read Aloud Voice',
-      options: [
-        for (final v in state.voices) (v, '${v.name} · ${v.language}'),
-      ],
+      options: [for (final v in availableVoices) (v, '${v.name} · ${v.language}')],
       selected: state.voice,
     );
     if (voice != null) await cubit.setVoice(voice);
@@ -501,7 +561,11 @@ class _ReadAloudPlayerState extends State<ReadAloudPlayer> {
               child: Row(
                 children: [
                   Expanded(child: Text(label)),
-                  if (value == selected) const Icon(Icons.check_rounded, color: WarmEditorialTokens.accentInkBlue),
+                  if (value == selected)
+                    const Icon(
+                      Icons.check_rounded,
+                      color: WarmEditorialTokens.accentInkBlue,
+                    ),
                 ],
               ),
             ),

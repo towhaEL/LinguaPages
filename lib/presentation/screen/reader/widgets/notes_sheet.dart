@@ -166,6 +166,7 @@ class _NotesSheetState extends State<NotesSheet> {
     final tocCount = widget.tableOfContents.length;
     final bookmarksCount = _bookmarks.length;
     final highlightsCount = _highlights.length;
+    final hasToc = widget.tableOfContents.isNotEmpty;
 
     return Material(
       color: const Color(0xFFFCF9F4),
@@ -177,7 +178,7 @@ class _NotesSheetState extends State<NotesSheet> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Top Action Header & Book Metadata
+              // Top Action Header
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
                 child: Column(
@@ -185,75 +186,44 @@ class _NotesSheetState extends State<NotesSheet> {
                   children: [
                     // Action Icons Row
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         IconButton(
                           icon: const Icon(Icons.arrow_back, color: WarmEditorialTokens.subtitleSecondary),
                           onPressed: () => Navigator.of(context).maybePop(),
                         ),
-                        Row(
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.search, color: WarmEditorialTokens.subtitleSecondary),
-                              onPressed: () {},
-                            ),
-                            IconButton(
-                              key: const Key('export_markdown_button'),
-                              icon: const Icon(Icons.file_download_outlined, color: WarmEditorialTokens.subtitleSecondary),
-                              tooltip: 'Export as Markdown',
-                              onPressed: _export,
-                            ),
-                            Builder(
-                              builder: (buttonContext) => IconButton(
-                                key: const Key('share_markdown_button'),
-                                icon: const Icon(Icons.ios_share_outlined, color: WarmEditorialTokens.subtitleSecondary),
-                                tooltip: 'Share',
-                                onPressed: () => _share(buttonContext),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-
-                    // Book Title & Author
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            widget.bookTitle ?? 'The Shadow of the Wind',
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            hasToc ? 'Outline & Notes' : 'Notes & Highlights',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
                               fontFamily: 'Newsreader',
                               fontSize: 18,
-                              fontStyle: FontStyle.italic,
                               fontWeight: FontWeight.w600,
                               color: WarmEditorialTokens.textPrimaryInk,
                             ),
                           ),
-                          if (widget.bookAuthor != null) ...[
-                            const SizedBox(height: 2),
-                            Text(
-                              widget.bookAuthor!,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                fontFamily: 'Inter',
-                                fontSize: 12,
-                                color: WarmEditorialTokens.subtitleSecondary,
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
+                        ),
+                        IconButton(
+                          key: const Key('export_markdown_button'),
+                          icon: const Icon(Icons.file_download_outlined, color: WarmEditorialTokens.subtitleSecondary),
+                          tooltip: 'Export as Markdown',
+                          onPressed: _export,
+                        ),
+                        Builder(
+                          builder: (buttonContext) => IconButton(
+                            key: const Key('share_markdown_button'),
+                            icon: const Icon(Icons.ios_share_outlined, color: WarmEditorialTokens.subtitleSecondary),
+                            tooltip: 'Share',
+                            onPressed: () => _share(buttonContext),
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 8),
 
-                    // 3-Tab Segmented Pill Switcher
+                    // Tab Segmented Pill Switcher
                     Container(
                       padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
@@ -262,12 +232,13 @@ class _NotesSheetState extends State<NotesSheet> {
                       ),
                       child: Row(
                         children: [
-                          _buildTabButton(
-                            title: 'Contents',
-                            count: tocCount > 0 ? tocCount : 18,
-                            active: _activeTab == _Tab.contents,
-                            onTap: () => setState(() => _activeTab = _Tab.contents),
-                          ),
+                          if (hasToc)
+                            _buildTabButton(
+                              title: 'Contents',
+                              count: tocCount > 0 ? tocCount : 18,
+                              active: _activeTab == _Tab.contents,
+                              onTap: () => setState(() => _activeTab = _Tab.contents),
+                            ),
                           _buildTabButton(
                             title: 'Bookmarks',
                             count: bookmarksCount,
@@ -495,7 +466,6 @@ class _NotesSheetState extends State<NotesSheet> {
             child: InkWell(
               onTap: () {
                 widget.onChapterSelected?.call(index);
-                Navigator.of(context).maybePop();
               },
               borderRadius: BorderRadius.circular(12),
               child: Container(
@@ -643,7 +613,6 @@ class _NotesSheetState extends State<NotesSheet> {
         return ListTile(
           onTap: () {
             widget.onSelected(note);
-            Navigator.of(context).maybePop();
           },
           leading: const Icon(Icons.bookmark_rounded, color: WarmEditorialTokens.accentInkBlue),
           title: Text(
@@ -716,7 +685,6 @@ class _NotesSheetState extends State<NotesSheet> {
           child: InkWell(
             onTap: () {
               widget.onSelected(note);
-              Navigator.of(context).maybePop();
             },
             borderRadius: BorderRadius.circular(12),
             child: Container(
