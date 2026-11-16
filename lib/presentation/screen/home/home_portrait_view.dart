@@ -43,7 +43,7 @@ class HomePortraitView extends StatelessWidget {
             icon: const Icon(Icons.search, size: 22),
             color: WarmEditorialTokens.subtitleSecondary,
             onPressed: () {
-              context.read<LibraryCubit>().search('');
+              context.read<LibraryCubit>().toggleSearch();
             },
           ),
           IconButton(

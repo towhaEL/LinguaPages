@@ -28,9 +28,24 @@ class LibraryContent extends StatefulWidget {
 
 class _LibraryContentState extends State<LibraryContent> {
   var _searching = false;
+  late final TextEditingController _searchController;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   void _closeSearch() {
+    _searchController.clear();
     setState(() => _searching = false);
+    context.read<LibraryCubit>().toggleSearch(false);
     context.read<LibraryCubit>().search('');
   }
 
@@ -157,13 +172,16 @@ class _LibraryContentState extends State<LibraryContent> {
                     SliverToBoxAdapter(
                       child: _ShelfHeader(
                         state: state,
-                        onSearch: _searching || hasQuery
+                        onSearch: (state.isSearching || _searching || hasQuery)
                             ? null
-                            : () => setState(() => _searching = true),
+                            : () {
+                                setState(() => _searching = true);
+                                context.read<LibraryCubit>().toggleSearch(true);
+                              },
                       ),
                     ),
                     SliverToBoxAdapter(child: _ViewChips(state: state)),
-                    if (_searching || hasQuery)
+                    if (state.isSearching || _searching || hasQuery)
                       SliverPadding(
                         padding: const EdgeInsets.fromLTRB(
                           _gutter,
@@ -173,7 +191,9 @@ class _LibraryContentState extends State<LibraryContent> {
                         ),
                         sliver: SliverToBoxAdapter(
                           child: TextField(
-                            autofocus: _searching && !hasQuery,
+                            key: const Key('library_search_text_field'),
+                            controller: _searchController,
+                            autofocus: (state.isSearching || _searching) && !hasQuery,
                             onChanged: context.read<LibraryCubit>().search,
                             textInputAction: TextInputAction.search,
                             decoration: InputDecoration(
@@ -996,6 +1016,36 @@ class _GroupList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (state.view == LibraryView.collection) {
+      if (state.collections.isEmpty) {
+        return SliverToBoxAdapter(
+          child: StateView(
+            icon: Icons.collections_bookmark_outlined,
+            title: context.l10n.libraryViewEmptyTitle,
+            body: context.l10n.libraryViewEmptyBody,
+          ),
+        );
+      }
+      final cubit = context.read<LibraryCubit>();
+      return SliverList.separated(
+        itemCount: state.collections.length,
+        separatorBuilder: (_, _) =>
+            const Divider(indent: _gutter, endIndent: _gutter, color: WarmEditorialTokens.hairlineDivider),
+        itemBuilder: (context, index) {
+          final collection = state.collections[index];
+          return ListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: _gutter),
+            title: Text(
+              collection.name,
+              style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+            ),
+            subtitle: Text(context.l10n.libraryGroupCount(collection.bookIds.length)),
+            trailing: const Icon(Icons.chevron_right_rounded),
+            onTap: () => cubit.selectView(state.view, key: collection.id),
+          );
+        },
+      );
+    }
     final groups = state.view == LibraryView.authors
         ? state.authorGroups
         : state.seriesGroups;

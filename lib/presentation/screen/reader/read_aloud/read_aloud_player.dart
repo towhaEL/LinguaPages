@@ -22,6 +22,8 @@ class ReadAloudPlayer extends StatefulWidget {
     this.onSkipForward,
     this.onSkipBack,
     this.onMinimize,
+    this.onBookmark,
+    this.onMore,
     super.key,
   });
 
@@ -33,6 +35,8 @@ class ReadAloudPlayer extends StatefulWidget {
   final VoidCallback? onSkipForward;
   final VoidCallback? onSkipBack;
   final VoidCallback? onMinimize;
+  final VoidCallback? onBookmark;
+  final VoidCallback? onMore;
 
   @override
   State<ReadAloudPlayer> createState() => _ReadAloudPlayerState();
@@ -181,11 +185,11 @@ class _ReadAloudPlayerState extends State<ReadAloudPlayer> {
                           ),
                         ),
                         const SizedBox(height: 2),
-                        const Text(
-                          'Chapter 4 · The Silent Harbour',
+                        Text(
+                          book.currentChapterTitle ?? 'Reading in progress',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontFamily: 'Inter',
                             fontSize: 11,
                             color: WarmEditorialTokens.subtitleSecondary,
@@ -220,18 +224,6 @@ class _ReadAloudPlayerState extends State<ReadAloudPlayer> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'We walked through the sleeping alleys without exchanging a single word.',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontFamily: 'Newsreader',
-                        fontSize: 12,
-                        fontStyle: FontStyle.italic,
-                        color: Color(0x806B655D),
-                      ),
-                    ),
-                    const SizedBox(height: 6),
                     Text(
                       '“$sentence”',
                       style: const TextStyle(
@@ -241,17 +233,6 @@ class _ReadAloudPlayerState extends State<ReadAloudPlayer> {
                         fontWeight: FontWeight.w500,
                         color: WarmEditorialTokens.textPrimaryInk,
                         height: 1.4,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    const Text(
-                      'It was the early summer of 1945, and we walked through the streets of a city veiled in charcoal skies.',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontFamily: 'Newsreader',
-                        fontSize: 12,
-                        color: Color(0x996B655D),
                       ),
                     ),
                   ],
@@ -274,14 +255,14 @@ class _ReadAloudPlayerState extends State<ReadAloudPlayer> {
                       onChanged: (val) => setState(() => _progress = val),
                     ),
                   ),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 6),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 6),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          '04:18',
-                          style: TextStyle(
+                          '${(book.progress * 100).round()}%',
+                          style: const TextStyle(
                             fontFamily: 'Inter',
                             fontSize: 11,
                             color: WarmEditorialTokens.subtitleSecondary,
@@ -289,8 +270,8 @@ class _ReadAloudPlayerState extends State<ReadAloudPlayer> {
                           ),
                         ),
                         Text(
-                          'Sentence 14 of 48',
-                          style: TextStyle(
+                          isPlaying ? 'Reading Aloud' : 'Paused',
+                          style: const TextStyle(
                             fontFamily: 'Inter',
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
@@ -298,8 +279,8 @@ class _ReadAloudPlayerState extends State<ReadAloudPlayer> {
                           ),
                         ),
                         Text(
-                          '-08:42',
-                          style: TextStyle(
+                          book.format.name.toUpperCase(),
+                          style: const TextStyle(
                             fontFamily: 'Inter',
                             fontSize: 11,
                             color: WarmEditorialTokens.subtitleSecondary,
@@ -320,7 +301,8 @@ class _ReadAloudPlayerState extends State<ReadAloudPlayer> {
                 children: [
                   IconButton(
                     icon: const Icon(Icons.bookmark_add_outlined, size: 22, color: WarmEditorialTokens.subtitleSecondary),
-                    onPressed: () {},
+                    tooltip: 'Bookmark',
+                    onPressed: widget.onBookmark,
                   ),
                   IconButton(
                     key: const Key('read_aloud_skip_back'),
@@ -358,7 +340,8 @@ class _ReadAloudPlayerState extends State<ReadAloudPlayer> {
                   ),
                   IconButton(
                     icon: const Icon(Icons.more_vert, size: 22, color: WarmEditorialTokens.subtitleSecondary),
-                    onPressed: () {},
+                    tooltip: 'More options',
+                    onPressed: widget.onMore ?? widget.onOpenVoiceSettings,
                   ),
                 ],
               ),

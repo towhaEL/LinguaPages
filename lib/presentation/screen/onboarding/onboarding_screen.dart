@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lingua_pages/core/injector/injector.dart';
 import 'package:lingua_pages/core/storage/onboarding_preferences.dart';
+import 'package:lingua_pages/domain/use_cases/library/import_document_use_case.dart';
 import 'package:lingua_pages/l10n/l10n.dart';
 import 'package:lingua_pages/presentation/route/app_router.gr.dart';
 import 'package:lingua_pages/presentation/theme/app_colors.dart';
@@ -78,11 +79,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     }
   }
 
-  void _handleImportFirstBook() {
+  Future<void> _handleImportFirstBook() async {
     if (widget.onImportFirstBook != null) {
       widget.onImportFirstBook!();
     } else {
-      _completeOnboarding();
+      await _completeOnboarding();
+      try {
+        if (injector.isRegistered<ImportDocumentUseCase>()) {
+          await injector<ImportDocumentUseCase>().execute();
+        }
+      } catch (_) {}
     }
   }
 

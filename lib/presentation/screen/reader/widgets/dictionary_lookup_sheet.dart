@@ -55,7 +55,7 @@ class FloatingSelectionToolbar extends StatelessWidget {
             (WarmEditorialTokens.highlightGreen, HighlightColor.green),
             (WarmEditorialTokens.highlightBlue, HighlightColor.blue),
             (WarmEditorialTokens.highlightPink, HighlightColor.pink),
-            (WarmEditorialTokens.highlightOrange, HighlightColor.yellow),
+            (WarmEditorialTokens.highlightOrange, HighlightColor.orange),
           ])
             GestureDetector(
               onTap: () => onColorSelected?.call(highlightColor),

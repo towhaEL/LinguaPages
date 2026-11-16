@@ -18,11 +18,20 @@ Future<void> showPremiumPaywall(BuildContext context) =>
       builder: (_) => const PremiumPaywallSheet(),
     );
 
+enum PaywallPlan { lifetime, yearly }
+
 /// A calm offer: it shows the looks themselves, the store's price, that
 /// everything else is free, and a restore action. No countdowns, no
 /// pre-checked upsells, no guilt copy.
-class PremiumPaywallSheet extends StatelessWidget {
+class PremiumPaywallSheet extends StatefulWidget {
   const PremiumPaywallSheet({super.key});
+
+  @override
+  State<PremiumPaywallSheet> createState() => _PremiumPaywallSheetState();
+}
+
+class _PremiumPaywallSheetState extends State<PremiumPaywallSheet> {
+  PaywallPlan _selectedPlan = PaywallPlan.lifetime;
 
   @override
   Widget build(BuildContext context) {
@@ -127,24 +136,79 @@ class PremiumPaywallSheet extends StatelessWidget {
                   ),
                   const SizedBox(height: 20),
                   // Plan Option Card (Lifetime)
-                  Card(
-                    key: const Key('paywall_lifetime_plan_card'),
-                    elevation: 0,
-                    color: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      side: const BorderSide(color: WarmEditorialTokens.accentInkBlue, width: 2),
-                    ),
-                    child: ListTile(
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                      leading: const Icon(Icons.radio_button_checked, color: WarmEditorialTokens.accentInkBlue),
-                      title: Text(
-                        'Lifetime — \$14.99 one-time',
-                        style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 15),
+                  InkWell(
+                    borderRadius: BorderRadius.circular(16),
+                    onTap: () => setState(() => _selectedPlan = PaywallPlan.lifetime),
+                    child: Card(
+                      key: const Key('paywall_lifetime_plan_card'),
+                      elevation: 0,
+                      color: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        side: BorderSide(
+                          color: _selectedPlan == PaywallPlan.lifetime
+                              ? WarmEditorialTokens.accentInkBlue
+                              : WarmEditorialTokens.hairlineDivider,
+                          width: _selectedPlan == PaywallPlan.lifetime ? 2 : 1,
+                        ),
                       ),
-                      subtitle: Text(
-                        'Pay once. Own it forever.',
-                        style: GoogleFonts.inter(fontSize: 12, color: colors.onSurfaceMuted),
+                      child: ListTile(
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                        leading: Icon(
+                          _selectedPlan == PaywallPlan.lifetime
+                              ? Icons.radio_button_checked
+                              : Icons.radio_button_off,
+                          color: _selectedPlan == PaywallPlan.lifetime
+                              ? WarmEditorialTokens.accentInkBlue
+                              : WarmEditorialTokens.subtitleSecondary,
+                        ),
+                        title: Text(
+                          'Lifetime — \$14.99 one-time',
+                          style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 15),
+                        ),
+                        subtitle: Text(
+                          'Pay once. Own it forever.',
+                          style: GoogleFonts.inter(fontSize: 12, color: colors.onSurfaceMuted),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  // Plan Option Card (Yearly)
+                  InkWell(
+                    borderRadius: BorderRadius.circular(16),
+                    onTap: () => setState(() => _selectedPlan = PaywallPlan.yearly),
+                    child: Card(
+                      key: const Key('paywall_yearly_plan_card'),
+                      elevation: 0,
+                      color: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        side: BorderSide(
+                          color: _selectedPlan == PaywallPlan.yearly
+                              ? WarmEditorialTokens.accentInkBlue
+                              : WarmEditorialTokens.hairlineDivider,
+                          width: _selectedPlan == PaywallPlan.yearly ? 2 : 1,
+                        ),
+                      ),
+                      child: ListTile(
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                        leading: Icon(
+                          _selectedPlan == PaywallPlan.yearly
+                              ? Icons.radio_button_checked
+                              : Icons.radio_button_off,
+                          color: _selectedPlan == PaywallPlan.yearly
+                              ? WarmEditorialTokens.accentInkBlue
+                              : WarmEditorialTokens.subtitleSecondary,
+                        ),
+                        title: Text(
+                          'Yearly — \$4.99 / year',
+                          style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 15),
+                        ),
+                        subtitle: Text(
+                          '7-day free trial. Cancel anytime.',
+                          style: GoogleFonts.inter(fontSize: 12, color: colors.onSurfaceMuted),
+                        ),
                       ),
                     ),
                   ),
@@ -181,9 +245,11 @@ class PremiumPaywallSheet extends StatelessWidget {
                               child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                             )
                           : Text(
-                              state.product == null
-                                  ? 'Unlock Premium'
-                                  : l10n.premiumUnlockFor(state.product!.price),
+                              _selectedPlan == PaywallPlan.yearly
+                                  ? 'Start 7-Day Free Trial'
+                                  : (state.product == null
+                                      ? 'Unlock Lifetime'
+                                      : l10n.premiumUnlockFor(state.product!.price)),
                               style: GoogleFonts.inter(fontWeight: FontWeight.w600),
                             ),
                     ),

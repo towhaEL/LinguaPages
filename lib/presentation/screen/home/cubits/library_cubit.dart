@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:logger/logger.dart';
+import 'package:lingua_pages/domain/entity/document/document_models.dart';
 import 'package:lingua_pages/domain/entity/library/book_entity.dart';
 import 'package:lingua_pages/domain/entity/library/collection_entity.dart';
 import 'package:lingua_pages/domain/exceptions/document_import_exception.dart';
@@ -135,6 +136,16 @@ class LibraryCubit extends Cubit<LibraryState> {
         ),
       );
     }
+  }
+
+  /// Toggles or sets the visibility of the search input field.
+  void toggleSearch([bool? active]) {
+    emit(state.copyWith(isSearching: active ?? !state.isSearching));
+  }
+
+  /// Updates active document format filters.
+  void setFormatFilter(Set<DocumentFormat> formats) {
+    emit(state.copyWith(selectedFormats: formats));
   }
 
   void toggleViewMode() {

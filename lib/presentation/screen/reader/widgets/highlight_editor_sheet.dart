@@ -213,4 +213,5 @@ String highlightColorLabel(BuildContext context, HighlightColor color) =>
       HighlightColor.green => context.l10n.readerHighlightGreen,
       HighlightColor.blue => context.l10n.readerHighlightBlue,
       HighlightColor.pink => context.l10n.readerHighlightPink,
+      HighlightColor.orange => context.l10n.readerHighlightOrange,
     };

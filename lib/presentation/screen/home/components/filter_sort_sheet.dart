@@ -40,6 +40,7 @@ class _FilterSortSheetState extends State<FilterSortSheet> {
     final state = context.read<LibraryCubit>().state;
     _sort = state.sort;
     _viewMode = state.viewMode;
+    _selectedFormats.addAll(state.selectedFormats);
   }
 
   void _reset() {
@@ -57,6 +58,7 @@ class _FilterSortSheetState extends State<FilterSortSheet> {
     if (_viewMode != cubit.state.viewMode) {
       cubit.toggleViewMode();
     }
+    cubit.setFormatFilter(_selectedFormats);
     Navigator.of(context).pop();
   }
 

@@ -146,6 +146,7 @@ class _Filters extends StatelessWidget {
         HighlightColor.green => context.l10n.readerHighlightGreen,
         HighlightColor.blue => context.l10n.readerHighlightBlue,
         HighlightColor.pink => context.l10n.readerHighlightPink,
+        HighlightColor.orange => context.l10n.readerHighlightOrange,
       };
 
   @override

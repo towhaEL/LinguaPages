@@ -119,3 +119,25 @@ flutter:
         - asset: assets/fonts/eb_garamond/EBGaramond-BoldItalic.ttf
           weight: 700
           style: italic
+    - family: Newsreader
+      fonts:
+        - asset: assets/fonts/newsreader/Newsreader-Regular.ttf
+        - asset: assets/fonts/newsreader/Newsreader-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/newsreader/Newsreader-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/newsreader/Newsreader-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/newsreader/Newsreader-Italic.ttf
+          style: italic
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/inter/Inter-Regular.ttf
+        - asset: assets/fonts/inter/Inter-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/inter/Inter-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/inter/Inter-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/inter/Inter-Italic.ttf
+          style: italic

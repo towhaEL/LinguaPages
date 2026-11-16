@@ -139,12 +139,14 @@ extension HighlightTint on HighlightColor {
           HighlightColor.green => 0xFF2A5C37,
           HighlightColor.blue => 0xFF234A78,
           HighlightColor.pink => 0xFF6B2A4B,
+          HighlightColor.orange => 0xFF7A4518,
         }
       : switch (this) {
           HighlightColor.yellow => 0xFFFFE08A,
           HighlightColor.green => 0xFFB9E4BE,
           HighlightColor.blue => 0xFFB8D8F5,
           HighlightColor.pink => 0xFFF6C3D6,
+          HighlightColor.orange => 0xFFFFD199,
         };
 }
 

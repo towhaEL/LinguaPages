@@ -43,4 +43,4 @@ class HighlightEntity {
   }
 }
 
-enum HighlightColor { yellow, green, blue, pink }
+enum HighlightColor { yellow, green, blue, pink, orange }

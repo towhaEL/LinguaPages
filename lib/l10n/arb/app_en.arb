@@ -217,6 +217,7 @@
   "readerHighlightGreen": "Green",
   "readerHighlightBlue": "Blue",
   "readerHighlightPink": "Pink",
+  "readerHighlightOrange": "Orange",
   "readerAnnotations": "Annotations",
   "readerAnnotationEmpty": "No annotations yet",
   "readerAnnotationFailed": "Annotations could not be loaded",

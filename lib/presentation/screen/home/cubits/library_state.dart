@@ -1,3 +1,4 @@
+import 'package:lingua_pages/domain/entity/document/document_models.dart';
 import 'package:lingua_pages/domain/entity/library/book_entity.dart';
 import 'package:lingua_pages/domain/entity/library/collection_entity.dart';
 import 'package:lingua_pages/domain/use_cases/library/import_folder_use_case.dart';
@@ -46,6 +47,8 @@ class LibraryState {
     this.trash = const [],
     this.duplicateBookId,
     this.folderResult,
+    this.isSearching = false,
+    this.selectedFormats = const {},
   });
 
   final LibraryStatus status;
@@ -71,15 +74,21 @@ class LibraryState {
   /// The outcome of a folder import, for one emission.
   final FolderImportResult? folderResult;
 
+  /// Whether the inline search bar is open.
+  final bool isSearching;
+
+  /// Active document format filter tags.
+  final Set<DocumentFormat> selectedFormats;
+
   CollectionEntity? get selectedCollection => view == LibraryView.collection
       ? collections.where((c) => c.id == viewKey).firstOrNull
       : null;
 
-  /// [books] narrowed to [view]. Authors and series without a pick show
-  /// their groups instead (see [authorGroups] and [seriesGroups]).
+  /// [books] narrowed to [view]. Authors, series and collections without a pick show
+  /// their groups instead (see [authorGroups], [seriesGroups], [collections]).
   List<BookEntity> get visibleBooks {
     final key = viewKey;
-    return switch (view) {
+    final filtered = switch (view) {
       LibraryView.all => books,
       LibraryView.toRead => _onShelf(BookShelf.toRead),
       LibraryView.reading => _onShelf(BookShelf.reading),
@@ -102,6 +111,11 @@ class LibraryState {
       ]..sort((a, b) => (a.seriesIndex ?? 1e9).compareTo(b.seriesIndex ?? 1e9)),
       LibraryView.trash => trash,
     };
+    if (selectedFormats.isEmpty) return filtered;
+    return [
+      for (final book in filtered)
+        if (selectedFormats.contains(book.format)) book,
+    ];
   }
 
   /// Author names with their book counts, alphabetically.
@@ -112,10 +126,12 @@ class LibraryState {
   List<(String, int)> get seriesGroups =>
       _groups([for (final book in books) ?book.series]);
 
-  /// Authors or series are listed rather than books.
+  /// Authors, series or collections are listed rather than books.
   bool get showsGroups =>
       viewKey == null &&
-      (view == LibraryView.authors || view == LibraryView.series);
+      (view == LibraryView.authors ||
+          view == LibraryView.series ||
+          view == LibraryView.collection);
 
   List<BookEntity> _onShelf(BookShelf shelf) => [
     for (final book in books)
@@ -147,6 +163,8 @@ class LibraryState {
     List<BookEntity>? trash,
     String? duplicateBookId,
     FolderImportResult? folderResult,
+    bool? isSearching,
+    Set<DocumentFormat>? selectedFormats,
   }) {
     return LibraryState(
       status: status ?? this.status,
@@ -165,6 +183,8 @@ class LibraryState {
       // Like the import feedback, it only lasts one emission.
       duplicateBookId: duplicateBookId,
       folderResult: folderResult,
+      isSearching: isSearching ?? this.isSearching,
+      selectedFormats: selectedFormats ?? this.selectedFormats,
     );
   }
 }

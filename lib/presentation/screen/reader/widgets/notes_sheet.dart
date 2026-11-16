@@ -708,6 +708,7 @@ class _NotesSheetState extends State<NotesSheet> {
           HighlightColor.green => WarmEditorialTokens.highlightGreen,
           HighlightColor.blue => WarmEditorialTokens.highlightBlue,
           HighlightColor.pink => WarmEditorialTokens.highlightPink,
+          HighlightColor.orange => WarmEditorialTokens.highlightOrange,
         };
 
         return Padding(

@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:lingua_pages/domain/entity/document/document_models.dart';
 import 'package:lingua_pages/domain/entity/library/book_entity.dart';
 import 'package:lingua_pages/l10n/l10n.dart';
 import 'package:lingua_pages/presentation/route/app_router.gr.dart';
@@ -312,8 +313,10 @@ class BookDetailsSheet extends StatelessWidget {
                           side: const BorderSide(color: WarmEditorialTokens.hairlineDivider),
                         ),
                         onPressed: () {
+                          final hasFile = book.sourceUri.isNotEmpty;
                           SharePlus.instance.share(
                             ShareParams(
+                              files: hasFile ? [XFile(book.sourceUri)] : null,
                               text: '${book.title} by ${book.author ?? "Unknown"}',
                               subject: book.title,
                             ),
@@ -339,7 +342,7 @@ class BookDetailsSheet extends StatelessWidget {
                     children: [
                       _metaRow('Language', book.languageCode ?? 'English (en-US)'),
                       const Divider(height: 1, color: WarmEditorialTokens.hairlineDivider),
-                      _metaRow('Encoding', 'UTF-8', isCode: true),
+                      _metaRow('Encoding', _formatEncoding(book.format), isCode: true),
                       const Divider(height: 1, color: WarmEditorialTokens.hairlineDivider),
                       _metaRow('Source', book.sourceFileName, isCode: true),
                       if (book.lastReadAt != null) ...[
@@ -460,3 +463,12 @@ class BookDetailsSheet extends StatelessWidget {
     );
   }
 }
+
+String _formatEncoding(DocumentFormat format) => switch (format) {
+  DocumentFormat.pdf => 'PDF Binary',
+  DocumentFormat.epub => 'EPUB / XML',
+  DocumentFormat.fb2 => 'FB2 / XML',
+  DocumentFormat.html => 'HTML / UTF-8',
+  DocumentFormat.markdown => 'Markdown / UTF-8',
+  DocumentFormat.txt => 'UTF-8 Plain Text',
+};

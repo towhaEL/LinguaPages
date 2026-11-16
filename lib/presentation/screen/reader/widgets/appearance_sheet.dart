@@ -18,6 +18,8 @@ class AppearanceSheet extends StatefulWidget {
     this.fontSize,
     this.onFontSizeChanged,
     this.onReset,
+    this.onBrightnessChanged,
+    this.onResetBrightness,
   });
 
   final SettingsEntity? settings;
@@ -32,6 +34,8 @@ class AppearanceSheet extends StatefulWidget {
   final double? fontSize;
   final ValueChanged<double>? onFontSizeChanged;
   final VoidCallback? onReset;
+  final ValueChanged<double>? onBrightnessChanged;
+  final VoidCallback? onResetBrightness;
 
   @override
   State<AppearanceSheet> createState() => _AppearanceSheetState();
@@ -103,6 +107,7 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
   }
 
   void _reset() {
+    widget.onResetBrightness?.call();
     if (widget.onReset != null) {
       widget.onReset!();
       return;
@@ -334,8 +339,130 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                     const Divider(height: 1, color: WarmEditorialTokens.hairlineDivider),
                     const SizedBox(height: 10),
 
+                    // PDF Display Mode Toggle
+                    if (widget.isPdf || widget.isFallbackPdf) ...[
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'PDF Display Mode',
+                            style: TextStyle(
+                              fontFamily: 'Inter',
+                              fontWeight: FontWeight.w600,
+                              fontSize: 13,
+                              color: WarmEditorialTokens.textPrimaryInk,
+                            ),
+                          ),
+                          Text(
+                            _settings.readerPdfMode == ReaderPdfMode.text
+                                ? 'Selectable text'
+                                : 'Page image',
+                            style: const TextStyle(
+                              fontFamily: 'Inter',
+                              fontSize: 12,
+                              color: WarmEditorialTokens.subtitleSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: WarmEditorialTokens.surfaceContainerLow,
+                          borderRadius: BorderRadius.circular(100),
+                          border: Border.all(color: WarmEditorialTokens.hairlineDivider),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(100),
+                                onTap: () => _updateSettings(
+                                  _settings.copyWith(readerPdfMode: ReaderPdfMode.visual),
+                                ),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(vertical: 8),
+                                  decoration: BoxDecoration(
+                                    color: _settings.readerPdfMode == ReaderPdfMode.visual
+                                        ? WarmEditorialTokens.cardSurface
+                                        : Colors.transparent,
+                                    borderRadius: BorderRadius.circular(100),
+                                    boxShadow: _settings.readerPdfMode == ReaderPdfMode.visual
+                                        ? [
+                                            BoxShadow(
+                                              color: Colors.black.withValues(alpha: 0.06),
+                                              blurRadius: 4,
+                                              offset: const Offset(0, 1),
+                                            ),
+                                          ]
+                                        : null,
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      'Page image',
+                                      style: TextStyle(
+                                        fontFamily: 'Inter',
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                        color: _settings.readerPdfMode == ReaderPdfMode.visual
+                                            ? WarmEditorialTokens.accentInkBlue
+                                            : WarmEditorialTokens.subtitleSecondary,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(100),
+                                onTap: () => _updateSettings(
+                                  _settings.copyWith(readerPdfMode: ReaderPdfMode.text),
+                                ),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(vertical: 8),
+                                  decoration: BoxDecoration(
+                                    color: _settings.readerPdfMode == ReaderPdfMode.text
+                                        ? WarmEditorialTokens.cardSurface
+                                        : Colors.transparent,
+                                    borderRadius: BorderRadius.circular(100),
+                                    boxShadow: _settings.readerPdfMode == ReaderPdfMode.text
+                                        ? [
+                                            BoxShadow(
+                                              color: Colors.black.withValues(alpha: 0.06),
+                                              blurRadius: 4,
+                                              offset: const Offset(0, 1),
+                                            ),
+                                          ]
+                                        : null,
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      'Selectable text',
+                                      style: TextStyle(
+                                        fontFamily: 'Inter',
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                        color: _settings.readerPdfMode == ReaderPdfMode.text
+                                            ? WarmEditorialTokens.accentInkBlue
+                                            : WarmEditorialTokens.subtitleSecondary,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      const Divider(height: 1, color: WarmEditorialTokens.hairlineDivider),
+                      const SizedBox(height: 10),
+                    ],
+
                     // SECTION 2: Typeface Selection
-                    if (!widget.isPdf) ...[
+                    if (!widget.isPdf || _settings.readerPdfMode == ReaderPdfMode.text) ...[
                       const Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -957,7 +1084,10 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                                     max: 1.0,
                                     onChanged: _followSystemBrightness
                                         ? null
-                                        : (val) => setState(() => _brightness = val),
+                                        : (val) {
+                                            setState(() => _brightness = val);
+                                            widget.onBrightnessChanged?.call(val);
+                                          },
                                   ),
                                 ),
                               ),
@@ -983,7 +1113,14 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                                 key: const Key('switch_follow_system_brightness'),
                                 value: _followSystemBrightness,
                                 activeTrackColor: WarmEditorialTokens.accentInkBlue,
-                                onChanged: (val) => setState(() => _followSystemBrightness = val),
+                                onChanged: (val) {
+                                  setState(() => _followSystemBrightness = val);
+                                  if (val) {
+                                    widget.onResetBrightness?.call();
+                                  } else {
+                                    widget.onBrightnessChanged?.call(_brightness);
+                                  }
+                                },
                               ),
                             ],
                           ),

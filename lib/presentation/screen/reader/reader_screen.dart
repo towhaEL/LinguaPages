@@ -34,6 +34,7 @@ import 'package:lingua_pages/domain/service/volume_key_service.dart';
 import 'package:lingua_pages/domain/service/annotation_markdown_exporter.dart';
 import 'package:lingua_pages/domain/use_cases/reader/save_reading_progress_use_case.dart';
 import 'package:lingua_pages/l10n/l10n.dart';
+import 'package:lingua_pages/presentation/screen/home/components/book_details_sheet.dart';
 import 'package:lingua_pages/presentation/screen/premium/cubit/premium_cubit.dart';
 import 'package:lingua_pages/presentation/screen/premium/cubit/premium_state.dart';
 import 'package:lingua_pages/presentation/screen/reader/widgets/appearance_sheet.dart';
@@ -401,6 +402,7 @@ class _ReaderScreenState extends State<ReaderScreen>
                   isBookmarked: _isCurrentPageBookmarked,
                   onSearchPressed: ready ? _showSearch : null,
                   onBookmarkPressed: ready ? _createBookmark : null,
+                  onMenuPressed: ready ? () => showBookDetailsSheet(context, widget.book) : null,
                 ),
               ),
             ),
@@ -433,6 +435,8 @@ class _ReaderScreenState extends State<ReaderScreen>
                       book: widget.book,
                       onOpenVoiceSettings: () =>
                           unawaited(_readAloudService.openVoiceSettings()),
+                      onBookmark: ready ? _createBookmark : null,
+                      onMore: ready ? _showReaderSettings : null,
                     ),
                   ),
                 ),
@@ -1169,6 +1173,10 @@ class _ReaderScreenState extends State<ReaderScreen>
   Future<void> _showSearch() async {
     final progress = _currentProgress(_info);
     final posPercent = (progress * 100).round();
+    final savedLocator = _currentDocumentLocator;
+    final positionLabel = _usesReadium
+        ? 'Progress: $posPercent%'
+        : 'Page ${_pageIndex + 1} ($posPercent%)';
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -1178,7 +1186,10 @@ class _ReaderScreenState extends State<ReaderScreen>
         bookTitle: widget.book.title,
         bookAuthor: widget.book.author,
         bookFormat: widget.book.format.name.toUpperCase(),
-        currentPositionLabel: 'Page ${_pageIndex + 1} ($posPercent%)',
+        currentPositionLabel: positionLabel,
+        onReturnToPosition: savedLocator != null
+            ? () => _goToDocumentLocator(savedLocator)
+            : null,
       ),
     );
   }
@@ -2050,6 +2061,8 @@ class _ReaderScreenState extends State<ReaderScreen>
         usesReadium: _usesReadium,
         onChanged: _handleReaderSettingsChanged,
         onReset: () => _handleReaderSettingsChanged(const SettingsEntity()),
+        onBrightnessChanged: (b) => _brightness.set(b),
+        onResetBrightness: () => _brightness.reset(),
       ),
     );
     if (!mounted) return;
