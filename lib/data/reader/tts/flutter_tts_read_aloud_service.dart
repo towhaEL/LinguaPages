@@ -30,20 +30,29 @@ class FlutterTtsReadAloudService implements ReadAloudService {
     required String text,
     required int Function() startOffset,
     required String? Function(int offset) chapterAt,
+    double Function(int offset)? progressAt,
     FlutterTts? tts,
   }) : _sentences = splitSentences(text),
+       _length = text.length,
        _startOffset = startOffset,
        _chapterAt = chapterAt,
+       _progressAt = progressAt,
        _tts = tts ?? FlutterTts();
 
   final List<TextSentence> _sentences;
   final int Function() _startOffset;
   final String? Function(int offset) _chapterAt;
+
+  /// The book's saved progress at a text offset, when the reader counts it
+  /// differently from the share of the text read.
+  final double Function(int offset)? _progressAt;
+  final int _length;
   final FlutterTts _tts;
 
   final _status = StreamController<ReadAloudStatus>.broadcast();
   final _ranges = StreamController<ReadAloudRange>.broadcast();
   final _chapters = StreamController<String>.broadcast();
+  final _positions = StreamController<ReadAloudPosition>.broadcast();
 
   var _index = 0;
   var _running = false;
@@ -66,6 +75,9 @@ class FlutterTtsReadAloudService implements ReadAloudService {
 
   @override
   Stream<String> get chapterChanges => _chapters.stream;
+
+  @override
+  Stream<ReadAloudPosition> get positionChanges => _positions.stream;
 
   @override
   Future<List<ReadAloudVoice>> voices() async {
@@ -144,6 +156,18 @@ class FlutterTtsReadAloudService implements ReadAloudService {
     return TextSentence(from, sentence.end, rest.trim());
   }
 
+  /// Reports [sentence] as the one being read.
+  void _emit(TextSentence sentence) {
+    _ranges.add(ReadAloudRange(sentence.start, sentence.end));
+    final progress = _length == 0 ? 0.0 : sentence.start / _length;
+    _positions.add(
+      ReadAloudPosition(
+        progress: progress.clamp(0.0, 1.0),
+        savedProgress: _progressAt?.call(sentence.start).clamp(0.0, 1.0),
+      ),
+    );
+  }
+
   Future<void> _jump(int by) async {
     if (_sentences.isEmpty) return;
     final target = (_index + by).clamp(0, _sentences.length - 1);
@@ -152,8 +176,7 @@ class FlutterTtsReadAloudService implements ReadAloudService {
       await _tts.stop();
     } else {
       _index = target;
-      final sentence = _sentences[target];
-      _ranges.add(ReadAloudRange(sentence.start, sentence.end));
+      _emit(_sentences[target]);
     }
   }
 
@@ -166,7 +189,7 @@ class FlutterTtsReadAloudService implements ReadAloudService {
     while (!_halt && _index < _sentences.length) {
       final sentence = _clipped(_sentences[_index]);
       _startAt = null;
-      _ranges.add(ReadAloudRange(sentence.start, sentence.end));
+      _emit(sentence);
       final current = _chapterAt(sentence.start);
       if (current != null && current != chapter) {
         chapter = current;

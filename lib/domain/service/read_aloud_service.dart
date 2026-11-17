@@ -40,6 +40,25 @@ class ReadAloudRange {
   final int end;
 }
 
+/// Where reading aloud has reached in the whole book.
+class ReadAloudPosition {
+  const ReadAloudPosition({
+    required this.progress,
+    this.savedProgress,
+    this.locatorJson,
+  });
+
+  /// 0 at the start of the book, 1 at its end.
+  final double progress;
+
+  /// The book's progress to save, when the reader counts it differently
+  /// from [progress] (by page, say); null saves [progress].
+  final double? savedProgress;
+
+  /// The engine's own locator, saved so the reader reopens here.
+  final String? locatorJson;
+}
+
 /// Reads the open book aloud with the device's own voices.
 abstract interface class ReadAloudService {
   Stream<ReadAloudStatus> get statusChanges;
@@ -50,6 +69,9 @@ abstract interface class ReadAloudService {
 
   /// A stable id of the chapter being read, for the end-of-chapter timer.
   Stream<String> get chapterChanges;
+
+  /// Where reading has reached, as each sentence starts.
+  Stream<ReadAloudPosition> get positionChanges;
 
   /// Voices that work offline. Network voices are left out: they would send
   /// the book's text to the voice provider.

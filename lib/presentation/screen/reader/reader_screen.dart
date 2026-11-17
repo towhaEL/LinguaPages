@@ -45,6 +45,8 @@ import 'package:lingua_pages/presentation/screen/reader/widgets/reader_search.da
 import 'package:lingua_pages/presentation/screen/reader/widgets/table_of_contents_drawer.dart';
 import 'package:lingua_pages/presentation/screen/reader/read_aloud/read_aloud_cubit.dart';
 import 'package:lingua_pages/presentation/screen/reader/read_aloud/read_aloud_player.dart';
+import 'package:lingua_pages/presentation/screen/reader/read_aloud/read_aloud_mini_player.dart';
+import 'package:lingua_pages/presentation/screen/reader/read_aloud/read_aloud_session.dart';
 import 'package:lingua_pages/presentation/screen/reader/widgets/reader_chrome.dart';
 import 'package:lingua_pages/presentation/screen/reader/widgets/reader_tap_zones.dart';
 import 'package:lingua_pages/presentation/theme/app_tokens.dart';
@@ -119,10 +121,18 @@ class _ReaderScreenState extends State<ReaderScreen>
   late final ScreenBrightnessService _brightness;
   late final SelectionTextService _selectionText;
 
-  /// Created on first use of Listen.
-  ReadAloudCubit? _readAloud;
+  /// The app-wide read-aloud, which outlives this screen.
+  late final ReadAloudSession _readAloudSession;
+
+  /// The session's cubit and engine while it reads this book.
+  ReadAloudCubit? _followedReadAloud;
+  ReadAloudService? _followedReadAloudService;
   StreamSubscription<ReadAloudState>? _readAloudSubscription;
   StreamSubscription<ReadAloudRange>? _spokenSubscription;
+
+  /// The engine this screen created, so it is handed over only if still
+  /// reading when the screen closes.
+  ReadAloudService? _ownReadAloudService;
 
   /// The sentence the fallback engine is speaking, highlighted on its page.
   ReadAloudRange? _spokenRange;
@@ -149,6 +159,10 @@ class _ReaderScreenState extends State<ReaderScreen>
     _volumeKeys = injector<VolumeKeyService>();
     _brightness = injector<ScreenBrightnessService>();
     _selectionText = injector<SelectionTextService>();
+    _readAloudSession = injector<ReadAloudSession>()
+      ..readerOpened(widget.book.id)
+      ..addListener(_onReadAloudSessionChanged);
+    _syncReadAloud();
     _pageTurnSubscription = _volumeKeys.pageTurns.listen(_turnPage);
     _chromeVisible.addListener(_rebuild);
     _premiumSubscription = _premium.stream.listen((_) {
@@ -188,7 +202,9 @@ class _ReaderScreenState extends State<ReaderScreen>
     unawaited(_pageTurnSubscription?.cancel());
     unawaited(_readAloudSubscription?.cancel());
     unawaited(_spokenSubscription?.cancel());
-    unawaited(_readAloud?.close());
+    _readAloudSession
+      ..removeListener(_onReadAloudSessionChanged)
+      ..readerClosed(widget.book.id);
     unawaited(_volumeKeys.setEnabled(enabled: false));
     if (_readerBrightness != null) unawaited(_brightness.reset());
     if (_changedSystemUi) {
@@ -203,10 +219,23 @@ class _ReaderScreenState extends State<ReaderScreen>
       unawaited(SystemChrome.setPreferredOrientations(const []));
     }
     _chromeVisible.dispose();
+    // Reading aloud carries on without this screen, so the document it
+    // reads from stays open until the session ends.
+    final stillReading =
+        _readAloudSession.isFor(widget.book.id) && _readAloudSession.active;
     if (_usesReadium) {
-      unawaited(_readiumSession.close());
-    } else {
-      unawaited(_engine?.close());
+      if (stillReading) {
+        _readAloudSession.adopt(_readiumSession.close, sharesReader: true);
+      } else {
+        unawaited(_readiumSession.close());
+      }
+    } else if (_engine case final engine?) {
+      if (stillReading &&
+          identical(_readAloudSession.service, _ownReadAloudService)) {
+        _readAloudSession.adopt(engine.close);
+      } else {
+        unawaited(engine.close());
+      }
     }
     super.dispose();
   }
@@ -333,12 +362,18 @@ class _ReaderScreenState extends State<ReaderScreen>
           children: [
             Positioned.fill(
               child: SafeArea(
-                child: GestureDetector(
-                  key: const Key('reader_viewport_tap_target'),
-                  behavior: HitTestBehavior.translucent,
-                  onTap: _toggleChrome,
-                  child: _buildBody(context, info),
-                ),
+                // Readium toggles the chrome itself, and a Flutter tap
+                // recognizer here would win the gesture arena over its
+                // platform view, so long-press text selection never
+                // reached the native page.
+                child: _usesReadium
+                    ? _buildBody(context, info)
+                    : GestureDetector(
+                        key: const Key('reader_viewport_tap_target'),
+                        behavior: HitTestBehavior.translucent,
+                        onTap: _toggleChrome,
+                        child: _buildBody(context, info),
+                      ),
               ),
             ),
             if (ready && _errorMessage == null && !chromeVisible)
@@ -425,24 +460,32 @@ class _ReaderScreenState extends State<ReaderScreen>
                   child: _buildBottomBar(context, info),
                 ),
               ),
-            if (_readAloud case final readAloud? when readAloud.state.active)
+            if ((_readAloudSession.book, _readAloudSession.cubit) case (
+              final listeningBook?,
+              final readAloud?,
+            ) when _readAloudSession.active)
               Positioned(
                 left: 12,
                 right: 12,
                 // Docked above the reader bar, or at the bottom without it.
                 bottom: chromeVisible
                     ? readerBottomBarHeight +
-                          MediaQuery.paddingOf(context).bottom + 8
+                          MediaQuery.paddingOf(context).bottom +
+                          8
                     : MediaQuery.paddingOf(context).bottom + 12,
                 child: BlocProvider.value(
                   value: readAloud,
-                  child: ReadAloudPlayer(
-                    book: widget.book,
-                    onOpenVoiceSettings: () =>
-                        unawaited(_readAloudService.openVoiceSettings()),
-                    onBookmark: ready ? _createBookmark : null,
-                    onMore: ready ? _showReaderSettings : null,
-                    onMinimize: () => unawaited(readAloud.stop()),
+                  child: ValueListenableBuilder<double>(
+                    valueListenable: _readAloudSession.progressListenable,
+                    builder: (context, progress, _) => ReadAloudPlayer(
+                      book: listeningBook,
+                      progress: progress,
+                      // Another book's player takes the user to that book.
+                      onTap: listeningBook.id == widget.book.id
+                          ? _showReadAloudControls
+                          : () => unawaited(openReadAloudBook(context)),
+                      onOpenVoiceSettings: _openVoiceSettings,
+                    ),
                   ),
                 ),
               ),
@@ -746,7 +789,7 @@ class _ReaderScreenState extends State<ReaderScreen>
           darkPage: _display.readerTheme.isDarkPage,
           marksForPage: _textPageMarks,
           onSelectionAction: _handleFallbackSelectionAction,
-          initialProgress: widget.book.progress,
+          initialProgress: _resumeProgress,
           onProgressChanged: _handleContinuousProgress,
         ),
       );
@@ -781,7 +824,36 @@ class _ReaderScreenState extends State<ReaderScreen>
 
     if (_pageBytes == null) return _buildLoading(context);
 
-    final page = info.layout == DocumentLayout.fixed
+    final VoidCallback? previousPage = _pageIndex == 0 || _isRendering
+        ? null
+        : () {
+            _hideChrome();
+            unawaited(_renderPage(_pageIndex - 1));
+          };
+    final VoidCallback? nextPage =
+        info.pageCount == null ||
+            _pageIndex >= info.pageCount! - 1 ||
+            _isRendering
+        ? null
+        : () {
+            _hideChrome();
+            unawaited(_renderPage(_pageIndex + 1));
+          };
+
+    final tapZones =
+        !_usesReadium && _display.readerMode == ReaderMode.paginated
+        ? ReaderTapZonesOverlay(
+            scheme: _display.readerTapZones,
+            previousLabel: context.l10n.readerPreviousPage,
+            nextLabel: context.l10n.readerNextPage,
+            onToggleControls: _toggleChrome,
+            onPrevious: previousPage,
+            onNext: nextPage,
+          )
+        : null;
+    final fixed = info.layout == DocumentLayout.fixed;
+
+    final page = fixed
         ? _FixedPage(
             bytes: _pageBytes!,
             isRendering: _isRendering,
@@ -790,6 +862,9 @@ class _ReaderScreenState extends State<ReaderScreen>
             colorFilter: _display.readerTheme.isDarkPage
                 ? _pageColorFilter(_display.readerImageFilter)
                 : null,
+            onSwipePrevious: previousPage,
+            onSwipeNext: nextPage,
+            tapZones: tapZones,
           )
         : _ReflowablePage(
             bytes: _pageBytes!,
@@ -815,30 +890,8 @@ class _ReaderScreenState extends State<ReaderScreen>
     return Stack(
       children: [
         Positioned.fill(child: page),
-        if (!_usesReadium && _display.readerMode == ReaderMode.paginated)
-          Positioned.fill(
-            child: ReaderTapZonesOverlay(
-              scheme: _display.readerTapZones,
-              previousLabel: context.l10n.readerPreviousPage,
-              nextLabel: context.l10n.readerNextPage,
-              onToggleControls: _toggleChrome,
-              onPrevious: _pageIndex == 0 || _isRendering
-                  ? null
-                  : () {
-                      _hideChrome();
-                      unawaited(_renderPage(_pageIndex - 1));
-                    },
-              onNext:
-                  info.pageCount == null ||
-                      _pageIndex >= info.pageCount! - 1 ||
-                      _isRendering
-                  ? null
-                  : () {
-                      _hideChrome();
-                      unawaited(_renderPage(_pageIndex + 1));
-                    },
-            ),
-          ),
+        // A fixed page lays the zones under its zoom buttons instead.
+        if (tapZones != null && !fixed) Positioned.fill(child: tapZones),
         if (_isRendering)
           const Positioned(
             top: 12,
@@ -894,8 +947,10 @@ class _ReaderScreenState extends State<ReaderScreen>
       final contents = await _engine!.tableOfContentsEntries();
       final pageCount = info.pageCount ?? 1;
       // Paged progress is saved as (page + 1) / pageCount; invert that.
-      final initialPage = ((pageCount * widget.book.progress).round() - 1)
-          .clamp(0, pageCount - 1);
+      final initialPage = ((pageCount * _resumeProgress).round() - 1).clamp(
+        0,
+        pageCount - 1,
+      );
       if (!mounted) return;
       var tocEntries = contents;
       var tocTitles = contents.map((entry) => entry.title).toList();
@@ -920,7 +975,7 @@ class _ReaderScreenState extends State<ReaderScreen>
         _localTableOfContents = tocEntries;
         _tableOfContents = tocTitles;
         _pageIndex = initialPage;
-        _continuousProgress = widget.book.progress;
+        _continuousProgress = _resumeProgress;
         _continuousPages = null;
       });
       if (info.layout == DocumentLayout.reflowable &&
@@ -995,6 +1050,12 @@ class _ReaderScreenState extends State<ReaderScreen>
     }
 
     try {
+      // Readium holds one document at a time: reading another book aloud
+      // through it would stop when this one opens.
+      if (_readAloudSession.usesReadium &&
+          !_readAloudSession.isFor(widget.book.id)) {
+        await _readAloudSession.end();
+      }
       final publication = await _readiumSession.open(widget.book.sourceUri);
       await _readiumSession.applySettings(
         settings: _display,
@@ -1003,15 +1064,16 @@ class _ReaderScreenState extends State<ReaderScreen>
       final contents = publication.tocFlattened.isNotEmpty
           ? publication.tocFlattened
           : publication.tableOfContents.isNotEmpty
-              ? publication.tableOfContents
-              : publication.readingOrder;
+          ? publication.tableOfContents
+          : publication.readingOrder;
       if (!mounted) return;
       List<String> titles;
       final rawTitles = contents
           .map((link) => link.title?.trim())
           .map((title) => (title != null && title.isNotEmpty) ? title : null)
           .toList(growable: false);
-      if (rawTitles.every((t) => t == null) && widget.book.tableOfContents.isNotEmpty) {
+      if (rawTitles.every((t) => t == null) &&
+          widget.book.tableOfContents.isNotEmpty) {
         titles = widget.book.tableOfContents;
       } else {
         titles = rawTitles.indexed
@@ -1308,14 +1370,12 @@ class _ReaderScreenState extends State<ReaderScreen>
           ? _publication!.tableOfContents
           : _publication!.readingOrder;
       if (links.isNotEmpty) {
-        return links.indexed
-            .map((e) {
-              final title = e.$2.title?.trim();
-              return (title != null && title.isNotEmpty)
-                  ? title
-                  : 'Section ${e.$1 + 1}';
-            })
-            .toList();
+        return links.indexed.map((e) {
+          final title = e.$2.title?.trim();
+          return (title != null && title.isNotEmpty)
+              ? title
+              : 'Section ${e.$1 + 1}';
+        }).toList();
       }
     }
     final pageCount = _info?.pageCount;
@@ -1336,10 +1396,7 @@ class _ReaderScreenState extends State<ReaderScreen>
       }
     }
     final progress = _currentProgress(_info);
-    return (progress * effective.length).floor().clamp(
-      0,
-      effective.length - 1,
-    );
+    return (progress * effective.length).floor().clamp(0, effective.length - 1);
   }
 
   String? get _currentChapterTitle {
@@ -2008,19 +2065,33 @@ class _ReaderScreenState extends State<ReaderScreen>
     unawaited(_renderPage(target));
   }
 
-  ReadAloudService? _readAloudEngine;
-
   /// Readium reads native books itself; fallback text uses the platform's
   /// text-to-speech one sentence at a time.
-  ReadAloudService get _readAloudService => _readAloudEngine ??= _usesReadium
-      ? ReadiumReadAloudService(
-          currentLocator: () => _currentReadiumLocator ?? _savedLocator,
-        )
-      : FlutterTtsReadAloudService(
-          text: _engine!.text,
-          startOffset: () => _engine!.pageStartOffset(_visiblePageIndex),
-          chapterAt: _chapterAt,
-        );
+  ReadAloudService _createReadAloudService() {
+    if (_usesReadium) {
+      return ReadiumReadAloudService(
+        currentLocator: () => _currentReadiumLocator ?? _savedLocator,
+      );
+    }
+    final engine = _engine!;
+    return FlutterTtsReadAloudService(
+      text: engine.text,
+      startOffset: () => engine.pageStartOffset(_visiblePageIndex),
+      chapterAt: _chapterAt,
+      // Saved the way the reader saves its own pages, so the book reopens
+      // where listening got to.
+      progressAt: (offset) {
+        final pageCount = _info?.pageCount ?? 1;
+        final scrolling =
+            _settings.readerMode == ReaderMode.continuous &&
+            _info?.layout == DocumentLayout.reflowable;
+        if (scrolling || pageCount <= 1) {
+          return engine.text.isEmpty ? 0 : offset / engine.text.length;
+        }
+        return (engine.pageIndexForOffset(offset) + 1) / pageCount;
+      },
+    );
+  }
 
   /// Where the spoken sentence starts within page [pageIndex], if it does.
   int? _spokenOffsetOnPage(int pageIndex) {
@@ -2077,20 +2148,80 @@ class _ReaderScreenState extends State<ReaderScreen>
     }
   }
 
+  /// Starts reading this book aloud, or resumes it if it already is.
   Future<void> _startReadAloud() async {
-    final readAloud = _readAloud ??= ReadAloudCubit(
-      _readAloudService,
+    _hideChrome();
+    final session = _readAloudSession;
+    if (session.isFor(widget.book.id)) {
+      final cubit = session.cubit!;
+      if (!cubit.state.isPlaying) await cubit.play();
+      return;
+    }
+    final service = _createReadAloudService();
+    final cubit = ReadAloudCubit(
+      service,
       _settingsRepository,
       language:
           _publication?.metadata.languages.firstOrNull ??
           widget.book.languageCode,
     );
-    _readAloudSubscription ??= readAloud.stream.listen(_onReadAloudChanged);
-    _spokenSubscription ??= _readAloudService.spokenRanges.listen(
-      _followSpoken,
+    _ownReadAloudService = service;
+    await session.begin(
+      book: widget.book,
+      cubit: cubit,
+      service: service,
+      usesReadium: _usesReadium,
     );
-    _hideChrome();
-    await readAloud.open();
+    await cubit.open();
+  }
+
+  void _onReadAloudSessionChanged() {
+    if (!mounted) return;
+    _syncReadAloud();
+    setState(() {});
+  }
+
+  /// Follows the session's engine while it reads this book: the spoken
+  /// sentence is highlighted and its page kept on screen.
+  void _syncReadAloud() {
+    final reading = _readAloudSession.isFor(widget.book.id);
+    final cubit = reading ? _readAloudSession.cubit : null;
+    final service = reading ? _readAloudSession.service : null;
+    if (!identical(service, _followedReadAloudService)) {
+      unawaited(_spokenSubscription?.cancel());
+      _followedReadAloudService = service;
+      // Readium highlights and turns its own pages.
+      _spokenSubscription = service == null || _usesReadium
+          ? null
+          : service.spokenRanges.listen(_followSpoken);
+    }
+    if (!identical(cubit, _followedReadAloud)) {
+      unawaited(_readAloudSubscription?.cancel());
+      _followedReadAloud = cubit;
+      _readAloudSubscription = cubit?.stream.listen(_onReadAloudChanged);
+      if (cubit == null) {
+        _spokenRange = null;
+        if (mounted) _applyWakeLock(_settings.keepScreenAwake);
+      }
+    }
+  }
+
+  Future<void> _showReadAloudControls() async {
+    final cubit = _readAloudSession.cubit;
+    final book = _readAloudSession.book;
+    if (cubit == null || book == null) return;
+    await showReadAloudControls(
+      context,
+      cubit: cubit,
+      book: book,
+      progress: _readAloudSession.progressListenable,
+      onOpenVoiceSettings: _openVoiceSettings,
+    );
+  }
+
+  void _openVoiceSettings() {
+    final service = _readAloudSession.service;
+    if (service != null) unawaited(service.openVoiceSettings());
   }
 
   /// Rebuilds for the player and keeps the screen on while it speaks, when
@@ -2416,17 +2547,25 @@ class _ReaderScreenState extends State<ReaderScreen>
     return json == null ? null : Locator.fromJsonString(json);
   }
 
+  /// Where to reopen: where reading aloud has got to, else the saved place.
+  double get _resumeProgress => _readAloudSession.isFor(widget.book.id)
+      ? _readAloudSession.savedProgress
+      : widget.book.progress;
+
   Locator? get _savedLocator {
-    final locatorJson = widget.book.readingLocatorJson;
+    final listening = _readAloudSession.isFor(widget.book.id)
+        ? _readAloudSession.locatorJson
+        : null;
+    final locatorJson = listening ?? widget.book.readingLocatorJson;
     if (locatorJson == null || locatorJson.isEmpty) return null;
     return Locator.fromJsonString(locatorJson);
   }
 
+  /// PDFs stay on the pdfrx reader: Readium's Pdfium adapter has no text
+  /// selection and ignores the PDF display mode, theme and typeface.
   bool _shouldUseReadium(DocumentFormat format) {
     if (kIsWeb) return false;
-    if (format != DocumentFormat.epub && format != DocumentFormat.pdf) {
-      return false;
-    }
+    if (format != DocumentFormat.epub) return false;
     return defaultTargetPlatform == TargetPlatform.android ||
         defaultTargetPlatform == TargetPlatform.iOS;
   }
@@ -2439,12 +2578,23 @@ class _FixedPage extends StatefulWidget {
     required this.backgroundColor,
     required this.fit,
     this.colorFilter,
+    this.onSwipePrevious,
+    this.onSwipeNext,
+    this.tapZones,
   });
 
   final Uint8List bytes;
   final bool isRendering;
   final Color backgroundColor;
   final ReaderPdfFit fit;
+
+  /// A horizontal swipe at normal zoom turns the page; zoomed in, it pans.
+  final VoidCallback? onSwipePrevious;
+  final VoidCallback? onSwipeNext;
+
+  /// Page-turn zones, laid between the page and the zoom buttons so they
+  /// do not swallow taps on the buttons.
+  final Widget? tapZones;
 
   /// Dims or inverts the rendered page on dark reading themes.
   final ColorFilter? colorFilter;
@@ -2499,6 +2649,27 @@ class _FixedPageState extends State<_FixedPage> {
 
   void _resetZoom() => _setScale(_minScale);
 
+  static const _swipeVelocity = 300.0;
+
+  /// Whether the gesture began at normal zoom, so a fling may turn the page.
+  bool _swipeStartedUnzoomed = false;
+
+  bool get _isUnzoomed => _scale <= _minScale + .01;
+
+  void _handleInteractionEnd(ScaleEndDetails details) {
+    final velocity = details.velocity.pixelsPerSecond;
+    if (!_swipeStartedUnzoomed || !_isUnzoomed) return;
+    if (velocity.dx.abs() < _swipeVelocity ||
+        velocity.dx.abs() < velocity.dy.abs()) {
+      return;
+    }
+    if (velocity.dx > 0) {
+      widget.onSwipePrevious?.call();
+    } else {
+      widget.onSwipeNext?.call();
+    }
+  }
+
   Widget _filtered(Widget page) {
     final filter = widget.colorFilter;
     return filter == null
@@ -2517,6 +2688,8 @@ class _FixedPageState extends State<_FixedPage> {
               transformationController: _transformationController,
               minScale: _minScale,
               maxScale: _maxScale,
+              onInteractionStart: (_) => _swipeStartedUnzoomed = _isUnzoomed,
+              onInteractionEnd: _handleInteractionEnd,
               child: Center(
                 child: _filtered(
                   widget.fit == ReaderPdfFit.width
@@ -2545,6 +2718,8 @@ class _FixedPageState extends State<_FixedPage> {
               ),
             ),
           ),
+          if (widget.tapZones case final tapZones?)
+            Positioned.fill(child: tapZones),
           Positioned(
             right: 12,
             bottom: 12,

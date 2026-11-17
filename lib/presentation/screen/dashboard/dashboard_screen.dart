@@ -4,6 +4,7 @@ import 'package:lingua_pages/presentation/route/app_router.gr.dart';
 import 'package:lingua_pages/presentation/screen/dashboard/dashboard_landscape.dart';
 import 'package:lingua_pages/presentation/screen/dashboard/dashboard_portrait.dart';
 import 'package:lingua_pages/presentation/widgets/widgets.dart';
+import 'package:lingua_pages/presentation/screen/reader/read_aloud/read_aloud_mini_player.dart';
 
 @RoutePage()
 class DashboardScreen extends StatelessWidget {
@@ -14,7 +15,9 @@ class DashboardScreen extends StatelessWidget {
     return AutoTabsRouter(
       routes: const [HomeRoute(), SettingsRoute()],
       builder: (context, child) {
-        return _ResponsiveDashboard(child: child);
+        return ReadAloudMiniPlayerHost(
+          child: _ResponsiveDashboard(child: child),
+        );
       },
     );
   }

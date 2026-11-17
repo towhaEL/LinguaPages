@@ -313,6 +313,32 @@
   "readAloudNoEngine": "No offline voice is installed on this device.",
   "readAloudNoVoice": "No installed voice speaks this book's language.",
   "readAloudOpenSettings": "Voice settings",
+  "readAloudStatusPlaying": "Reading aloud",
+  "readAloudStatusLoading": "Starting…",
+  "readAloudStatusPaused": "Paused",
+  "readAloudStatusFinished": "Finished",
+  "readAloudStatusLine": "{status} · {percent}%",
+  "@readAloudStatusLine": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "readAloudListening": "Listening",
+  "readAloudOpenBook": "Open {title}",
+  "@readAloudOpenBook": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "readAloudShowControls": "Read-aloud controls",
+  "readAloudOtherVoices": "Other languages",
   "readerCornerTheme": "Switch light or dark page",
   "readerLayoutSection": "Layout",
   "readerHyphenation": "Hyphenation",

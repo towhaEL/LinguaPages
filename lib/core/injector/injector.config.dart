@@ -99,6 +99,8 @@ import '../../presentation/screen/home/cubits/library_cubit.dart' as _i655;
 import '../../presentation/screen/premium/cubit/premium_cubit.dart' as _i887;
 import '../../presentation/screen/reader/cubit/dictionary_lookup_cubit.dart'
     as _i377;
+import '../../presentation/screen/reader/read_aloud/read_aloud_session.dart'
+    as _i990;
 import '../feature_flags/app_feature_flags.dart' as _i101;
 import '../helper/secure_storage_service.dart' as _i693;
 import '../storage/onboarding_preferences.dart' as _i732;
@@ -262,6 +264,9 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i55.SettingsRepository>(),
         gh<_i974.Logger>(),
       ),
+    );
+    gh.lazySingleton<_i990.ReadAloudSession>(
+      () => _i990.ReadAloudSession(gh<_i214.SaveReadingProgressUseCase>()),
     );
     gh.lazySingleton<_i887.PremiumCubit>(
       () => _i887.PremiumCubit(

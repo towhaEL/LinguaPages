@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_readium/flutter_readium.dart';
 import 'package:flutter/services.dart';
 import 'package:lingua_pages/domain/service/read_aloud_service.dart';
@@ -16,7 +18,7 @@ Future<bool> openSystemVoiceSettings() async {
   }
 }
 
-/// Read-aloud for EPUB and PDF through Readium's TTS navigator, which also
+/// Read-aloud for EPUB through Readium's TTS navigator, which also
 /// runs the media notification and lock-screen controls.
 class ReadiumReadAloudService implements ReadAloudService {
   ReadiumReadAloudService({
@@ -53,6 +55,18 @@ class ReadiumReadAloudService implements ReadAloudService {
       .map((state) => state.currentLocator?.href)
       .where((href) => href != null)
       .cast<String>();
+
+  @override
+  Stream<ReadAloudPosition> get positionChanges => _readium
+      .onTimebasedPlayerStateChanged
+      .map((state) => state.currentLocator)
+      .where((locator) => locator?.locations?.totalProgression != null)
+      .map(
+        (locator) => ReadAloudPosition(
+          progress: locator!.locations!.totalProgression!.clamp(0.0, 1.0),
+          locatorJson: jsonEncode(locator.toJson()),
+        ),
+      );
 
   @override
   Future<List<ReadAloudVoice>> voices() async {

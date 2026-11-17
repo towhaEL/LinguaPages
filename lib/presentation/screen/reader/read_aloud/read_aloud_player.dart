@@ -1,6 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lingua_pages/domain/entity/document/document_models.dart';
 import 'package:lingua_pages/domain/entity/library/book_entity.dart';
 import 'package:lingua_pages/domain/service/read_aloud_service.dart';
 import 'package:lingua_pages/l10n/l10n.dart';
@@ -9,375 +9,470 @@ import 'package:lingua_pages/presentation/screen/reader/read_aloud/sleep_timer.d
 import 'package:lingua_pages/presentation/theme/app_tokens.dart';
 import 'package:lingua_pages/presentation/widgets/book/book_cover.dart';
 
-const _speeds = [0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.5, 3.0];
+const _speeds = [0.75, 1.0, 1.25, 1.5, 1.75, 2.0];
 
-/// Spotify-style compact mini player for Read Aloud.
-class ReadAloudPlayer extends StatefulWidget {
+/// The compact read-aloud player, the same in the reader and on every other
+/// screen. Reads [ReadAloudCubit] from the context.
+///
+/// [onTap] runs for a tap on the cover and title: the reader opens the
+/// listening controls, other screens open the book.
+class ReadAloudPlayer extends StatelessWidget {
   const ReadAloudPlayer({
+    required this.book,
+    required this.progress,
+    this.onTap,
     this.onOpenVoiceSettings,
-    this.book,
-    this.spokenSentence,
-    this.isPlaying,
-    this.onPlayPause,
-    this.onSkipForward,
-    this.onSkipBack,
-    this.onMinimize,
-    this.onBookmark,
-    this.onMore,
     super.key,
   });
 
+  final BookEntity book;
+
+  /// How far reading has reached in the book, 0 to 1.
+  final double progress;
+  final VoidCallback? onTap;
   final VoidCallback? onOpenVoiceSettings;
-  final BookEntity? book;
-  final String? spokenSentence;
-  final bool? isPlaying;
-  final VoidCallback? onPlayPause;
-  final VoidCallback? onSkipForward;
-  final VoidCallback? onSkipBack;
-  final VoidCallback? onMinimize;
-  final VoidCallback? onBookmark;
-  final VoidCallback? onMore;
-
-  @override
-  State<ReadAloudPlayer> createState() => _ReadAloudPlayerState();
-}
-
-class _ReadAloudPlayerState extends State<ReadAloudPlayer> {
-  late double _progress = (widget.book?.progress ?? 0.35).clamp(0.0, 1.0);
-
-  static final _fallbackBook = BookEntity(
-    id: 'active-reading-book',
-    title: 'Document',
-    author: null,
-    format: DocumentFormat.epub,
-    sourceUri: '',
-    sourceFileName: '',
-    contentFingerprint: '',
-    addedAt: DateTime(2026, 1, 1),
-  );
-
-  @override
-  void didUpdateWidget(ReadAloudPlayer oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.book?.progress != null &&
-        widget.book!.progress != oldWidget.book?.progress) {
-      _progress = widget.book!.progress.clamp(0.0, 1.0);
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
-    ReadAloudCubit? cubit;
-    ReadAloudState? state;
-    try {
-      cubit = context.read<ReadAloudCubit>();
-      state = context.watch<ReadAloudCubit>().state;
-    } catch (_) {
-      // Standalone contract or test context where ReadAloudCubit is not provided
-    }
-
-    final isPlaying = widget.isPlaying ?? state?.isPlaying ?? true;
-    final book = widget.book ?? _fallbackBook;
-
-    final speedText = state != null ? '${state.speed}x' : '1.0x';
-    final voiceText = state?.voice?.name ?? 'Natural Voice 1';
-    final sleepText = state != null && state.sleep != SleepTimerChoice.off
-        ? _sleepLabel(context, state.sleep)
-        : '30 min timer';
-
-    if (state?.problem != null) {
-      return Material(
-        key: const Key('read_aloud_player_sheet'),
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        elevation: 6,
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: _Problem(
-            problem: state!.problem!,
-            onOpenSettings: widget.onOpenVoiceSettings ?? () {},
-            onClose: cubit?.stop ?? () {},
-          ),
-        ),
-      );
-    }
-
-    final effectiveProgress = (widget.book?.progress ?? _progress).clamp(0.0, 1.0);
+    final l10n = context.l10n;
+    final cubit = context.read<ReadAloudCubit>();
+    final state = context.watch<ReadAloudCubit>().state;
+    final percent = (progress.clamp(0.0, 1.0) * 100).round();
 
     return Material(
       key: const Key('read_aloud_player_sheet'),
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(16),
-      elevation: 6,
-      shadowColor: Colors.black.withValues(alpha: 0.16),
-      child: ClipRRect(
+      color: WarmEditorialTokens.cardSurface,
+      elevation: 8,
+      shadowColor: Colors.black.withValues(alpha: .18),
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
+        side: const BorderSide(color: WarmEditorialTokens.hairlineDivider),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: state.problem != null
+          ? Padding(
+              padding: const EdgeInsets.fromLTRB(4, 6, 8, 6),
+              child: _Problem(
+                problem: state.problem!,
+                onOpenSettings: onOpenVoiceSettings,
+                onClose: cubit.stop,
+              ),
+            )
+          : Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(8, 8, 4, 8),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Semantics(
+                          button: onTap != null,
+                          label: l10n.readAloudShowControls,
+                          child: InkWell(
+                            key: const Key('read_aloud_player_open'),
+                            borderRadius: BorderRadius.circular(10),
+                            onTap: onTap,
+                            child: Row(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(6),
+                                  child: SizedBox(
+                                    width: 38,
+                                    height: 50,
+                                    child: BookCover(book: book, compact: true),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        book.title,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          fontFamily: 'Newsreader',
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w700,
+                                          color: WarmEditorialTokens
+                                              .textPrimaryInk,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Row(
+                                        children: [
+                                          if (state.isPlaying) ...[
+                                            const Icon(
+                                              Icons.graphic_eq_rounded,
+                                              size: 14,
+                                              color: WarmEditorialTokens
+                                                  .accentInkBlue,
+                                            ),
+                                            const SizedBox(width: 4),
+                                          ],
+                                          Flexible(
+                                            child: Text(
+                                              l10n.readAloudStatusLine(
+                                                _statusLabel(context, state),
+                                                percent,
+                                              ),
+                                              key: const Key(
+                                                'read_aloud_status_line',
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: TextStyle(
+                                                fontFamily: 'Inter',
+                                                fontSize: 12,
+                                                color: state.isPlaying
+                                                    ? WarmEditorialTokens
+                                                          .accentInkBlue
+                                                    : WarmEditorialTokens
+                                                          .subtitleSecondary,
+                                                fontFeatures: const [
+                                                  FontFeature.tabularFigures(),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        key: const Key('read_aloud_skip_back'),
+                        tooltip: l10n.readAloudPrevious,
+                        icon: const Icon(Icons.skip_previous_rounded),
+                        color: WarmEditorialTokens.textPrimaryInk,
+                        onPressed: cubit.previous,
+                      ),
+                      _PlayPauseButton(state: state, cubit: cubit, size: 44),
+                      IconButton(
+                        key: const Key('read_aloud_skip_forward'),
+                        tooltip: l10n.readAloudNext,
+                        icon: const Icon(Icons.skip_next_rounded),
+                        color: WarmEditorialTokens.textPrimaryInk,
+                        onPressed: cubit.next,
+                      ),
+                      IconButton(
+                        key: const Key('read_aloud_close'),
+                        tooltip: l10n.readAloudStop,
+                        icon: const Icon(Icons.close_rounded, size: 20),
+                        color: WarmEditorialTokens.subtitleSecondary,
+                        visualDensity: VisualDensity.compact,
+                        onPressed: cubit.stop,
+                      ),
+                    ],
+                  ),
+                ),
+                LinearProgressIndicator(
+                  key: const Key('read_aloud_progress'),
+                  value: progress.clamp(0.0, 1.0),
+                  minHeight: 3,
+                  color: WarmEditorialTokens.accentInkBlue,
+                  backgroundColor: WarmEditorialTokens.surfaceContainerHighest,
+                ),
+              ],
+            ),
+    );
+  }
+}
+
+String _statusLabel(BuildContext context, ReadAloudState state) {
+  final l10n = context.l10n;
+  return switch (state.status) {
+    ReadAloudStatus.loading => l10n.readAloudStatusLoading,
+    ReadAloudStatus.playing => l10n.readAloudStatusPlaying,
+    ReadAloudStatus.paused => l10n.readAloudStatusPaused,
+    ReadAloudStatus.idle => l10n.readAloudStatusFinished,
+  };
+}
+
+class _PlayPauseButton extends StatelessWidget {
+  const _PlayPauseButton({
+    required this.state,
+    required this.cubit,
+    required this.size,
+  });
+
+  final ReadAloudState state;
+  final ReadAloudCubit cubit;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final loading = state.status == ReadAloudStatus.loading;
+    return Semantics(
+      button: true,
+      label: state.isPlaying ? l10n.readAloudPause : l10n.readAloudPlay,
+      child: Material(
+        key: const Key('read_aloud_play_pause_hero'),
+        color: WarmEditorialTokens.accentInkBlue,
+        shape: const CircleBorder(),
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: state.isPlaying ? cubit.pause : cubit.play,
+          child: SizedBox.square(
+            dimension: size,
+            child: Center(
+              child: loading
+                  ? SizedBox.square(
+                      dimension: size * .42,
+                      child: const CircularProgressIndicator(
+                        strokeWidth: 2.4,
+                        color: Colors.white,
+                      ),
+                    )
+                  : Icon(
+                      state.isPlaying
+                          ? Icons.pause_rounded
+                          : Icons.play_arrow_rounded,
+                      color: Colors.white,
+                      size: size * .6,
+                    ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The full listening controls for [cubit]: position, transport, speed,
+/// voice and sleep timer. [progress] is read on every rebuild so the bar
+/// keeps moving while the sheet is open.
+Future<void> showReadAloudControls(
+  BuildContext context, {
+  required ReadAloudCubit cubit,
+  required BookEntity book,
+  required ValueListenable<double> progress,
+  VoidCallback? onOpenVoiceSettings,
+}) {
+  return showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    showDragHandle: true,
+    backgroundColor: WarmEditorialTokens.cardSurface,
+    builder: (sheetContext) => BlocProvider.value(
+      value: cubit,
+      child: _ReadAloudControls(
+        book: book,
+        progress: progress,
+        onOpenVoiceSettings: onOpenVoiceSettings,
+      ),
+    ),
+  );
+}
+
+class _ReadAloudControls extends StatelessWidget {
+  const _ReadAloudControls({
+    required this.book,
+    required this.progress,
+    this.onOpenVoiceSettings,
+  });
+
+  final BookEntity book;
+  final ValueListenable<double> progress;
+  final VoidCallback? onOpenVoiceSettings;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final cubit = context.read<ReadAloudCubit>();
+    final state = context.watch<ReadAloudCubit>().state;
+    // Stopping from the sheet closes it with the player.
+    if (!state.active) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (context.mounted) Navigator.of(context).maybePop();
+      });
+    }
+
+    return SafeArea(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
+          key: const Key('read_aloud_controls_sheet'),
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Top Scrubber: Slim Spotify-style track across the top
-            SliderTheme(
-              data: SliderTheme.of(context).copyWith(
-                activeTrackColor: WarmEditorialTokens.accentInkBlue,
-                inactiveTrackColor: WarmEditorialTokens.surfaceContainerHighest,
-                thumbColor: WarmEditorialTokens.accentInkBlue,
-                trackHeight: 2.5,
-                thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 4.5),
-                overlayShape: const RoundSliderOverlayShape(overlayRadius: 8),
-                trackShape: const RectangularSliderTrackShape(),
-              ),
-              child: SizedBox(
-                height: 8,
-                child: Slider(
-                  value: _progress.clamp(0.0, 1.0),
-                  onChanged: (val) => setState(() => _progress = val.clamp(0.0, 1.0)),
+            Row(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: SizedBox(
+                    width: 56,
+                    height: 74,
+                    child: BookCover(book: book, compact: true),
+                  ),
                 ),
-              ),
-            ),
-
-            // Spoken sentence quote card: only rendered when explicitly passed (e.g. tests); omitted in reading mode to keep player minimal
-            if (widget.spokenSentence != null) ...[
-              Padding(
-                padding: const EdgeInsets.fromLTRB(12, 4, 12, 0),
-                child: Container(
-                  key: const Key('player_sentence_quote_card'),
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: WarmEditorialTokens.canvasBackground,
-                    borderRadius: BorderRadius.circular(8),
-                    border: const Border(
-                      left: BorderSide(
-                        color: WarmEditorialTokens.accentInkBlue,
-                        width: 3,
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.readAloudListening.toUpperCase(),
+                        style: const TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 1.1,
+                          color: WarmEditorialTokens.accentInkBlue,
+                        ),
                       ),
-                    ),
-                  ),
-                  child: Text(
-                    '“${widget.spokenSentence}”',
-                    style: const TextStyle(
-                      fontFamily: 'Newsreader',
-                      fontSize: 13,
-                      fontStyle: FontStyle.italic,
-                      fontWeight: FontWeight.w500,
-                      color: WarmEditorialTokens.textPrimaryInk,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-
-            // Main Mini Player Row: Cover + Info + Controls
-            Padding(
-              padding: const EdgeInsets.fromLTRB(10, 4, 8, 4),
-              child: Row(
-                children: [
-                  // Book cover thumbnail
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(6),
-                    child: SizedBox(
-                      width: 34,
-                      height: 44,
-                      child: BookCover(book: book, compact: true),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-
-                  // Metadata: Title, format, author, real progress %
-                  Expanded(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
+                      const SizedBox(height: 4),
+                      Text(
+                        book.title,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontFamily: 'Newsreader',
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                          color: WarmEditorialTokens.textPrimaryInk,
+                        ),
+                      ),
+                      if (book.author case final author? when author.isNotEmpty)
                         Text(
-                          book.title,
+                          author,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
-                            fontFamily: 'Newsreader',
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            color: WarmEditorialTokens.textPrimaryInk,
+                            fontFamily: 'Inter',
+                            fontSize: 13,
+                            color: WarmEditorialTokens.subtitleSecondary,
                           ),
                         ),
-                        const SizedBox(height: 1),
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 4,
-                                vertical: 1,
-                              ),
-                              decoration: BoxDecoration(
-                                color: WarmEditorialTokens.surfaceContainerHighest,
-                                borderRadius: BorderRadius.circular(3),
-                              ),
-                              child: Text(
-                                book.format.name.toUpperCase(),
-                                style: const TextStyle(
-                                  fontFamily: 'Inter',
-                                  fontSize: 8.5,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: 0.6,
-                                  color: WarmEditorialTokens.subtitleSecondary,
-                                ),
-                              ),
-                            ),
-                            if (book.author != null && book.author!.isNotEmpty) ...[
-                              const SizedBox(width: 5),
-                              Flexible(
-                                child: Text(
-                                  book.author!,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    fontFamily: 'Inter',
-                                    fontSize: 11,
-                                    color: WarmEditorialTokens.subtitleSecondary,
-                                  ),
-                                ),
-                              ),
-                            ],
-                            const SizedBox(width: 6),
-                            Text(
-                              '${(effectiveProgress * 100).round()}%',
-                              style: const TextStyle(
-                                fontFamily: 'Inter',
-                                fontSize: 10.5,
-                                color: WarmEditorialTokens.subtitleSecondary,
-                                fontFeatures: [FontFeature.tabularFigures()],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                    ],
                   ),
-
-                  // Controls: Skip Back + Hero Play/Pause + Skip Forward + Close
-                  IconButton(
-                    key: const Key('read_aloud_skip_back'),
-                    icon: const Icon(Icons.replay_10, size: 22),
-                    color: WarmEditorialTokens.textPrimaryInk,
-                    tooltip: 'Skip back 10s',
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                    onPressed: widget.onSkipBack ?? cubit?.previous,
-                  ),
-                  const SizedBox(width: 2),
-                  GestureDetector(
-                    key: const Key('read_aloud_play_pause_hero'),
-                    onTap: widget.onPlayPause ?? (isPlaying ? cubit?.pause : cubit?.play),
-                    child: Container(
-                      width: 38,
-                      height: 38,
-                      decoration: const BoxDecoration(
-                        color: WarmEditorialTokens.accentInkBlue,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Color(0x332F4A7A),
-                            blurRadius: 6,
-                            offset: Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Icon(
-                        isPlaying ? Icons.pause : Icons.play_arrow,
-                        color: Colors.white,
-                        size: 22,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 2),
-                  IconButton(
-                    key: const Key('read_aloud_skip_forward'),
-                    icon: const Icon(Icons.forward_10, size: 22),
-                    color: WarmEditorialTokens.textPrimaryInk,
-                    tooltip: 'Skip forward 10s',
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                    onPressed: widget.onSkipForward ?? cubit?.next,
-                  ),
-                  const SizedBox(width: 2),
-                  IconButton(
-                    icon: const Icon(Icons.close, size: 18),
-                    color: WarmEditorialTokens.subtitleSecondary,
-                    tooltip: 'Stop player',
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
-                    onPressed: widget.onMinimize ?? cubit?.stop ?? () => Navigator.of(context).maybePop(),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-
-            // Secondary Row: Quick Setting Chips (Speed, Voice, Sleep)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(10, 0, 10, 8),
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
+            const SizedBox(height: 20),
+            ValueListenableBuilder<double>(
+              valueListenable: progress,
+              builder: (context, value, _) {
+                final clamped = value.clamp(0.0, 1.0);
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    ActionChip(
-                      avatar: const Icon(Icons.speed, size: 14, color: WarmEditorialTokens.accentInkBlue),
-                      label: Text(speedText),
-                      labelStyle: const TextStyle(
-                        fontFamily: 'Inter',
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: LinearProgressIndicator(
+                        value: clamped,
+                        minHeight: 5,
                         color: WarmEditorialTokens.accentInkBlue,
+                        backgroundColor:
+                            WarmEditorialTokens.surfaceContainerHighest,
                       ),
-                      backgroundColor: WarmEditorialTokens.surfaceContainerLow,
-                      onPressed: () {
-                        if (cubit != null) {
-                          _pickSpeed(context, cubit.state.speed, cubit);
-                        }
-                      },
                     ),
-                    const SizedBox(width: 8),
-                    ActionChip(
-                      avatar: const Icon(
-                        Icons.record_voice_over_outlined,
-                        size: 14,
-                        color: WarmEditorialTokens.subtitleSecondary,
+                    const SizedBox(height: 6),
+                    Text(
+                      l10n.readAloudStatusLine(
+                        _statusLabel(context, state),
+                        (clamped * 100).round(),
                       ),
-                      label: Text(voiceText),
-                      labelStyle: const TextStyle(
+                      style: const TextStyle(
                         fontFamily: 'Inter',
-                        fontSize: 11,
-                        color: WarmEditorialTokens.textPrimaryInk,
-                      ),
-                      backgroundColor: WarmEditorialTokens.surfaceContainerLow,
-                      onPressed: () {
-                        if (cubit != null && state != null) {
-                          _pickVoice(context, state, cubit);
-                        }
-                      },
-                    ),
-                    const SizedBox(width: 8),
-                    ActionChip(
-                      avatar: const Icon(
-                        Icons.bedtime_outlined,
-                        size: 14,
+                        fontSize: 12,
                         color: WarmEditorialTokens.subtitleSecondary,
+                        fontFeatures: [FontFeature.tabularFigures()],
                       ),
-                      label: Text(sleepText),
-                      labelStyle: const TextStyle(
-                        fontFamily: 'Inter',
-                        fontSize: 11,
-                        color: WarmEditorialTokens.textPrimaryInk,
-                      ),
-                      backgroundColor: WarmEditorialTokens.surfaceContainerLow,
-                      onPressed: () {
-                        if (cubit != null && state != null) {
-                          _pickSleep(context, state.sleep, cubit);
-                        }
-                      },
                     ),
                   ],
+                );
+              },
+            ),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                IconButton(
+                  tooltip: l10n.readAloudPrevious,
+                  iconSize: 34,
+                  icon: const Icon(Icons.skip_previous_rounded),
+                  color: WarmEditorialTokens.textPrimaryInk,
+                  onPressed: cubit.previous,
                 ),
+                const SizedBox(width: 20),
+                _PlayPauseButton(state: state, cubit: cubit, size: 64),
+                const SizedBox(width: 20),
+                IconButton(
+                  tooltip: l10n.readAloudNext,
+                  iconSize: 34,
+                  icon: const Icon(Icons.skip_next_rounded),
+                  color: WarmEditorialTokens.textPrimaryInk,
+                  onPressed: cubit.next,
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            _SectionLabel(l10n.readAloudSpeed),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final speed in _speeds)
+                  ChoiceChip(
+                    label: Text(l10n.readAloudSpeedValue(_speedText(speed))),
+                    selected: state.speed == speed,
+                    onSelected: (_) => cubit.setSpeed(speed),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 18),
+            _SectionLabel(l10n.readAloudVoice),
+            Material(
+              color: WarmEditorialTokens.surfaceContainerLow,
+              borderRadius: BorderRadius.circular(12),
+              child: ListTile(
+                key: const Key('read_aloud_voice_tile'),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                leading: const Icon(Icons.record_voice_over_outlined),
+                title: Text(
+                  state.voice?.name ?? '—',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                subtitle: state.voice == null
+                    ? null
+                    : Text(state.voice!.language),
+                trailing: const Icon(Icons.chevron_right_rounded),
+                onTap: () => _pickVoice(context, cubit),
               ),
+            ),
+            const SizedBox(height: 18),
+            _SectionLabel(l10n.readAloudSleep),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final choice in SleepTimerChoice.values)
+                  ChoiceChip(
+                    label: Text(_sleepLabel(context, choice)),
+                    selected: state.sleep == choice,
+                    onSelected: (_) => cubit.setSleep(choice),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            OutlinedButton.icon(
+              key: const Key('read_aloud_stop_button'),
+              icon: const Icon(Icons.stop_rounded),
+              label: Text(l10n.readAloudStop),
+              onPressed: cubit.stop,
             ),
           ],
         ),
@@ -385,104 +480,142 @@ class _ReadAloudPlayerState extends State<ReadAloudPlayer> {
     );
   }
 
-  static String _sleepLabel(BuildContext context, SleepTimerChoice choice) =>
-      switch (choice) {
-        SleepTimerChoice.off => 'Off',
-        SleepTimerChoice.minutes15 => '15 min',
-        SleepTimerChoice.minutes30 => '30 min',
-        SleepTimerChoice.minutes60 => '60 min',
-        SleepTimerChoice.endOfChapter => 'End of chapter',
-      };
-
-  Future<void> _pickSpeed(
-    BuildContext context,
-    double current,
-    ReadAloudCubit cubit,
-  ) async {
-    final speed = await _choose<double>(
-      context,
-      title: 'Speech Rate',
-      options: [for (final sp in _speeds) (sp, '${sp}x')],
-      selected: current,
-    );
-    if (speed != null) await cubit.setSpeed(speed);
-  }
-
-  Future<void> _pickSleep(
-    BuildContext context,
-    SleepTimerChoice current,
-    ReadAloudCubit cubit,
-  ) async {
-    final choice = await _choose<SleepTimerChoice>(
-      context,
-      title: 'Sleep Timer',
-      options: [
-        (SleepTimerChoice.off, 'Off'),
-        (SleepTimerChoice.minutes15, '15 minutes'),
-        (SleepTimerChoice.minutes30, '30 minutes'),
-        (SleepTimerChoice.minutes60, '60 minutes'),
-        (SleepTimerChoice.endOfChapter, 'End of chapter'),
-      ],
-      selected: current,
-    );
-    if (choice != null) cubit.setSleep(choice);
-  }
-
-  Future<void> _pickVoice(
-    BuildContext context,
-    ReadAloudState state,
-    ReadAloudCubit cubit,
-  ) async {
-    final availableVoices = state.voices.take(5).toList();
-    final voice = await _choose<ReadAloudVoice>(
-      context,
-      title: 'Read Aloud Voice',
-      options: [for (final v in availableVoices) (v, '${v.name} · ${v.language}')],
-      selected: state.voice,
+  Future<void> _pickVoice(BuildContext context, ReadAloudCubit cubit) async {
+    final voice = await showModalBottomSheet<ReadAloudVoice>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      backgroundColor: WarmEditorialTokens.cardSurface,
+      builder: (sheetContext) => _VoicePicker(
+        state: cubit.state,
+        onOpenVoiceSettings: onOpenVoiceSettings,
+      ),
     );
     if (voice != null) await cubit.setVoice(voice);
   }
+}
 
-  Future<T?> _choose<T>(
-    BuildContext context, {
-    required String title,
-    required List<(T, String)> options,
-    required T? selected,
-  }) {
-    return showDialog<T>(
-      context: context,
-      builder: (dialogContext) => SimpleDialog(
-        title: Text(title),
-        children: [
-          for (final (value, label) in options)
-            SimpleDialogOption(
-              onPressed: () => Navigator.of(dialogContext).pop(value),
-              child: Row(
-                children: [
-                  Expanded(child: Text(label)),
-                  if (value == selected)
-                    const Icon(
-                      Icons.check_rounded,
-                      color: WarmEditorialTokens.accentInkBlue,
-                    ),
-                ],
+/// Every installed voice, the book's language first.
+class _VoicePicker extends StatelessWidget {
+  const _VoicePicker({required this.state, this.onOpenVoiceSettings});
+
+  final ReadAloudState state;
+  final VoidCallback? onOpenVoiceSettings;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final selectedLanguage = state.voice?.language
+        .toLowerCase()
+        .split(RegExp('[-_]'))
+        .first;
+    bool matches(ReadAloudVoice voice) =>
+        selectedLanguage != null &&
+        voice.language.toLowerCase().startsWith(selectedLanguage);
+    final preferred = state.voices.where(matches).toList();
+    final others = state.voices.where((voice) => !matches(voice)).toList();
+
+    Widget tile(ReadAloudVoice voice) => ListTile(
+      title: Text(voice.name, maxLines: 1, overflow: TextOverflow.ellipsis),
+      subtitle: Text(voice.language),
+      trailing: voice.id == state.voice?.id
+          ? const Icon(
+              Icons.check_rounded,
+              color: WarmEditorialTokens.accentInkBlue,
+            )
+          : null,
+      onTap: () => Navigator.of(context).pop(voice),
+    );
+
+    return SafeArea(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.sizeOf(context).height * .75,
+        ),
+        child: ListView(
+          shrinkWrap: true,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+              child: Text(
+                l10n.readAloudVoice,
+                style: const TextStyle(
+                  fontFamily: 'Newsreader',
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: WarmEditorialTokens.textPrimaryInk,
+                ),
               ),
             ),
-        ],
+            ...preferred.map(tile),
+            if (others.isNotEmpty) ...[
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
+                child: _SectionLabel(l10n.readAloudOtherVoices),
+              ),
+              ...others.map(tile),
+            ],
+            if (onOpenVoiceSettings != null)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+                child: TextButton.icon(
+                  icon: const Icon(Icons.settings_voice_outlined),
+                  label: Text(l10n.readAloudOpenSettings),
+                  onPressed: onOpenVoiceSettings,
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
 }
 
+class _SectionLabel extends StatelessWidget {
+  const _SectionLabel(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontFamily: 'Inter',
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+          color: WarmEditorialTokens.textPrimaryInk,
+        ),
+      ),
+    );
+  }
+}
+
+String _speedText(double speed) =>
+    speed == speed.roundToDouble() ? speed.toStringAsFixed(1) : '$speed';
+
+String _sleepLabel(BuildContext context, SleepTimerChoice choice) {
+  final l10n = context.l10n;
+  return switch (choice) {
+    SleepTimerChoice.off => l10n.readAloudSleepOff,
+    SleepTimerChoice.minutes15 => l10n.readAloudSleepMinutes(15),
+    SleepTimerChoice.minutes30 => l10n.readAloudSleepMinutes(30),
+    SleepTimerChoice.minutes60 => l10n.readAloudSleepMinutes(60),
+    SleepTimerChoice.endOfChapter => l10n.readAloudSleepEndOfChapter,
+  };
+}
+
 class _Problem extends StatelessWidget {
   const _Problem({
     required this.problem,
-    required this.onOpenSettings,
     required this.onClose,
+    this.onOpenSettings,
   });
 
   final ReadAloudProblem problem;
-  final VoidCallback onOpenSettings;
+  final VoidCallback? onOpenSettings;
   final VoidCallback onClose;
 
   @override
@@ -502,10 +635,11 @@ class _Problem extends StatelessWidget {
                 : l10n.readAloudNoVoice,
           ),
         ),
-        TextButton(
-          onPressed: onOpenSettings,
-          child: Text(l10n.readAloudOpenSettings),
-        ),
+        if (onOpenSettings != null)
+          TextButton(
+            onPressed: onOpenSettings,
+            child: Text(l10n.readAloudOpenSettings),
+          ),
       ],
     );
   }

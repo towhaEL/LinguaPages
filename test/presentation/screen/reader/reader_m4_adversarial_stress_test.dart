@@ -466,172 +466,152 @@ void main() {
     });
   });
 
-  group('Empirical Challenger: Read Aloud Player Adversarial Stress Tests', () {
-    testWidgets('Audio 1: Scrubber dragging to boundaries (0.00 and 1.00) clamps safely', (tester) async {
+  group('Read aloud player', () {
+    final book = BookEntity(
+      id: 'player-book-1',
+      title: 'Adversarial Edge Test Edition',
+      author: 'Professor Q. Stress-Tester',
+      format: DocumentFormat.markdown,
+      sourceUri: '',
+      sourceFileName: 'stress.md',
+      contentFingerprint: 'adv-fp-1',
+      addedAt: DateTime(2026, 11, 5),
+    );
+
+    Future<FakeReadAloudCubit> pumpPlayer(
+      WidgetTester tester, {
+      double progress = .42,
+      VoidCallback? onTap,
+      ReadAloudState? state,
+    }) async {
+      final cubit = FakeReadAloudCubit(initialState: state);
       await tester.pumpHarness(
-        const ReadAloudPlayer(),
-      );
-
-      tester.expectNoBottomNavigationBar();
-      expect(find.byKey(const Key('read_aloud_player_sheet')), findsOneWidget);
-
-      final sliderFinder = find.byType(Slider);
-      expect(sliderFinder, findsOneWidget);
-
-      var slider = tester.widget<Slider>(sliderFinder);
-      expect(slider.value, 0.35);
-
-      // Drag all the way to the left (0.00 / 0:00)
-      await tester.drag(sliderFinder, const Offset(-300, 0));
-      await tester.pumpAndSettle();
-
-      slider = tester.widget<Slider>(sliderFinder);
-      expect(slider.value, 0.0);
-
-      // Drag all the way to the right (1.00 / end of chapter)
-      await tester.drag(sliderFinder, const Offset(600, 0));
-      await tester.pumpAndSettle();
-
-      slider = tester.widget<Slider>(sliderFinder);
-      expect(slider.value, 1.0);
-
-      // Drag back to center
-      await tester.drag(sliderFinder, const Offset(-150, 0));
-      await tester.pumpAndSettle();
-
-      slider = tester.widget<Slider>(sliderFinder);
-      expect(slider.value, greaterThan(0.0));
-      expect(slider.value, lessThan(1.0));
-    });
-
-    testWidgets('Audio 2: Playback controls toggle play/pause, skip back, and skip forward', (tester) async {
-      var playPauseTapped = false;
-      var skipBackTapped = false;
-      var skipForwardTapped = false;
-
-      await tester.pumpHarness(
-        ReadAloudPlayer(
-          isPlaying: true,
-          onPlayPause: () => playPauseTapped = true,
-          onSkipBack: () => skipBackTapped = true,
-          onSkipForward: () => skipForwardTapped = true,
+        Align(
+          alignment: Alignment.bottomCenter,
+          child: BlocProvider<ReadAloudCubit>.value(
+            value: cubit,
+            child: ReadAloudPlayer(book: book, progress: progress, onTap: onTap),
+          ),
         ),
       );
+      return cubit;
+    }
 
-      // Play/pause hero button (64px circle)
-      final heroBtn = find.byKey(const Key('read_aloud_play_pause_hero'));
-      expect(heroBtn, findsOneWidget);
-      expect(find.byIcon(Icons.pause), findsOneWidget);
-
-      await tester.tap(heroBtn);
-      await tester.pumpAndSettle();
-      expect(playPauseTapped, isTrue);
-
-      // Skip back (replay_10)
-      await tester.tap(find.byKey(const Key('read_aloud_skip_back')));
-      await tester.pumpAndSettle();
-      expect(skipBackTapped, isTrue);
-
-      // Skip forward (forward_10)
-      await tester.tap(find.byKey(const Key('read_aloud_skip_forward')));
-      await tester.pumpAndSettle();
-      expect(skipForwardTapped, isTrue);
-    });
-
-    testWidgets('Audio 3: Speed, Voice, and Sleep timer chips interactive dialog flow with ReadAloudCubit',
-        (tester) async {
-      final fakeCubit = FakeReadAloudCubit();
-
-      await tester.pumpHarness(
-        BlocProvider<ReadAloudCubit>.value(
-          value: fakeCubit,
-          child: const ReadAloudPlayer(),
-        ),
-      );
-
-      // 1. Speed chip interaction: 1.0x -> pick 1.5x
-      expect(find.text('1.0x'), findsOneWidget);
-      await tester.tap(find.text('1.0x'));
-      await tester.pumpAndSettle();
-
-      // Dialog opens
-      expect(find.text('Speech Rate'), findsOneWidget);
-      expect(find.text('1.5x'), findsOneWidget);
-
-      await tester.tap(find.text('1.5x'));
-      await tester.pumpAndSettle();
-
-      expect(fakeCubit.state.speed, 1.5);
-      expect(find.text('1.5x'), findsOneWidget);
-
-      // 2. Voice chip interaction: pick Editorial Voice 2
-      expect(find.text('Natural Voice 1'), findsOneWidget);
-      await tester.tap(find.text('Natural Voice 1'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Read Aloud Voice'), findsOneWidget);
-      expect(find.text('Editorial Voice 2 · en-GB'), findsOneWidget);
-
-      await tester.tap(find.text('Editorial Voice 2 · en-GB'));
-      await tester.pumpAndSettle();
-
-      expect(fakeCubit.state.voice?.name, 'Editorial Voice 2');
-      expect(find.text('Editorial Voice 2'), findsOneWidget);
-
-      // 3. Sleep timer chip interaction: pick 30 minutes
-      final sleepFinder = find.text('30 min timer');
-      expect(sleepFinder, findsOneWidget);
-      await tester.ensureVisible(sleepFinder);
-      await tester.tap(sleepFinder);
-      await tester.pumpAndSettle();
-
-      expect(find.text('Sleep Timer'), findsOneWidget);
-      expect(find.text('30 minutes'), findsOneWidget);
-
-      await tester.tap(find.text('30 minutes'));
-      await tester.pumpAndSettle();
-
-      expect(fakeCubit.state.sleep, SleepTimerChoice.minutes30);
-      expect(find.text('30 min'), findsOneWidget);
-
-      // 4. Hero button triggers cubit pause/play
-      await tester.tap(find.byKey(const Key('read_aloud_play_pause_hero')));
-      await tester.pumpAndSettle();
-      expect(fakeCubit.pauseCount, 1);
-
-      await fakeCubit.close();
-    });
-
-    testWidgets('Audio 4: Custom book metadata, sentence quote card and zero-bottom-nav check',
-        (tester) async {
-      final customBook = BookEntity(
-        id: 'adversarial-book-1',
-        title: 'Adversarial Edge Test Edition',
-        author: 'Professor Q. Stress-Tester',
-        format: DocumentFormat.markdown,
-        sourceUri: '',
-        sourceFileName: 'stress.md',
-        contentFingerprint: 'adv-fp-1',
-        addedAt: DateTime(2026, 11, 5),
-      );
-
-      const sentence = 'The ink flowed across the parchment in perfect silent defiance.';
-
-      await tester.pumpHarness(
-        ReadAloudPlayer(
-          book: customBook,
-          spokenSentence: sentence,
-        ),
-      );
+    testWidgets('shows the book, live status and real progress', (tester) async {
+      final cubit = await pumpPlayer(tester);
 
       expect(find.text('Adversarial Edge Test Edition'), findsOneWidget);
-      expect(find.text('Professor Q. Stress-Tester'), findsOneWidget);
-      expect(find.text('MARKDOWN'), findsOneWidget);
-      expect(find.text('“$sentence”'), findsOneWidget);
-      expect(find.byKey(const Key('player_sentence_quote_card')), findsOneWidget);
+      expect(find.text('Reading aloud · 42%'), findsOneWidget);
+      final bar = tester.widget<LinearProgressIndicator>(
+        find.byKey(const Key('read_aloud_progress')),
+      );
+      expect(bar.value, closeTo(.42, 1e-9));
+      expect(find.byType(Slider), findsNothing);
 
-      // Strict architectural check
+      await cubit.pause();
+      await tester.pump();
+      expect(find.text('Paused · 42%'), findsOneWidget);
       tester.expectNoBottomNavigationBar();
+      await cubit.close();
+    });
+
+    testWidgets('transport buttons drive the cubit', (tester) async {
+      final cubit = await pumpPlayer(tester);
+
+      await tester.tap(find.byKey(const Key('read_aloud_play_pause_hero')));
+      await tester.pump();
+      expect(cubit.pauseCount, 1);
+      expect(find.byIcon(Icons.play_arrow_rounded), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('read_aloud_play_pause_hero')));
+      await tester.pump();
+      expect(cubit.playCount, 1);
+
+      await tester.tap(find.byKey(const Key('read_aloud_skip_back')));
+      await tester.tap(find.byKey(const Key('read_aloud_skip_forward')));
+      await tester.pump();
+      expect(cubit.previousCount, 1);
+      expect(cubit.nextCount, 1);
+
+      await tester.tap(find.byKey(const Key('read_aloud_close')));
+      await tester.pump();
+      expect(cubit.stopCount, 1);
+      await cubit.close();
+    });
+
+    testWidgets('tapping the book runs onTap', (tester) async {
+      var tapped = false;
+      final cubit = await pumpPlayer(tester, onTap: () => tapped = true);
+
+      await tester.tap(find.byKey(const Key('read_aloud_player_open')));
+      expect(tapped, isTrue);
+      await cubit.close();
+    });
+
+    testWidgets('controls sheet sets speed, voice from every voice, and sleep',
+        (tester) async {
+      final voices = [
+        for (var i = 1; i <= 7; i++)
+          ReadAloudVoice(id: 'v$i', name: 'Voice $i', language: 'en-US'),
+        const ReadAloudVoice(id: 'fr', name: 'Voix', language: 'fr-FR'),
+      ];
+      final cubit = FakeReadAloudCubit(
+        initialState: ReadAloudState(
+          active: true,
+          status: ReadAloudStatus.playing,
+          voices: voices,
+          voice: voices.first,
+        ),
+      );
+      final progress = ValueNotifier<double>(.25);
+      await tester.pumpHarness(
+        Builder(
+          builder: (context) => TextButton(
+            onPressed: () => showReadAloudControls(
+              context,
+              cubit: cubit,
+              book: book,
+              progress: progress,
+            ),
+            child: const Text('open'),
+          ),
+        ),
+      );
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('read_aloud_controls_sheet')), findsOneWidget);
+      expect(find.text('Reading aloud · 25%'), findsOneWidget);
+
+      progress.value = .5;
+      await tester.pump();
+      expect(find.text('Reading aloud · 50%'), findsOneWidget);
+
+      await tester.tap(find.text('1.5×'));
+      await tester.pump();
+      expect(cubit.state.speed, 1.5);
+
+      await tester.ensureVisible(find.text('30 minutes'));
+      await tester.tap(find.text('30 minutes'));
+      await tester.pump();
+      expect(cubit.state.sleep, SleepTimerChoice.minutes30);
+
+      await tester.ensureVisible(find.byKey(const Key('read_aloud_voice_tile')));
+      await tester.tap(find.byKey(const Key('read_aloud_voice_tile')));
+      await tester.pumpAndSettle();
+      // All of them, not just the first five; other languages listed apart.
+      await tester.scrollUntilVisible(find.text('Voix'), 200,
+          scrollable: find.byType(Scrollable).last);
+      expect(find.text('Other languages'), findsOneWidget);
+      await tester.tap(find.text('Voix'));
+      await tester.pumpAndSettle();
+      expect(cubit.state.voice?.id, 'fr');
+
+      await tester.ensureVisible(find.byKey(const Key('read_aloud_stop_button')));
+      await tester.tap(find.byKey(const Key('read_aloud_stop_button')));
+      await tester.pumpAndSettle();
+      expect(cubit.stopCount, 1);
+      expect(find.byKey(const Key('read_aloud_controls_sheet')), findsNothing);
+      await cubit.close();
     });
   });
 }

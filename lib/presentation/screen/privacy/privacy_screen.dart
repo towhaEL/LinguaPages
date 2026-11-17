@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:lingua_pages/l10n/l10n.dart';
 import 'package:lingua_pages/presentation/theme/base/theme_extension.dart';
 import 'package:lingua_pages/presentation/widgets/app_bar/widgets.dart';
+import 'package:lingua_pages/presentation/screen/reader/read_aloud/read_aloud_mini_player.dart';
 
 /// A short reading page, not a set of cards: headings and paragraphs at a
 /// comfortable measure.
@@ -20,6 +21,11 @@ class PrivacyScreen extends StatelessWidget {
       (l10n.privacyPurchasesTitle, l10n.privacyPurchasesBody),
       (l10n.privacyTrackingTitle, l10n.privacyTrackingBody),
     ];
+    return ReadAloudMiniPlayerHost(child: _scaffold(context, sections));
+  }
+
+  Widget _scaffold(BuildContext context, List<(String, String)> sections) {
+    final l10n = context.l10n;
     return Scaffold(
       backgroundColor: context.colors.background,
       appBar: CustomAppBar(title: l10n.privacyTitle, showBackIcon: true),

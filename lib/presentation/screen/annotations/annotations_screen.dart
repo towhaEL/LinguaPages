@@ -15,6 +15,7 @@ import 'package:lingua_pages/presentation/screen/reader/widgets/notes_sheet.dart
 import 'package:lingua_pages/presentation/theme/app_tokens.dart';
 import 'package:lingua_pages/presentation/theme/base/theme_extension.dart';
 import 'package:lingua_pages/presentation/widgets/state_view.dart';
+import 'package:lingua_pages/presentation/screen/reader/read_aloud/read_aloud_mini_player.dart';
 import 'package:share_plus/share_plus.dart';
 
 const _gutter = 16.0;
@@ -62,73 +63,75 @@ class _AnnotationsView extends StatelessWidget {
     return BlocBuilder<AnnotationsCubit, AnnotationsState>(
       builder: (context, state) {
         final visible = state.visible;
-        return Scaffold(
-          appBar: AppBar(
-            title: Text(l10n.annotationsTitle),
-            actions: [
-              // Exports exactly what the filters show.
-              IconButton(
-                tooltip: l10n.readerNotesCopyMarkdown,
-                icon: const Icon(Icons.copy_all_outlined),
-                onPressed: visible.isEmpty
-                    ? null
-                    : () => _copy(context, state.toMarkdown()),
-              ),
-              Builder(
-                builder: (buttonContext) => IconButton(
-                  key: const Key('export_markdown_button'),
-                  tooltip: l10n.readerNotesShareMarkdown,
-                  icon: const Icon(Icons.ios_share_outlined),
+        return ReadAloudMiniPlayerHost(
+          child: Scaffold(
+            appBar: AppBar(
+              title: Text(l10n.annotationsTitle),
+              actions: [
+                // Exports exactly what the filters show.
+                IconButton(
+                  tooltip: l10n.readerNotesCopyMarkdown,
+                  icon: const Icon(Icons.copy_all_outlined),
                   onPressed: visible.isEmpty
                       ? null
-                      : () => _share(buttonContext, state.toMarkdown()),
+                      : () => _copy(context, state.toMarkdown()),
                 ),
-              ),
-              const SizedBox(width: 4),
-            ],
-          ),
-          body: switch (state.status) {
-            AnnotationsStatus.loading => const Center(
-              child: CircularProgressIndicator(),
-            ),
-            AnnotationsStatus.failure => Center(
-              child: StateView(
-                icon: Icons.error_outline_rounded,
-                iconColor: context.colors.error,
-                title: l10n.annotationsLoadError,
-                action: FilledButton(
-                  onPressed: context.read<AnnotationsCubit>().load,
-                  child: Text(l10n.retry),
-                ),
-              ),
-            ),
-            AnnotationsStatus.success when state.items.isEmpty => Center(
-              child: StateView(
-                icon: Icons.sticky_note_2_outlined,
-                title: l10n.readerNotesEmptyTitle,
-                body: l10n.readerNotesEmptyBody,
-              ),
-            ),
-            AnnotationsStatus.success => CustomScrollView(
-              slivers: [
-                SliverToBoxAdapter(child: _Filters(state: state)),
-                if (visible.isEmpty)
-                  SliverToBoxAdapter(
-                    child: StateView(
-                      icon: Icons.filter_alt_off_outlined,
-                      title: l10n.readerNotesFilterEmpty,
-                    ),
-                  )
-                else
-                  SliverList.builder(
-                    itemCount: visible.length,
-                    itemBuilder: (context, index) =>
-                        _AnnotationRow(item: visible[index], index: index),
+                Builder(
+                  builder: (buttonContext) => IconButton(
+                    key: const Key('export_markdown_button'),
+                    tooltip: l10n.readerNotesShareMarkdown,
+                    icon: const Icon(Icons.ios_share_outlined),
+                    onPressed: visible.isEmpty
+                        ? null
+                        : () => _share(buttonContext, state.toMarkdown()),
                   ),
-                const SliverToBoxAdapter(child: SizedBox(height: 32)),
+                ),
+                const SizedBox(width: 4),
               ],
             ),
-          },
+            body: switch (state.status) {
+              AnnotationsStatus.loading => const Center(
+                child: CircularProgressIndicator(),
+              ),
+              AnnotationsStatus.failure => Center(
+                child: StateView(
+                  icon: Icons.error_outline_rounded,
+                  iconColor: context.colors.error,
+                  title: l10n.annotationsLoadError,
+                  action: FilledButton(
+                    onPressed: context.read<AnnotationsCubit>().load,
+                    child: Text(l10n.retry),
+                  ),
+                ),
+              ),
+              AnnotationsStatus.success when state.items.isEmpty => Center(
+                child: StateView(
+                  icon: Icons.sticky_note_2_outlined,
+                  title: l10n.readerNotesEmptyTitle,
+                  body: l10n.readerNotesEmptyBody,
+                ),
+              ),
+              AnnotationsStatus.success => CustomScrollView(
+                slivers: [
+                  SliverToBoxAdapter(child: _Filters(state: state)),
+                  if (visible.isEmpty)
+                    SliverToBoxAdapter(
+                      child: StateView(
+                        icon: Icons.filter_alt_off_outlined,
+                        title: l10n.readerNotesFilterEmpty,
+                      ),
+                    )
+                  else
+                    SliverList.builder(
+                      itemCount: visible.length,
+                      itemBuilder: (context, index) =>
+                          _AnnotationRow(item: visible[index], index: index),
+                    ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 32)),
+                ],
+              ),
+            },
+          ),
         );
       },
     );

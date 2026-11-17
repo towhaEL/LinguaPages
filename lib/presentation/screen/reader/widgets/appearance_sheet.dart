@@ -535,7 +535,8 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                       const SizedBox(height: 10),
                     ],
 
-                    // SECTION 2: Typeface Selection
+                    // SECTIONS 2-4: Typeface, Typography & Spacing, Layout &
+                    // Flow. A PDF shown as page images has no text to style.
                     if (!widget.isPdf ||
                         _settings.readerPdfMode == ReaderPdfMode.text) ...[
                       const Row(
@@ -664,591 +665,597 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                         color: WarmEditorialTokens.hairlineDivider,
                       ),
                       const SizedBox(height: 8),
+
+                      // SECTION 3: Typography & Spacing Sliders
+                      const Text(
+                        'Typography & Spacing',
+                        style: TextStyle(
+                          fontFamily: 'Inter',
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                          color: WarmEditorialTokens.textPrimaryInk,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+
+                      // Font Size Card
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: WarmEditorialTokens.surfaceContainerLow,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: WarmEditorialTokens.hairlineDivider,
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Expanded(
+                                  child: Text(
+                                    'Font Size',
+                                    style: TextStyle(
+                                      fontFamily: 'Inter',
+                                      fontSize: 12,
+                                      color:
+                                          WarmEditorialTokens.subtitleSecondary,
+                                    ),
+                                  ),
+                                ),
+                                Text(
+                                  '${_fontSize.round()} pt',
+                                  style: const TextStyle(
+                                    fontFamily: 'Inter',
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: WarmEditorialTokens.accentInkBlue,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            Row(
+                              children: [
+                                const Text(
+                                  'A−',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                Expanded(
+                                  child: SliderTheme(
+                                    data: SliderTheme.of(context).copyWith(
+                                      activeTrackColor:
+                                          WarmEditorialTokens.accentInkBlue,
+                                      thumbColor:
+                                          WarmEditorialTokens.accentInkBlue,
+                                    ),
+                                    child: Slider(
+                                      key: const Key('appearance_font_slider'),
+                                      value: _fontSize.clamp(12.0, 28.0),
+                                      min: 12,
+                                      max: 28,
+                                      onChanged: _changeFontSize,
+                                    ),
+                                  ),
+                                ),
+                                const Text(
+                                  'A+',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+
+                      // Line Spacing Card
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: WarmEditorialTokens.surfaceContainerLow,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: WarmEditorialTokens.hairlineDivider,
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Expanded(
+                                  child: Text(
+                                    'Line Spacing',
+                                    style: TextStyle(
+                                      fontFamily: 'Inter',
+                                      fontSize: 12,
+                                      color:
+                                          WarmEditorialTokens.subtitleSecondary,
+                                    ),
+                                  ),
+                                ),
+                                Text(
+                                  '${_lineSpacing.toStringAsFixed(1)}×',
+                                  style: const TextStyle(
+                                    fontFamily: 'Inter',
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: WarmEditorialTokens.accentInkBlue,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.format_line_spacing,
+                                  size: 18,
+                                  color: WarmEditorialTokens.subtitleSecondary,
+                                ),
+                                Expanded(
+                                  child: SliderTheme(
+                                    data: SliderTheme.of(context).copyWith(
+                                      activeTrackColor:
+                                          WarmEditorialTokens.accentInkBlue,
+                                      thumbColor:
+                                          WarmEditorialTokens.accentInkBlue,
+                                    ),
+                                    child: Slider(
+                                      value: _lineSpacing.clamp(1.1, 2.2),
+                                      min: 1.1,
+                                      max: 2.2,
+                                      divisions: 11,
+                                      onChanged: (val) {
+                                        setState(() => _lineSpacing = val);
+                                        _updateSettings(
+                                          _settings.copyWith(lineSpacing: val),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ),
+                                const Icon(
+                                  Icons.density_medium,
+                                  size: 20,
+                                  color: WarmEditorialTokens.subtitleSecondary,
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+
+                      // Side Margins Card
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: WarmEditorialTokens.surfaceContainerLow,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: WarmEditorialTokens.hairlineDivider,
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Expanded(
+                                  child: Text(
+                                    'Side Margins',
+                                    style: TextStyle(
+                                      fontFamily: 'Inter',
+                                      fontSize: 12,
+                                      color:
+                                          WarmEditorialTokens.subtitleSecondary,
+                                    ),
+                                  ),
+                                ),
+                                Text(
+                                  '${_margin.round()} px',
+                                  style: const TextStyle(
+                                    fontFamily: 'Inter',
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: WarmEditorialTokens.accentInkBlue,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.width_normal,
+                                  size: 18,
+                                  color: WarmEditorialTokens.subtitleSecondary,
+                                ),
+                                Expanded(
+                                  child: SliderTheme(
+                                    data: SliderTheme.of(context).copyWith(
+                                      activeTrackColor:
+                                          WarmEditorialTokens.accentInkBlue,
+                                      thumbColor:
+                                          WarmEditorialTokens.accentInkBlue,
+                                    ),
+                                    child: Slider(
+                                      value: _margin.clamp(12.0, 44.0),
+                                      min: 12,
+                                      max: 44,
+                                      divisions: 16,
+                                      onChanged: (val) {
+                                        setState(() => _margin = val);
+                                        _updateSettings(
+                                          _settings.copyWith(margin: val),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ),
+                                const Icon(
+                                  Icons.width_wide,
+                                  size: 18,
+                                  color: WarmEditorialTokens.subtitleSecondary,
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      const Divider(
+                        height: 1,
+                        color: WarmEditorialTokens.hairlineDivider,
+                      ),
+                      const SizedBox(height: 10),
+
+                      // SECTION 4: Layout & Flow
+                      const Text(
+                        'Layout & Flow',
+                        style: TextStyle(
+                          fontFamily: 'Inter',
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                          color: WarmEditorialTokens.textPrimaryInk,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+
+                      // Segmented Control (Scroll / Pages / Two Columns)
+                      Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEBE8E3),
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: () {
+                                  _updateSettings(
+                                    _settings.copyWith(
+                                      readerMode: ReaderMode.continuous,
+                                      readerColumns: ReaderColumns.one,
+                                    ),
+                                  );
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 8,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color:
+                                        _settings.readerMode ==
+                                            ReaderMode.continuous
+                                        ? Colors.white
+                                        : Colors.transparent,
+                                    borderRadius: BorderRadius.circular(20),
+                                    boxShadow:
+                                        _settings.readerMode ==
+                                            ReaderMode.continuous
+                                        ? [
+                                            BoxShadow(
+                                              color: Colors.black.withValues(
+                                                alpha: 0.05,
+                                              ),
+                                              blurRadius: 4,
+                                            ),
+                                          ]
+                                        : null,
+                                  ),
+                                  child: Text(
+                                    'Scroll',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontFamily: 'Inter',
+                                      fontSize: 12,
+                                      fontWeight:
+                                          _settings.readerMode ==
+                                              ReaderMode.continuous
+                                          ? FontWeight.w600
+                                          : FontWeight.w500,
+                                      color:
+                                          _settings.readerMode ==
+                                              ReaderMode.continuous
+                                          ? WarmEditorialTokens.accentInkBlue
+                                          : WarmEditorialTokens
+                                                .subtitleSecondary,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: () {
+                                  _updateSettings(
+                                    _settings.copyWith(
+                                      readerMode: ReaderMode.paginated,
+                                      readerColumns: ReaderColumns.one,
+                                    ),
+                                  );
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 8,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color:
+                                        _settings.readerMode ==
+                                                ReaderMode.paginated &&
+                                            _settings.readerColumns !=
+                                                ReaderColumns.two
+                                        ? Colors.white
+                                        : Colors.transparent,
+                                    borderRadius: BorderRadius.circular(20),
+                                    boxShadow:
+                                        _settings.readerMode ==
+                                                ReaderMode.paginated &&
+                                            _settings.readerColumns !=
+                                                ReaderColumns.two
+                                        ? [
+                                            BoxShadow(
+                                              color: Colors.black.withValues(
+                                                alpha: 0.05,
+                                              ),
+                                              blurRadius: 4,
+                                            ),
+                                          ]
+                                        : null,
+                                  ),
+                                  child: Text(
+                                    'Pages',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontFamily: 'Inter',
+                                      fontSize: 12,
+                                      fontWeight:
+                                          _settings.readerMode ==
+                                                  ReaderMode.paginated &&
+                                              _settings.readerColumns !=
+                                                  ReaderColumns.two
+                                          ? FontWeight.w600
+                                          : FontWeight.w500,
+                                      color:
+                                          _settings.readerMode ==
+                                                  ReaderMode.paginated &&
+                                              _settings.readerColumns !=
+                                                  ReaderColumns.two
+                                          ? WarmEditorialTokens.accentInkBlue
+                                          : WarmEditorialTokens
+                                                .subtitleSecondary,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: () {
+                                  _updateSettings(
+                                    _settings.copyWith(
+                                      readerMode: ReaderMode.paginated,
+                                      readerColumns: ReaderColumns.two,
+                                    ),
+                                  );
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 8,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color:
+                                        _settings.readerColumns ==
+                                            ReaderColumns.two
+                                        ? Colors.white
+                                        : Colors.transparent,
+                                    borderRadius: BorderRadius.circular(20),
+                                    boxShadow:
+                                        _settings.readerColumns ==
+                                            ReaderColumns.two
+                                        ? [
+                                            BoxShadow(
+                                              color: Colors.black.withValues(
+                                                alpha: 0.05,
+                                              ),
+                                              blurRadius: 4,
+                                            ),
+                                          ]
+                                        : null,
+                                  ),
+                                  child: Text(
+                                    'Two Columns',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontFamily: 'Inter',
+                                      fontSize: 12,
+                                      fontWeight:
+                                          _settings.readerColumns ==
+                                              ReaderColumns.two
+                                          ? FontWeight.w600
+                                          : FontWeight.w500,
+                                      color:
+                                          _settings.readerColumns ==
+                                              ReaderColumns.two
+                                          ? WarmEditorialTokens.accentInkBlue
+                                          : WarmEditorialTokens
+                                                .subtitleSecondary,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Toggles Inset Grouped Card
+                      Material(
+                        color: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          side: const BorderSide(
+                            color: WarmEditorialTokens.hairlineDivider,
+                          ),
+                        ),
+                        child: Column(
+                          children: [
+                            SwitchListTile.adaptive(
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 2,
+                              ),
+                              activeTrackColor:
+                                  WarmEditorialTokens.accentInkBlue,
+                              title: const Text(
+                                'Justify text',
+                                style: TextStyle(
+                                  fontFamily: 'Inter',
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                  color: WarmEditorialTokens.textPrimaryInk,
+                                ),
+                              ),
+                              subtitle: const Text(
+                                'Align text flush along both margins',
+                                style: TextStyle(
+                                  fontFamily: 'Inter',
+                                  fontSize: 11,
+                                  color: WarmEditorialTokens.subtitleSecondary,
+                                ),
+                              ),
+                              value:
+                                  _settings.readerTextAlignment ==
+                                  ReaderTextAlignment.justify,
+                              onChanged: (val) {
+                                _updateSettings(
+                                  _settings.copyWith(
+                                    readerTextAlignment: val
+                                        ? ReaderTextAlignment.justify
+                                        : ReaderTextAlignment.left,
+                                  ),
+                                );
+                              },
+                            ),
+                            const Divider(
+                              height: 1,
+                              indent: 16,
+                              endIndent: 16,
+                              color: WarmEditorialTokens.hairlineDivider,
+                            ),
+                            SwitchListTile.adaptive(
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 2,
+                              ),
+                              activeTrackColor:
+                                  WarmEditorialTokens.accentInkBlue,
+                              title: const Text(
+                                'Hyphenation',
+                                style: TextStyle(
+                                  fontFamily: 'Inter',
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                  color: WarmEditorialTokens.textPrimaryInk,
+                                ),
+                              ),
+                              subtitle: const Text(
+                                'Break words cleanly across lines',
+                                style: TextStyle(
+                                  fontFamily: 'Inter',
+                                  fontSize: 11,
+                                  color: WarmEditorialTokens.subtitleSecondary,
+                                ),
+                              ),
+                              value: _settings.hyphenation,
+                              onChanged: (val) {
+                                _updateSettings(
+                                  _settings.copyWith(hyphenation: val),
+                                );
+                              },
+                            ),
+                            const Divider(
+                              height: 1,
+                              indent: 16,
+                              endIndent: 16,
+                              color: WarmEditorialTokens.hairlineDivider,
+                            ),
+                            SwitchListTile.adaptive(
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 2,
+                              ),
+                              activeTrackColor:
+                                  WarmEditorialTokens.accentInkBlue,
+                              title: const Text(
+                                'Publisher styles',
+                                style: TextStyle(
+                                  fontFamily: 'Inter',
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                  color: WarmEditorialTokens.textPrimaryInk,
+                                ),
+                              ),
+                              subtitle: const Text(
+                                'Retain original book font overrides',
+                                style: TextStyle(
+                                  fontFamily: 'Inter',
+                                  fontSize: 11,
+                                  color: WarmEditorialTokens.subtitleSecondary,
+                                ),
+                              ),
+                              value: _settings.publisherStyles,
+                              onChanged: (val) {
+                                _updateSettings(
+                                  _settings.copyWith(publisherStyles: val),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      const Divider(
+                        height: 1,
+                        color: WarmEditorialTokens.hairlineDivider,
+                      ),
+                      const SizedBox(height: 10),
                     ],
-
-                    // SECTION 3: Typography & Spacing Sliders
-                    const Text(
-                      'Typography & Spacing',
-                      style: TextStyle(
-                        fontFamily: 'Inter',
-                        fontWeight: FontWeight.w600,
-                        fontSize: 13,
-                        color: WarmEditorialTokens.textPrimaryInk,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-
-                    // Font Size Card
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: WarmEditorialTokens.surfaceContainerLow,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: WarmEditorialTokens.hairlineDivider,
-                        ),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Expanded(
-                                child: Text(
-                                  'Font Size',
-                                  style: TextStyle(
-                                    fontFamily: 'Inter',
-                                    fontSize: 12,
-                                    color:
-                                        WarmEditorialTokens.subtitleSecondary,
-                                  ),
-                                ),
-                              ),
-                              Text(
-                                '${_fontSize.round()} pt',
-                                style: const TextStyle(
-                                  fontFamily: 'Inter',
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: WarmEditorialTokens.accentInkBlue,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 6),
-                          Row(
-                            children: [
-                              const Text(
-                                'A−',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                              Expanded(
-                                child: SliderTheme(
-                                  data: SliderTheme.of(context).copyWith(
-                                    activeTrackColor:
-                                        WarmEditorialTokens.accentInkBlue,
-                                    thumbColor:
-                                        WarmEditorialTokens.accentInkBlue,
-                                  ),
-                                  child: Slider(
-                                    key: const Key('appearance_font_slider'),
-                                    value: _fontSize.clamp(12.0, 28.0),
-                                    min: 12,
-                                    max: 28,
-                                    onChanged: _changeFontSize,
-                                  ),
-                                ),
-                              ),
-                              const Text(
-                                'A+',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-
-                    // Line Spacing Card
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: WarmEditorialTokens.surfaceContainerLow,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: WarmEditorialTokens.hairlineDivider,
-                        ),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Expanded(
-                                child: Text(
-                                  'Line Spacing',
-                                  style: TextStyle(
-                                    fontFamily: 'Inter',
-                                    fontSize: 12,
-                                    color:
-                                        WarmEditorialTokens.subtitleSecondary,
-                                  ),
-                                ),
-                              ),
-                              Text(
-                                '${_lineSpacing.toStringAsFixed(1)}×',
-                                style: const TextStyle(
-                                  fontFamily: 'Inter',
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: WarmEditorialTokens.accentInkBlue,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 6),
-                          Row(
-                            children: [
-                              const Icon(
-                                Icons.format_line_spacing,
-                                size: 18,
-                                color: WarmEditorialTokens.subtitleSecondary,
-                              ),
-                              Expanded(
-                                child: SliderTheme(
-                                  data: SliderTheme.of(context).copyWith(
-                                    activeTrackColor:
-                                        WarmEditorialTokens.accentInkBlue,
-                                    thumbColor:
-                                        WarmEditorialTokens.accentInkBlue,
-                                  ),
-                                  child: Slider(
-                                    value: _lineSpacing.clamp(1.1, 2.2),
-                                    min: 1.1,
-                                    max: 2.2,
-                                    divisions: 11,
-                                    onChanged: (val) {
-                                      setState(() => _lineSpacing = val);
-                                      _updateSettings(
-                                        _settings.copyWith(lineSpacing: val),
-                                      );
-                                    },
-                                  ),
-                                ),
-                              ),
-                              const Icon(
-                                Icons.density_medium,
-                                size: 20,
-                                color: WarmEditorialTokens.subtitleSecondary,
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-
-                    // Side Margins Card
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: WarmEditorialTokens.surfaceContainerLow,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: WarmEditorialTokens.hairlineDivider,
-                        ),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Expanded(
-                                child: Text(
-                                  'Side Margins',
-                                  style: TextStyle(
-                                    fontFamily: 'Inter',
-                                    fontSize: 12,
-                                    color:
-                                        WarmEditorialTokens.subtitleSecondary,
-                                  ),
-                                ),
-                              ),
-                              Text(
-                                '${_margin.round()} px',
-                                style: const TextStyle(
-                                  fontFamily: 'Inter',
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: WarmEditorialTokens.accentInkBlue,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 6),
-                          Row(
-                            children: [
-                              const Icon(
-                                Icons.width_normal,
-                                size: 18,
-                                color: WarmEditorialTokens.subtitleSecondary,
-                              ),
-                              Expanded(
-                                child: SliderTheme(
-                                  data: SliderTheme.of(context).copyWith(
-                                    activeTrackColor:
-                                        WarmEditorialTokens.accentInkBlue,
-                                    thumbColor:
-                                        WarmEditorialTokens.accentInkBlue,
-                                  ),
-                                  child: Slider(
-                                    value: _margin.clamp(12.0, 44.0),
-                                    min: 12,
-                                    max: 44,
-                                    divisions: 16,
-                                    onChanged: (val) {
-                                      setState(() => _margin = val);
-                                      _updateSettings(
-                                        _settings.copyWith(margin: val),
-                                      );
-                                    },
-                                  ),
-                                ),
-                              ),
-                              const Icon(
-                                Icons.width_wide,
-                                size: 18,
-                                color: WarmEditorialTokens.subtitleSecondary,
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    const Divider(
-                      height: 1,
-                      color: WarmEditorialTokens.hairlineDivider,
-                    ),
-                    const SizedBox(height: 10),
-
-                    // SECTION 4: Layout & Flow
-                    const Text(
-                      'Layout & Flow',
-                      style: TextStyle(
-                        fontFamily: 'Inter',
-                        fontWeight: FontWeight.w600,
-                        fontSize: 13,
-                        color: WarmEditorialTokens.textPrimaryInk,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-
-                    // Segmented Control (Scroll / Pages / Two Columns)
-                    Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFEBE8E3),
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: GestureDetector(
-                              onTap: () {
-                                _updateSettings(
-                                  _settings.copyWith(
-                                    readerMode: ReaderMode.continuous,
-                                    readerColumns: ReaderColumns.one,
-                                  ),
-                                );
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 8,
-                                ),
-                                decoration: BoxDecoration(
-                                  color:
-                                      _settings.readerMode ==
-                                          ReaderMode.continuous
-                                      ? Colors.white
-                                      : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(20),
-                                  boxShadow:
-                                      _settings.readerMode ==
-                                          ReaderMode.continuous
-                                      ? [
-                                          BoxShadow(
-                                            color: Colors.black.withValues(
-                                              alpha: 0.05,
-                                            ),
-                                            blurRadius: 4,
-                                          ),
-                                        ]
-                                      : null,
-                                ),
-                                child: Text(
-                                  'Scroll',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    fontFamily: 'Inter',
-                                    fontSize: 12,
-                                    fontWeight:
-                                        _settings.readerMode ==
-                                            ReaderMode.continuous
-                                        ? FontWeight.w600
-                                        : FontWeight.w500,
-                                    color:
-                                        _settings.readerMode ==
-                                            ReaderMode.continuous
-                                        ? WarmEditorialTokens.accentInkBlue
-                                        : WarmEditorialTokens.subtitleSecondary,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            child: GestureDetector(
-                              onTap: () {
-                                _updateSettings(
-                                  _settings.copyWith(
-                                    readerMode: ReaderMode.paginated,
-                                    readerColumns: ReaderColumns.one,
-                                  ),
-                                );
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 8,
-                                ),
-                                decoration: BoxDecoration(
-                                  color:
-                                      _settings.readerMode ==
-                                              ReaderMode.paginated &&
-                                          _settings.readerColumns !=
-                                              ReaderColumns.two
-                                      ? Colors.white
-                                      : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(20),
-                                  boxShadow:
-                                      _settings.readerMode ==
-                                              ReaderMode.paginated &&
-                                          _settings.readerColumns !=
-                                              ReaderColumns.two
-                                      ? [
-                                          BoxShadow(
-                                            color: Colors.black.withValues(
-                                              alpha: 0.05,
-                                            ),
-                                            blurRadius: 4,
-                                          ),
-                                        ]
-                                      : null,
-                                ),
-                                child: Text(
-                                  'Pages',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    fontFamily: 'Inter',
-                                    fontSize: 12,
-                                    fontWeight:
-                                        _settings.readerMode ==
-                                                ReaderMode.paginated &&
-                                            _settings.readerColumns !=
-                                                ReaderColumns.two
-                                        ? FontWeight.w600
-                                        : FontWeight.w500,
-                                    color:
-                                        _settings.readerMode ==
-                                                ReaderMode.paginated &&
-                                            _settings.readerColumns !=
-                                                ReaderColumns.two
-                                        ? WarmEditorialTokens.accentInkBlue
-                                        : WarmEditorialTokens.subtitleSecondary,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            child: GestureDetector(
-                              onTap: () {
-                                _updateSettings(
-                                  _settings.copyWith(
-                                    readerMode: ReaderMode.paginated,
-                                    readerColumns: ReaderColumns.two,
-                                  ),
-                                );
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 8,
-                                ),
-                                decoration: BoxDecoration(
-                                  color:
-                                      _settings.readerColumns ==
-                                          ReaderColumns.two
-                                      ? Colors.white
-                                      : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(20),
-                                  boxShadow:
-                                      _settings.readerColumns ==
-                                          ReaderColumns.two
-                                      ? [
-                                          BoxShadow(
-                                            color: Colors.black.withValues(
-                                              alpha: 0.05,
-                                            ),
-                                            blurRadius: 4,
-                                          ),
-                                        ]
-                                      : null,
-                                ),
-                                child: Text(
-                                  'Two Columns',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    fontFamily: 'Inter',
-                                    fontSize: 12,
-                                    fontWeight:
-                                        _settings.readerColumns ==
-                                            ReaderColumns.two
-                                        ? FontWeight.w600
-                                        : FontWeight.w500,
-                                    color:
-                                        _settings.readerColumns ==
-                                            ReaderColumns.two
-                                        ? WarmEditorialTokens.accentInkBlue
-                                        : WarmEditorialTokens.subtitleSecondary,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-
-                    // Toggles Inset Grouped Card
-                    Material(
-                      color: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        side: const BorderSide(
-                          color: WarmEditorialTokens.hairlineDivider,
-                        ),
-                      ),
-                      child: Column(
-                        children: [
-                          SwitchListTile.adaptive(
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 2,
-                            ),
-                            activeTrackColor: WarmEditorialTokens.accentInkBlue,
-                            title: const Text(
-                              'Justify text',
-                              style: TextStyle(
-                                fontFamily: 'Inter',
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                                color: WarmEditorialTokens.textPrimaryInk,
-                              ),
-                            ),
-                            subtitle: const Text(
-                              'Align text flush along both margins',
-                              style: TextStyle(
-                                fontFamily: 'Inter',
-                                fontSize: 11,
-                                color: WarmEditorialTokens.subtitleSecondary,
-                              ),
-                            ),
-                            value:
-                                _settings.readerTextAlignment ==
-                                ReaderTextAlignment.justify,
-                            onChanged: (val) {
-                              _updateSettings(
-                                _settings.copyWith(
-                                  readerTextAlignment: val
-                                      ? ReaderTextAlignment.justify
-                                      : ReaderTextAlignment.left,
-                                ),
-                              );
-                            },
-                          ),
-                          const Divider(
-                            height: 1,
-                            indent: 16,
-                            endIndent: 16,
-                            color: WarmEditorialTokens.hairlineDivider,
-                          ),
-                          SwitchListTile.adaptive(
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 2,
-                            ),
-                            activeTrackColor: WarmEditorialTokens.accentInkBlue,
-                            title: const Text(
-                              'Hyphenation',
-                              style: TextStyle(
-                                fontFamily: 'Inter',
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                                color: WarmEditorialTokens.textPrimaryInk,
-                              ),
-                            ),
-                            subtitle: const Text(
-                              'Break words cleanly across lines',
-                              style: TextStyle(
-                                fontFamily: 'Inter',
-                                fontSize: 11,
-                                color: WarmEditorialTokens.subtitleSecondary,
-                              ),
-                            ),
-                            value: _settings.hyphenation,
-                            onChanged: (val) {
-                              _updateSettings(
-                                _settings.copyWith(hyphenation: val),
-                              );
-                            },
-                          ),
-                          const Divider(
-                            height: 1,
-                            indent: 16,
-                            endIndent: 16,
-                            color: WarmEditorialTokens.hairlineDivider,
-                          ),
-                          SwitchListTile.adaptive(
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 2,
-                            ),
-                            activeTrackColor: WarmEditorialTokens.accentInkBlue,
-                            title: const Text(
-                              'Publisher styles',
-                              style: TextStyle(
-                                fontFamily: 'Inter',
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                                color: WarmEditorialTokens.textPrimaryInk,
-                              ),
-                            ),
-                            subtitle: const Text(
-                              'Retain original book font overrides',
-                              style: TextStyle(
-                                fontFamily: 'Inter',
-                                fontSize: 11,
-                                color: WarmEditorialTokens.subtitleSecondary,
-                              ),
-                            ),
-                            value: _settings.publisherStyles,
-                            onChanged: (val) {
-                              _updateSettings(
-                                _settings.copyWith(publisherStyles: val),
-                              );
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    const Divider(
-                      height: 1,
-                      color: WarmEditorialTokens.hairlineDivider,
-                    ),
-                    const SizedBox(height: 10),
 
                     // SECTION 5: Display Brightness
                     Row(
