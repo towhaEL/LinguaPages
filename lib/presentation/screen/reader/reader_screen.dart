@@ -136,6 +136,19 @@ class _ReaderScreenState extends State<ReaderScreen>
 
   /// The sentence the fallback engine is speaking, highlighted on its page.
   ReadAloudRange? _spokenRange;
+
+  /// The last search, so reopening search shows its results again.
+  String? _lastSearchQuery;
+  int? _lastSearchIndex;
+
+  /// Where the reader was before the first jump to a search hit, and how to
+  /// name it. Cleared on the way back.
+  DocumentLocator? _positionBeforeSearch;
+  String? _positionBeforeSearchLabel;
+
+  /// The search hit jumped to on a fallback page: where it starts and the
+  /// matched text, marked until the next search.
+  (DocumentLocator, String)? _searchMatch;
   StreamSubscription<PageTurn>? _pageTurnSubscription;
 
   /// The edge-swipe brightness, once the reader has set one.
@@ -386,8 +399,8 @@ class _ReaderScreenState extends State<ReaderScreen>
                   key: const Key('reader_bookmark_ribbon'),
                   width: 14,
                   height: 38,
-                  decoration: const BoxDecoration(
-                    color: WarmEditorialTokens.accentInkBlue,
+                  decoration: BoxDecoration(
+                    color: context.accent,
                     borderRadius: BorderRadius.vertical(
                       bottom: Radius.circular(2),
                     ),
@@ -419,7 +432,7 @@ class _ReaderScreenState extends State<ReaderScreen>
                       ),
                       child: Slider(
                         value: (_readerBrightness ?? 0.65).clamp(0.05, 1.0),
-                        activeColor: WarmEditorialTokens.accentInkBlue,
+                        activeColor: context.accent,
                         inactiveColor: WarmEditorialTokens.hairlineDivider,
                         onChanged: (val) {
                           setState(() => _readerBrightness = val);
@@ -1217,7 +1230,7 @@ class _ReaderScreenState extends State<ReaderScreen>
             (result) => ReaderSearchHit(
               title: result.chapterTitle ?? context.l10n.readerSearchResult,
               snippet: _readiumSnippet(result),
-              onSelected: () => _readiumSession.goToLocator(result.locator),
+              onSelected: () => _goToReadiumSearchResult(result),
             ),
           )
           .toList(growable: false);
@@ -1226,15 +1239,54 @@ class _ReaderScreenState extends State<ReaderScreen>
     final engine = _engine;
     if (engine == null) return const [];
     final results = await engine.search(normalizedQuery);
-    return results
-        .map(
-          (result) => ReaderSearchHit(
-            title: result.chapterTitle,
-            snippet: result.text,
-            onSelected: () => _goToLocalSearchResult(result),
+    final pageTexts = <int, String?>{};
+    final hits = <ReaderSearchHit>[];
+    for (final result in results) {
+      final (snippet, page) = switch (result.locator) {
+        TextLocator(:final offset) => (
+          _contextSnippet(engine.text, offset, result.text.length),
+          engine.pageIndexForOffset(offset) + 1,
+        ),
+        PdfLocator(:final page, :final textOffset?) => (
+          _contextSnippet(
+            pageTexts[page] ??= await engine.pageText(page - 1),
+            textOffset,
+            result.text.length,
           ),
-        )
-        .toList(growable: false);
+          page,
+        ),
+        PdfLocator(:final page) => (null, page),
+        EpubLocator() => (null, null),
+      };
+      hits.add(
+        ReaderSearchHit(
+          title: result.chapterTitle,
+          snippet: snippet ?? result.text,
+          pageNumber: page,
+          onSelected: () => _goToLocalSearchResult(result),
+        ),
+      );
+    }
+    return hits;
+  }
+
+  /// The match at [offset] in [text] with some words either side, cut at
+  /// word boundaries and on one line.
+  static String? _contextSnippet(String? text, int offset, int length) {
+    if (text == null || offset + length > text.length) return null;
+    var start = math.max(0, offset - 60);
+    var end = math.min(text.length, offset + length + 120);
+    if (start > 0) {
+      final space = text.indexOf(' ', start);
+      if (space >= 0 && space < offset) start = space + 1;
+    }
+    if (end < text.length) {
+      final space = text.lastIndexOf(' ', end);
+      if (space > offset + length) end = space;
+    }
+    final snippet = text.substring(start, end).replaceAll(RegExp(r'\s+'), ' ');
+    return '${start > 0 ? '…' : ''}${snippet.trim()}'
+        '${end < text.length ? '…' : ''}';
   }
 
   String? _readiumSnippet(TextSearchResult result) {
@@ -1255,35 +1307,82 @@ class _ReaderScreenState extends State<ReaderScreen>
   }
 
   Future<void> _goToLocalSearchResult(DocumentSearchResult result) async {
+    _rememberPositionBeforeSearch();
     final locator = result.locator;
+    setState(() => _searchMatch = (locator, result.text));
     final pageIndex = switch (locator) {
       PdfLocator(:final page) => page - 1,
       TextLocator(:final offset) => _engine?.pageIndexForOffset(offset) ?? 0,
       EpubLocator() => 0,
     };
+    final info = _info;
+    if (info != null &&
+        info.layout == DocumentLayout.reflowable &&
+        _settings.readerMode == ReaderMode.continuous) {
+      _continuousPageKey.currentState?.jumpToPage(
+        pageIndex,
+        pageCount: info.pageCount ?? 1,
+      );
+      return;
+    }
     await _renderPage(pageIndex);
   }
 
+  Future<void> _goToReadiumSearchResult(TextSearchResult result) async {
+    _rememberPositionBeforeSearch();
+    await _readiumSession.goToLocator(result.locator);
+    unawaited(
+      _readiumSession.showSearchMatch(result.locator).catchError((Object _) {}),
+    );
+  }
+
+  void _rememberPositionBeforeSearch() {
+    if (_positionBeforeSearch != null) return;
+    _positionBeforeSearch = _currentDocumentLocator;
+    final progress = (_currentProgress(_info) * 100).round();
+    _positionBeforeSearchLabel = _usesReadium
+        ? '$progress%'
+        : 'page ${_pageIndex + 1}';
+  }
+
+  Future<void> _returnFromSearch() async {
+    final position = _positionBeforeSearch;
+    _clearSearchMatch();
+    _positionBeforeSearch = null;
+    _positionBeforeSearchLabel = null;
+    if (position != null) await _goToDocumentLocator(position);
+  }
+
+  void _clearSearchMatch() {
+    if (_searchMatch != null) setState(() => _searchMatch = null);
+    if (_usesReadium && _readiumReady) {
+      unawaited(
+        _readiumSession.showSearchMatch(null).catchError((Object _) {}),
+      );
+    }
+  }
+
   Future<void> _showSearch() async {
-    final progress = _currentProgress(_info);
-    final posPercent = (progress * 100).round();
-    final savedLocator = _currentDocumentLocator;
-    final positionLabel = _usesReadium
-        ? 'Progress: $posPercent%'
-        : 'Page ${_pageIndex + 1} ($posPercent%)';
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
       builder: (context) => ReaderSearchSheet(
-        search: _searchReader,
-        bookTitle: widget.book.title,
-        bookAuthor: widget.book.author,
-        bookFormat: widget.book.format.name.toUpperCase(),
-        currentPositionLabel: positionLabel,
-        onReturnToPosition: savedLocator != null
-            ? () => _goToDocumentLocator(savedLocator)
-            : null,
+        search: (query) {
+          // A new search replaces the marked match.
+          if (query != _lastSearchQuery) _clearSearchMatch();
+          return _searchReader(query);
+        },
+        query: _lastSearchQuery,
+        selectedIndex: _lastSearchIndex,
+        onSelected: (query, index) {
+          _lastSearchQuery = query;
+          _lastSearchIndex = index;
+        },
+        returnLabel: _positionBeforeSearchLabel,
+        onReturnToPosition: _positionBeforeSearch == null
+            ? null
+            : () => unawaited(_returnFromSearch()),
       ),
     );
   }
@@ -1417,17 +1516,13 @@ class _ReaderScreenState extends State<ReaderScreen>
     return '$minutes min left in chapter';
   }
 
-  Future<void> _showNotesSheet({String initialTab = 'Contents'}) async {
+  Future<void> _showNotesSheet({String initialTab = 'Highlights'}) async {
     try {
       final (bookmarks, highlights) = await (
         _bookmarkRepository.getByBookId(widget.book.id),
         _highlightRepository.getByBookId(widget.book.id),
       ).wait;
       if (!mounted) return;
-
-      final progress = _currentProgress(_info);
-      final percentStr = '${(progress * 100).round()}%';
-      final caption = _progressCaption(context, _info) ?? '';
 
       await showModalBottomSheet<void>(
         context: context,
@@ -1438,19 +1533,7 @@ class _ReaderScreenState extends State<ReaderScreen>
             ...bookmarks.map(ReaderNote.bookmark),
             ...highlights.map(ReaderNote.highlight),
           ],
-          tableOfContents: _effectiveTableOfContents,
-          activeChapterIndex: _currentChapterIndex,
-          bookTitle: widget.book.title,
-          bookAuthor: widget.book.author,
-          readingProgressLabel: _currentChapterTitle != null
-              ? '$_currentChapterTitle · $caption'
-              : caption,
-          readingProgressPercent: percentStr,
           initialTab: initialTab,
-          onChapterSelected: (index) {
-            Navigator.of(sheetContext).pop();
-            _goToChapter(index);
-          },
           onSelected: (note) {
             Navigator.of(sheetContext).pop();
             unawaited(_goToDocumentLocator(note.locator));
@@ -1824,7 +1907,7 @@ class _ReaderScreenState extends State<ReaderScreen>
   ) async {
     await showModalBottomSheet<void>(
       context: context,
-      showDragHandle: true,
+      showDragHandle: false,
       isScrollControlled: true,
       builder: (context) => DictionaryLookupSheet(
         selectedText: selectedText,
@@ -1923,7 +2006,19 @@ class _ReaderScreenState extends State<ReaderScreen>
           text: highlight.selectedText,
           color: highlight.color,
         ),
+    if (_searchMatch case (
+      TextLocator(:final offset),
+      final text,
+    ) when _engine?.pageIndexForOffset(offset) == pageIndex)
+      PageMark(
+        start: offset - _engine!.pageStartOffset(pageIndex),
+        text: text,
+        color: HighlightColor.yellow,
+        customColor: _searchMatchColor,
+      ),
   ];
+
+  static const _searchMatchColor = Color(0x99FFC94D);
 
   List<PageMark> _pdfTextPageMarks(int pageIndex) => [
     for (final highlight in _highlights)
@@ -1936,6 +2031,16 @@ class _ReaderScreenState extends State<ReaderScreen>
           text: highlight.selectedText,
           color: highlight.color,
         ),
+    if (_searchMatch case (
+      PdfLocator(:final page, :final textOffset?),
+      final text,
+    ) when page == pageIndex + 1)
+      PageMark(
+        start: textOffset,
+        text: text,
+        color: HighlightColor.yellow,
+        customColor: _searchMatchColor,
+      ),
   ];
 
   DocumentLocator _documentLocatorFromReadium(Locator locator) {
@@ -2290,7 +2395,7 @@ class _ReaderScreenState extends State<ReaderScreen>
   Future<void> _showReaderSettings() async {
     await showModalBottomSheet<void>(
       context: context,
-      showDragHandle: true,
+      showDragHandle: false,
       isScrollControlled: true,
       barrierColor: Colors.black12,
       builder: (context) => AppearanceSheet(
@@ -2300,7 +2405,8 @@ class _ReaderScreenState extends State<ReaderScreen>
             !_usesReadium && widget.book.format == DocumentFormat.pdf,
         usesReadium: _usesReadium,
         onChanged: _handleReaderSettingsChanged,
-        onReset: () => _handleReaderSettingsChanged(const SettingsEntity()),
+        onReset: () =>
+            _handleReaderSettingsChanged(_settings.withDefaultAppearance()),
         onBrightnessChanged: (b) => _brightness.set(b),
         onResetBrightness: () => _brightness.reset(),
       ),
@@ -2430,9 +2536,9 @@ class _ReaderScreenState extends State<ReaderScreen>
                     color: WarmEditorialTokens.subtitleSecondary,
                   ),
                 ),
-                secondary: const Icon(
+                secondary: Icon(
                   Icons.screen_lock_portrait_outlined,
-                  color: WarmEditorialTokens.accentInkBlue,
+                  color: context.accent,
                 ),
                 value: _settings.keepScreenAwake,
                 onChanged: (val) {

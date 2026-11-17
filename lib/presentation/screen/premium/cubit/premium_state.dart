@@ -20,7 +20,7 @@ class PremiumState {
   const PremiumState({
     required this.unlocked,
     this.status = PremiumStatus.idle,
-    this.product,
+    this.products = const {},
   });
 
   /// Whether premium appearance items can be applied. Always true when
@@ -28,8 +28,9 @@ class PremiumState {
   final bool unlocked;
   final PremiumStatus status;
 
-  /// The store product with its price; null until loaded or if unavailable.
-  final BillingProduct? product;
+  /// The store's plans with their prices; empty until loaded or when the
+  /// store is unavailable.
+  final Map<PremiumPlan, BillingProduct> products;
 
   bool get isBusy =>
       status == PremiumStatus.purchasing || status == PremiumStatus.restoring;
@@ -37,10 +38,10 @@ class PremiumState {
   PremiumState copyWith({
     bool? unlocked,
     PremiumStatus? status,
-    BillingProduct? product,
+    Map<PremiumPlan, BillingProduct>? products,
   }) => PremiumState(
     unlocked: unlocked ?? this.unlocked,
     status: status ?? this.status,
-    product: product ?? this.product,
+    products: products ?? this.products,
   );
 }

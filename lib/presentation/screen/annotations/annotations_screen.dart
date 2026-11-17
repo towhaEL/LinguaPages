@@ -283,7 +283,7 @@ class _AnnotationRow extends StatelessWidget {
 
     final stripColor = highlight != null
         ? Color(highlight.color.tintArgb(darkPage: false))
-        : WarmEditorialTokens.accentInkBlue;
+        : context.accent;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: _gutter, vertical: 6),
@@ -331,10 +331,10 @@ class _AnnotationRow extends StatelessWidget {
                       else
                         Row(
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.bookmark_rounded,
                               size: 18,
-                              color: WarmEditorialTokens.accentInkBlue,
+                              color: context.accent,
                             ),
                             const SizedBox(width: 8),
                             Expanded(

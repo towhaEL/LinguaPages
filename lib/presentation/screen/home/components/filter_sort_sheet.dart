@@ -8,12 +8,14 @@ import 'package:lingua_pages/presentation/route/app_router.gr.dart';
 import 'package:lingua_pages/presentation/screen/home/cubits/library_cubit.dart';
 import 'package:lingua_pages/presentation/screen/home/cubits/library_state.dart';
 import 'package:lingua_pages/presentation/theme/app_tokens.dart';
+import 'package:lingua_pages/presentation/theme/base/theme_extension.dart';
 
 Future<void> showFilterSortSheet(BuildContext context) {
   final cubit = context.read<LibraryCubit>();
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
+    showDragHandle: false,
     backgroundColor: Colors.transparent,
     builder: (_) => BlocProvider.value(
       value: cubit,
@@ -171,7 +173,7 @@ class _FilterSortSheetState extends State<FilterSortSheet> {
                                   Icons.grid_view_rounded,
                                   size: 18,
                                   color: _viewMode == LibraryViewMode.grid
-                                      ? WarmEditorialTokens.accentInkBlue
+                                      ? context.accent
                                       : WarmEditorialTokens.subtitleSecondary,
                                 ),
                                 const SizedBox(width: 8),
@@ -181,7 +183,7 @@ class _FilterSortSheetState extends State<FilterSortSheet> {
                                     fontSize: 13,
                                     fontWeight: FontWeight.w600,
                                     color: _viewMode == LibraryViewMode.grid
-                                        ? WarmEditorialTokens.accentInkBlue
+                                        ? context.accent
                                         : WarmEditorialTokens.subtitleSecondary,
                                   ),
                                 ),
@@ -218,7 +220,7 @@ class _FilterSortSheetState extends State<FilterSortSheet> {
                                   Icons.view_list_rounded,
                                   size: 18,
                                   color: _viewMode == LibraryViewMode.list
-                                      ? WarmEditorialTokens.accentInkBlue
+                                      ? context.accent
                                       : WarmEditorialTokens.subtitleSecondary,
                                 ),
                                 const SizedBox(width: 8),
@@ -228,7 +230,7 @@ class _FilterSortSheetState extends State<FilterSortSheet> {
                                     fontSize: 13,
                                     fontWeight: FontWeight.w600,
                                     color: _viewMode == LibraryViewMode.list
-                                        ? WarmEditorialTokens.accentInkBlue
+                                        ? context.accent
                                         : WarmEditorialTokens.subtitleSecondary,
                                   ),
                                 ),
@@ -335,7 +337,7 @@ class _FilterSortSheetState extends State<FilterSortSheet> {
                             }
                           });
                         },
-                        selectedColor: WarmEditorialTokens.accentInkBlue,
+                        selectedColor: context.accent,
                         checkmarkColor: Colors.white,
                         labelStyle: GoogleFonts.inter(
                           fontSize: 13,
@@ -444,7 +446,7 @@ class _FilterSortSheetState extends State<FilterSortSheet> {
               child: FilledButton(
                 key: const Key('apply_filter_sort_button'),
                 style: FilledButton.styleFrom(
-                  backgroundColor: WarmEditorialTokens.accentInkBlue,
+                  backgroundColor: context.accent,
                   foregroundColor: Colors.white,
                   shape: const StadiumBorder(),
                 ),
@@ -486,7 +488,7 @@ class _FilterSortSheetState extends State<FilterSortSheet> {
             Icon(
               icon,
               size: 20,
-              color: isSelected ? WarmEditorialTokens.accentInkBlue : WarmEditorialTokens.subtitleSecondary,
+              color: isSelected ? context.accent : WarmEditorialTokens.subtitleSecondary,
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -505,7 +507,7 @@ class _FilterSortSheetState extends State<FilterSortSheet> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: isSelected ? WarmEditorialTokens.accentInkBlue : WarmEditorialTokens.hairlineDivider,
+                  color: isSelected ? context.accent : WarmEditorialTokens.hairlineDivider,
                   width: isSelected ? 6 : 1.5,
                 ),
               ),

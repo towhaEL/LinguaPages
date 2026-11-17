@@ -11,12 +11,14 @@ import 'package:lingua_pages/presentation/screen/home/cubits/library_cubit.dart'
 import 'package:lingua_pages/presentation/theme/app_tokens.dart';
 import 'package:lingua_pages/presentation/widgets/book/book_cover.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:lingua_pages/presentation/theme/base/theme_extension.dart';
 
 Future<void> showBookDetailsSheet(BuildContext context, BookEntity book) {
   final cubit = context.read<LibraryCubit>();
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
+    showDragHandle: false,
     backgroundColor: Colors.transparent,
     builder: (_) => BlocProvider.value(
       value: cubit,
@@ -219,7 +221,7 @@ class BookDetailsSheet extends StatelessWidget {
                                         fontSize: 11,
                                         fontWeight: FontWeight.w700,
                                         color:
-                                            WarmEditorialTokens.accentInkBlue,
+                                            context.accent,
                                       ),
                                     ),
                                   ],
@@ -232,8 +234,8 @@ class BookDetailsSheet extends StatelessWidget {
                                     minHeight: 4,
                                     backgroundColor:
                                         WarmEditorialTokens.hairlineDivider,
-                                    valueColor: const AlwaysStoppedAnimation(
-                                      WarmEditorialTokens.accentInkBlue,
+                                    valueColor: AlwaysStoppedAnimation(
+                                      context.accent,
                                     ),
                                   ),
                                 ),
@@ -256,7 +258,7 @@ class BookDetailsSheet extends StatelessWidget {
                         child: FilledButton.icon(
                           key: const Key('book_details_read_button'),
                           style: FilledButton.styleFrom(
-                            backgroundColor: WarmEditorialTokens.accentInkBlue,
+                            backgroundColor: context.accent,
                             foregroundColor: Colors.white,
                             shape: const StadiumBorder(),
                           ),

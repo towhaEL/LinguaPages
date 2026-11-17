@@ -6,33 +6,6 @@ import '../../../e2e/helpers/test_app_harness.dart';
 
 void main() {
   group('ReaderSearchSheet Widget Tests', () {
-    testWidgets('renders search query, match badge, and stepper buttons', (tester) async {
-      var nextTapped = false;
-      var prevTapped = false;
-
-      await tester.pumpHarness(
-        ReaderSearchSheet(
-          query: 'harbour',
-          matchCount: 15,
-          currentMatchIndex: 3,
-          onNextMatch: () => nextTapped = true,
-          onPrevMatch: () => prevTapped = true,
-        ),
-      );
-
-      expect(find.byKey(const Key('search_match_counter_badge')), findsOneWidget);
-      expect(find.text('15 results'), findsOneWidget);
-      expect(find.text('Match 3 of 15 in current chapter'), findsOneWidget);
-
-      await tester.tap(find.byKey(const Key('search_next_match')));
-      await tester.pumpAndSettle();
-      expect(nextTapped, isTrue);
-
-      await tester.tap(find.byKey(const Key('search_prev_match')));
-      await tester.pumpAndSettle();
-      expect(prevTapped, isTrue);
-    });
-
     testWidgets('executes search callback and renders hits', (tester) async {
       var selected = false;
       final hits = [
@@ -45,9 +18,7 @@ void main() {
       ];
 
       await tester.pumpHarness(
-        ReaderSearchSheet(
-          search: (query) async => hits,
-        ),
+        ReaderSearchSheet(search: (query) async => hits),
       );
 
       final searchField = find.byType(TextField);
@@ -63,6 +34,86 @@ void main() {
       await tester.tap(find.text('Chapter 1: The Arrival'));
       await tester.pumpAndSettle();
       expect(selected, isTrue);
+    });
+
+    testWidgets('marks every match in the snippet', (tester) async {
+      await tester.pumpHarness(
+        ReaderSearchSheet(
+          query: 'harbour',
+          search: (query) async => [
+            ReaderSearchHit(
+              title: 'Chapter 2',
+              snippet: 'Harbour lights over the harbour wall.',
+              onSelected: () async {},
+            ),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final rich = tester.widget<RichText>(
+        find.byWidgetPredicate(
+          (widget) =>
+              widget is RichText &&
+              widget.text.toPlainText().contains('lights over'),
+        ),
+      );
+      final marked = <String>[];
+      rich.text.visitChildren((span) {
+        if (span is TextSpan && span.style?.backgroundColor != null) {
+          marked.add(span.text!);
+        }
+        return true;
+      });
+      expect(marked, ['Harbour', 'harbour']);
+    });
+
+    testWidgets('reopening with the last query shows its results and the '
+        'chosen hit', (tester) async {
+      String? reportedQuery;
+      int? reportedIndex;
+      await tester.pumpHarness(
+        ReaderSearchSheet(
+          query: 'tide',
+          selectedIndex: 1,
+          onSelected: (query, index) {
+            reportedQuery = query;
+            reportedIndex = index;
+          },
+          search: (query) async => [
+            for (final n in [1, 2, 3])
+              ReaderSearchHit(
+                title: 'Chapter $n',
+                snippet: 'The tide turned in chapter $n.',
+                onSelected: () async {},
+              ),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('3 results'), findsOneWidget);
+      await tester.tap(find.text('Chapter 3'));
+      await tester.pumpAndSettle();
+      expect(reportedQuery, 'tide');
+      expect(reportedIndex, 2);
+    });
+
+    testWidgets('the way back is only offered after a jump', (tester) async {
+      await tester.pumpHarness(const ReaderSearchSheet());
+      expect(find.byKey(const Key('search_return_to_position')), findsNothing);
+
+      var returned = false;
+      await tester.pumpHarness(
+        ReaderSearchSheet(
+          returnLabel: 'page 12',
+          onReturnToPosition: () => returned = true,
+        ),
+      );
+      expect(find.text('Back to page 12'), findsOneWidget);
+      await tester.tap(find.byKey(const Key('search_return_to_position')));
+      await tester.pumpAndSettle();
+      expect(returned, isTrue);
     });
   });
 }

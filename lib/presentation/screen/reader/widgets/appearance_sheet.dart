@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lingua_pages/domain/entity/settings/settings_entity.dart';
 import 'package:lingua_pages/presentation/screen/premium/cubit/premium_cubit.dart';
 import 'package:lingua_pages/presentation/theme/app_tokens.dart';
+import 'package:lingua_pages/presentation/theme/base/theme_extension.dart';
 
 /// Standalone Appearance Bottom Sheet matching Stitch screen 04b_appearance_sheet (d8bb2a41).
 class AppearanceSheet extends StatefulWidget {
@@ -363,7 +364,7 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                                             ? FontWeight.w600
                                             : FontWeight.w400,
                                         color: _activeThemeName == name
-                                            ? WarmEditorialTokens.accentInkBlue
+                                            ? context.accent
                                             : WarmEditorialTokens
                                                   .subtitleSecondary,
                                       ),
@@ -463,7 +464,7 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                                         color:
                                             _settings.readerPdfMode ==
                                                 ReaderPdfMode.visual
-                                            ? WarmEditorialTokens.accentInkBlue
+                                            ? context.accent
                                             : WarmEditorialTokens
                                                   .subtitleSecondary,
                                       ),
@@ -515,7 +516,7 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                                         color:
                                             _settings.readerPdfMode ==
                                                 ReaderPdfMode.text
-                                            ? WarmEditorialTokens.accentInkBlue
+                                            ? context.accent
                                             : WarmEditorialTokens
                                                   .subtitleSecondary,
                                       ),
@@ -586,12 +587,12 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                                     ),
                                     decoration: BoxDecoration(
                                       color: _settings.readerFont == font
-                                          ? WarmEditorialTokens.accentInkBlue
+                                          ? context.accent
                                           : Colors.white,
                                       borderRadius: BorderRadius.circular(12),
                                       border: Border.all(
                                         color: _settings.readerFont == font
-                                            ? WarmEditorialTokens.accentInkBlue
+                                            ? context.accent
                                             : WarmEditorialTokens
                                                   .hairlineDivider,
                                       ),
@@ -707,11 +708,11 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                                 ),
                                 Text(
                                   '${_fontSize.round()} pt',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontFamily: 'Inter',
                                     fontSize: 12,
                                     fontWeight: FontWeight.w600,
-                                    color: WarmEditorialTokens.accentInkBlue,
+                                    color: context.accent,
                                   ),
                                 ),
                               ],
@@ -730,9 +731,9 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                                   child: SliderTheme(
                                     data: SliderTheme.of(context).copyWith(
                                       activeTrackColor:
-                                          WarmEditorialTokens.accentInkBlue,
+                                          context.accent,
                                       thumbColor:
-                                          WarmEditorialTokens.accentInkBlue,
+                                          context.accent,
                                     ),
                                     child: Slider(
                                       key: const Key('appearance_font_slider'),
@@ -786,11 +787,11 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                                 ),
                                 Text(
                                   '${_lineSpacing.toStringAsFixed(1)}×',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontFamily: 'Inter',
                                     fontSize: 12,
                                     fontWeight: FontWeight.w600,
-                                    color: WarmEditorialTokens.accentInkBlue,
+                                    color: context.accent,
                                   ),
                                 ),
                               ],
@@ -807,9 +808,9 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                                   child: SliderTheme(
                                     data: SliderTheme.of(context).copyWith(
                                       activeTrackColor:
-                                          WarmEditorialTokens.accentInkBlue,
+                                          context.accent,
                                       thumbColor:
-                                          WarmEditorialTokens.accentInkBlue,
+                                          context.accent,
                                     ),
                                     child: Slider(
                                       value: _lineSpacing.clamp(1.1, 2.2),
@@ -866,11 +867,11 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                                 ),
                                 Text(
                                   '${_margin.round()} px',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontFamily: 'Inter',
                                     fontSize: 12,
                                     fontWeight: FontWeight.w600,
-                                    color: WarmEditorialTokens.accentInkBlue,
+                                    color: context.accent,
                                   ),
                                 ),
                               ],
@@ -887,9 +888,9 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                                   child: SliderTheme(
                                     data: SliderTheme.of(context).copyWith(
                                       activeTrackColor:
-                                          WarmEditorialTokens.accentInkBlue,
+                                          context.accent,
                                       thumbColor:
-                                          WarmEditorialTokens.accentInkBlue,
+                                          context.accent,
                                     ),
                                     child: Slider(
                                       value: _margin.clamp(12.0, 44.0),
@@ -991,7 +992,7 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                                       color:
                                           _settings.readerMode ==
                                               ReaderMode.continuous
-                                          ? WarmEditorialTokens.accentInkBlue
+                                          ? context.accent
                                           : WarmEditorialTokens
                                                 .subtitleSecondary,
                                     ),
@@ -1055,7 +1056,7 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                                                   ReaderMode.paginated &&
                                               _settings.readerColumns !=
                                                   ReaderColumns.two
-                                          ? WarmEditorialTokens.accentInkBlue
+                                          ? context.accent
                                           : WarmEditorialTokens
                                                 .subtitleSecondary,
                                     ),
@@ -1111,7 +1112,7 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                                       color:
                                           _settings.readerColumns ==
                                               ReaderColumns.two
-                                          ? WarmEditorialTokens.accentInkBlue
+                                          ? context.accent
                                           : WarmEditorialTokens
                                                 .subtitleSecondary,
                                     ),
@@ -1141,7 +1142,7 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                                 vertical: 2,
                               ),
                               activeTrackColor:
-                                  WarmEditorialTokens.accentInkBlue,
+                                  context.accent,
                               title: const Text(
                                 'Justify text',
                                 style: TextStyle(
@@ -1184,7 +1185,7 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                                 vertical: 2,
                               ),
                               activeTrackColor:
-                                  WarmEditorialTokens.accentInkBlue,
+                                  context.accent,
                               title: const Text(
                                 'Hyphenation',
                                 style: TextStyle(
@@ -1221,7 +1222,7 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                                 vertical: 2,
                               ),
                               activeTrackColor:
-                                  WarmEditorialTokens.accentInkBlue,
+                                  context.accent,
                               title: const Text(
                                 'Publisher styles',
                                 style: TextStyle(
@@ -1274,11 +1275,11 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                         ),
                         Text(
                           '${(_brightness * 100).round()}%',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontFamily: 'Inter',
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: WarmEditorialTokens.accentInkBlue,
+                            color: context.accent,
                           ),
                         ),
                       ],
@@ -1306,9 +1307,9 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                                 child: SliderTheme(
                                   data: SliderTheme.of(context).copyWith(
                                     activeTrackColor:
-                                        WarmEditorialTokens.accentInkBlue,
+                                        context.accent,
                                     thumbColor:
-                                        WarmEditorialTokens.accentInkBlue,
+                                        context.accent,
                                   ),
                                   child: Slider(
                                     value: _brightness,
@@ -1325,10 +1326,10 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                                   ),
                                 ),
                               ),
-                              const Icon(
+                              Icon(
                                 Icons.brightness_high,
                                 size: 20,
-                                color: WarmEditorialTokens.accentInkBlue,
+                                color: context.accent,
                               ),
                             ],
                           ),
@@ -1357,7 +1358,7 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                                 ),
                                 value: _followSystemBrightness,
                                 activeTrackColor:
-                                    WarmEditorialTokens.accentInkBlue,
+                                    context.accent,
                                 onChanged: (val) {
                                   setState(() => _followSystemBrightness = val);
                                   if (val) {

@@ -57,11 +57,12 @@ void main() {
     await dev.close();
   });
 
-  test('starts locked and shows the store price', () async {
+  test('starts locked and shows both plans with store prices', () async {
     await cubit.start();
 
     expect(cubit.state.unlocked, isFalse);
-    expect(cubit.state.product?.price, r'$2.99');
+    expect(cubit.state.products[PremiumPlan.yearly]?.price, r'$4.99');
+    expect(cubit.state.products[PremiumPlan.lifetime]?.price, r'$14.99');
   });
 
   test('offline launch keeps a cached purchase', () async {
@@ -86,8 +87,9 @@ void main() {
 
   test('a completed purchase unlocks and is cached', () async {
     await cubit.start();
-    await cubit.buy();
+    await cubit.buy(PremiumPlan.yearly);
     expect(cubit.state.status, PremiumStatus.purchasing);
+    expect(billing.boughtPlan, PremiumPlan.yearly);
 
     billing.emit(const BillingPurchased());
     await pumpEventQueue();
@@ -117,11 +119,11 @@ void main() {
     'buying without a store product reports the store unavailable',
     () async {
       billing
-        ..product = null
+        ..products = const {}
         ..buyError = StateError('no product');
       await cubit.start();
 
-      await cubit.buy();
+      await cubit.buy(PremiumPlan.lifetime);
 
       expect(cubit.state.status, PremiumStatus.storeUnavailable);
     },
@@ -161,10 +163,19 @@ void main() {
 
 class _FakeBilling implements BillingService {
   final _events = StreamController<BillingEvent>.broadcast();
-  BillingProduct? product = const BillingProduct(
-    id: BillingService.premiumProductId,
-    price: r'$2.99',
-  );
+  Map<PremiumPlan, BillingProduct> products = const {
+    PremiumPlan.yearly: BillingProduct(
+      id: BillingService.yearlyProductId,
+      plan: PremiumPlan.yearly,
+      price: r'$4.99',
+    ),
+    PremiumPlan.lifetime: BillingProduct(
+      id: BillingService.lifetimeProductId,
+      plan: PremiumPlan.lifetime,
+      price: r'$14.99',
+    ),
+  };
+  PremiumPlan? boughtPlan;
   bool? owns = false;
   Object? buyError;
   var ownsCalls = 0;
@@ -175,11 +186,12 @@ class _FakeBilling implements BillingService {
   Stream<BillingEvent> get events => _events.stream;
 
   @override
-  Future<BillingProduct?> loadProduct() async => product;
+  Future<Map<PremiumPlan, BillingProduct>> loadProducts() async => products;
 
   @override
-  Future<void> buy() async {
+  Future<void> buy(PremiumPlan plan) async {
     if (buyError != null) throw buyError!;
+    boughtPlan = plan;
   }
 
   @override

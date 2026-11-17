@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -119,11 +121,11 @@ void main() {
       await tester.pumpAndSettle();
       expect(searchCalled, isFalse);
 
-      // Badge displays 0 results
-      expect(find.text('0 results'), findsOneWidget);
+      // Nothing was searched, so the prompt stays.
+      expect(find.text('Type a word or phrase, then search'), findsOneWidget);
     });
 
-    testWidgets('Search 2: Zero results displays empty state, disables steppers, prevents divide-by-zero',
+    testWidgets('Search 2: Zero results displays empty state and clears',
         (tester) async {
       await tester.pumpHarness(
         ReaderSearchSheet(
@@ -136,22 +138,15 @@ void main() {
       await tester.testTextInput.receiveAction(TextInputAction.search);
       await tester.pumpAndSettle();
 
-      // Badge displays 0 results
       expect(find.text('0 results'), findsOneWidget);
       expect(find.byIcon(Icons.search_off_rounded), findsOneWidget);
-      expect(find.text('No matches found for "nonexistentqueryxyz"'), findsOneWidget);
-
-      // Steppers must be disabled
-      final prevBtn = tester.widget<IconButton>(find.byKey(const Key('search_prev_match')));
-      final nextBtn = tester.widget<IconButton>(find.byKey(const Key('search_next_match')));
-      expect(prevBtn.onPressed, isNull, reason: 'Prev stepper must be disabled when 0 results');
-      expect(nextBtn.onPressed, isNull, reason: 'Next stepper must be disabled when 0 results');
+      expect(find.text('No matches for "nonexistentqueryxyz"'), findsOneWidget);
 
       // Clear button resets query
       expect(find.byIcon(Icons.close), findsOneWidget);
       await tester.tap(find.byIcon(Icons.close));
       await tester.pumpAndSettle();
-      expect(find.text('0 results'), findsOneWidget);
+      expect(find.text('Type a word or phrase, then search'), findsOneWidget);
     });
 
     testWidgets(r'Search 3: Regex special characters ([, *, +, ?, \, ^, $) treated literally without regex crash',
@@ -180,113 +175,52 @@ void main() {
 
         await tester.pumpHarness(
           ReaderSearchSheet(
+            key: ValueKey(query),
             query: query,
-            matchCount: 1,
-            currentMatchIndex: 1,
             search: (q) async => hits,
           ),
         );
+        await tester.pumpAndSettle();
 
         // Verifies no FormatException: Invalid regular expression was thrown
         expect(find.byKey(const Key('search_match_counter_badge')), findsOneWidget);
         expect(find.text('1 result'), findsOneWidget);
-        expect(find.text('Match 1 of 1 in current chapter'), findsOneWidget);
-        expect(find.byType(ReaderSearchSheet), findsOneWidget);
+        expect(find.text('Found literal $query'), findsOneWidget);
       }
     });
 
-    testWidgets('Search 4: Rapid stepper clicking and boundary wrapping (1 -> 2 -> 3 -> 1, and 1 -> 3)',
+    testWidgets('Search 4: a slow earlier search cannot replace a newer one',
         (tester) async {
-      final hits = [
-        ReaderSearchHit(title: 'Chapter 1', snippet: 'harbour at dawn', onSelected: () async {}),
-        ReaderSearchHit(title: 'Chapter 2', snippet: 'harbour at noon', onSelected: () async {}),
-        ReaderSearchHit(title: 'Chapter 3', snippet: 'harbour at night', onSelected: () async {}),
-      ];
-
+      final slow = Completer<List<ReaderSearchHit>>();
       await tester.pumpHarness(
         ReaderSearchSheet(
-          search: (q) async => hits,
+          search: (q) => q == 'first'
+              ? slow.future
+              : Future.value([
+                  ReaderSearchHit(
+                    title: 'Second hit',
+                    snippet: 'second',
+                    onSelected: () async {},
+                  ),
+                ]),
         ),
       );
 
       final searchField = find.byType(TextField);
-      await tester.enterText(searchField, 'harbour');
+      await tester.enterText(searchField, 'first');
+      await tester.testTextInput.receiveAction(TextInputAction.search);
+      await tester.pump();
+      await tester.enterText(searchField, 'second');
       await tester.testTextInput.receiveAction(TextInputAction.search);
       await tester.pumpAndSettle();
 
-      expect(find.text('3 results'), findsOneWidget);
-      expect(find.text('Match 1 of 3 in current chapter'), findsOneWidget);
-
-      // Next: 1 -> 2
-      await tester.tap(find.byKey(const Key('search_next_match')));
+      slow.complete([
+        ReaderSearchHit(title: 'First hit', snippet: 'first', onSelected: () async {}),
+      ]);
       await tester.pumpAndSettle();
-      expect(find.text('Match 2 of 3 in current chapter'), findsOneWidget);
 
-      // Next: 2 -> 3
-      await tester.tap(find.byKey(const Key('search_next_match')));
-      await tester.pumpAndSettle();
-      expect(find.text('Match 3 of 3 in current chapter'), findsOneWidget);
-
-      // Next wraps: 3 -> 1
-      await tester.tap(find.byKey(const Key('search_next_match')));
-      await tester.pumpAndSettle();
-      expect(find.text('Match 1 of 3 in current chapter'), findsOneWidget);
-
-      // Prev wraps: 1 -> 3
-      await tester.tap(find.byKey(const Key('search_prev_match')));
-      await tester.pumpAndSettle();
-      expect(find.text('Match 3 of 3 in current chapter'), findsOneWidget);
-
-      // Prev: 3 -> 2
-      await tester.tap(find.byKey(const Key('search_prev_match')));
-      await tester.pumpAndSettle();
-      expect(find.text('Match 2 of 3 in current chapter'), findsOneWidget);
-
-      // Rapid clicking next 9 times -> (2 + 9) % 3 = 11 % 3 = 2
-      for (var i = 0; i < 9; i++) {
-        await tester.tap(find.byKey(const Key('search_next_match')));
-      }
-      await tester.pumpAndSettle();
-      expect(find.text('Match 2 of 3 in current chapter'), findsOneWidget);
-    });
-
-    testWidgets('Search 5: Return to position button and Done button invocation', (tester) async {
-      var returnPositionCalled = false;
-      var doneCalled = false;
-
-      await tester.pumpHarness(
-        ReaderSearchSheet(
-          query: 'anchor',
-          matchCount: 4,
-          currentPositionLabel: 'Page 204 (75%)',
-          onReturnToPosition: () => returnPositionCalled = true,
-          onDone: () => doneCalled = true,
-        ),
-      );
-
-      // Verify position label rendered
-      expect(find.text('Return to position'), findsOneWidget);
-      expect(find.text('Page 204 (75%)'), findsOneWidget);
-      expect(find.text('Done'), findsOneWidget);
-
-      // Tap Return to position
-      await tester.tap(find.text('Return to position'));
-      await tester.pumpAndSettle();
-      expect(returnPositionCalled, isTrue);
-
-      // Pump new sheet to test Done
-      await tester.pumpHarness(
-        ReaderSearchSheet(
-          query: 'anchor',
-          onDone: () => doneCalled = true,
-        ),
-      );
-
-      await tester.tap(find.text('Done'));
-      await tester.pumpAndSettle();
-      expect(doneCalled, isTrue);
-
-      // Verify zero bottom nav
+      expect(find.text('Second hit'), findsOneWidget);
+      expect(find.text('First hit'), findsNothing);
       tester.expectNoBottomNavigationBar();
     });
   });

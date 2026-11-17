@@ -89,6 +89,8 @@ class DriftSettingsRepository implements SettingsRepository {
     'onlineDictionary': settings.onlineDictionary,
     'libraryListView': settings.libraryListView,
     'librarySort': settings.librarySort.name,
+    'appAccent': settings.appAccent.name,
+    'interfaceScale': settings.interfaceScale,
   };
 
   SettingsEntity _fromValues(Map<String, dynamic> values) {
@@ -184,6 +186,16 @@ class DriftSettingsRepository implements SettingsRepository {
         values['librarySort'],
         LibrarySort.recent,
       ),
+      appAccent: _enumValue(
+        AppAccent.values,
+        values['appAccent'],
+        AppAccent.inkBlue,
+      ),
+      interfaceScale: ((values['interfaceScale'] as num?)?.toDouble() ?? 1)
+          .clamp(
+            SettingsEntity.minInterfaceScale,
+            SettingsEntity.maxInterfaceScale,
+          ),
     );
   }
 

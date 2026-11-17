@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:lingua_pages/domain/entity/premium/appearance_catalog.dart';
 import 'package:lingua_pages/domain/entity/settings/settings_entity.dart';
+import 'package:lingua_pages/domain/service/billing_service.dart';
 import 'package:lingua_pages/l10n/l10n.dart';
 import 'package:lingua_pages/presentation/screen/premium/cubit/premium_cubit.dart';
 import 'package:lingua_pages/presentation/screen/premium/cubit/premium_state.dart';
+import 'package:lingua_pages/presentation/theme/app_accent_palette.dart';
 import 'package:lingua_pages/presentation/theme/app_tokens.dart';
 import 'package:lingua_pages/presentation/theme/base/theme_extension.dart';
 
-/// Opens the premium appearance offer.
+/// Opens the premium offer.
 Future<void> showPremiumPaywall(BuildContext context) =>
     showModalBottomSheet<void>(
       context: context,
@@ -18,11 +21,9 @@ Future<void> showPremiumPaywall(BuildContext context) =>
       builder: (_) => const PremiumPaywallSheet(),
     );
 
-enum PaywallPlan { lifetime, yearly }
-
-/// A calm offer: it shows the looks themselves, the store's price, that
-/// everything else is free, and a restore action. No countdowns, no
-/// pre-checked upsells, no guilt copy.
+/// A calm offer: it shows the looks themselves, both plans at the store's
+/// prices, that everything else is free, and a restore action. No
+/// countdowns, no pre-checked upsells, no guilt copy.
 class PremiumPaywallSheet extends StatefulWidget {
   const PremiumPaywallSheet({super.key});
 
@@ -31,7 +32,14 @@ class PremiumPaywallSheet extends StatefulWidget {
 }
 
 class _PremiumPaywallSheetState extends State<PremiumPaywallSheet> {
-  PaywallPlan _selectedPlan = PaywallPlan.lifetime;
+  /// Null until the user picks; then the store's offer decides the default.
+  PremiumPlan? _picked;
+
+  PremiumPlan _selected(PremiumState state) =>
+      _picked ??
+      (state.products.isEmpty || state.products.containsKey(PremiumPlan.yearly)
+          ? PremiumPlan.yearly
+          : PremiumPlan.lifetime);
 
   @override
   Widget build(BuildContext context) {
@@ -42,237 +50,214 @@ class _PremiumPaywallSheetState extends State<PremiumPaywallSheet> {
     return SafeArea(
       child: ConstrainedBox(
         constraints: BoxConstraints(
-          maxHeight: MediaQuery.sizeOf(context).height * .9,
+          maxHeight: MediaQuery.sizeOf(context).height * .92,
         ),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
-          child: BlocBuilder<PremiumCubit, PremiumState>(
-            builder: (context, state) {
-              final cubit = context.read<PremiumCubit>();
-              final message = _message(context, state);
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Semantics(
-                    header: true,
-                    child: Text(
-                      'Make every page yours',
-                      style: GoogleFonts.newsreader(
-                        fontSize: 26,
-                        fontWeight: FontWeight.w600,
-                        color: colors.onSurface,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Unlock premium reading themes, handcrafted fonts, and visual style presets.',
-                    style: text.bodyMedium?.copyWith(
-                      color: colors.onSurfaceMuted,
-                      height: 1.4,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  // 3-Theme Hero Carousel Preview
-                  Row(
-                    key: const Key('paywall_3theme_preview'),
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _buildHeroThemeCard('Warm Linen', const Color(0xFFF5EFEB), const Color(0xFF2D2A26)),
-                      _buildHeroThemeCard('Midnight', const Color(0xFF161E2E), const Color(0xFFFAF7F2)),
-                      _buildHeroThemeCard('Forest', const Color(0xFF1B2921), const Color(0xFFF3EFEA)),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  _Heading(l10n.premiumThemesHeading),
-                  const SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    // Two-line labels must not lift their swatch.
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      for (final theme in ReaderTheme.values.where(
-                        (theme) => theme.isPremium,
-                      ))
-                        _ThemeSample(theme: theme),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  _Heading(l10n.premiumFontsHeading),
-                  const SizedBox(height: 10),
-                  for (final font in ReaderFont.values.where(
-                    (font) => font.isPremium,
-                  ))
-                    _FontSample(font: font),
-                  const SizedBox(height: 20),
-                  _Heading(l10n.premiumPresetsHeading),
-                  const SizedBox(height: 6),
-                  Text(l10n.premiumPresets, style: text.bodyMedium),
-                  const SizedBox(height: 24),
-                  // Reassuring Ethos Note
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: colors.surfaceContainerLow,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: colors.hairline),
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+        child: BlocBuilder<PremiumCubit, PremiumState>(
+          builder: (context, state) {
+            final cubit = context.read<PremiumCubit>();
+            final message = _message(context, state);
+            final plan = _selected(state);
+            final product = state.products[plan];
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Flexible(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Icon(Icons.verified_user_outlined, size: 20, color: colors.onSurfaceMuted),
-                        const SizedBox(width: 8),
-                        Expanded(
+                        _Eyebrow(unlocked: state.unlocked),
+                        const SizedBox(height: 8),
+                        Semantics(
+                          header: true,
                           child: Text(
-                            l10n.premiumFreeNote,
-                            style: text.bodySmall?.copyWith(
-                              color: colors.onSurfaceMuted,
-                              height: 1.4,
+                            state.unlocked
+                                ? 'Thank you for reading with us'
+                                : 'Make every page yours',
+                            style: GoogleFonts.newsreader(
+                              fontSize: 28,
+                              fontWeight: FontWeight.w600,
+                              height: 1.15,
+                              color: colors.onSurface,
                             ),
                           ),
                         ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Premium adds looks. Reading, notes, export, backup '
+                          'and the dictionary stay free.',
+                          style: text.bodyMedium?.copyWith(
+                            color: colors.onSurfaceMuted,
+                            height: 1.4,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        const _HeroPreview(),
+                        const SizedBox(height: 20),
+                        const _Benefits(),
+                        const SizedBox(height: 20),
+                        _Heading(l10n.premiumThemesHeading),
+                        const SizedBox(height: 10),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          // Two-line labels must not lift their swatch.
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            for (final theme in ReaderTheme.values.where(
+                              (theme) => theme.isPremium,
+                            ))
+                              _ThemeSample(theme: theme),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+                        _Heading(l10n.premiumFontsHeading),
+                        const SizedBox(height: 6),
+                        for (final font in ReaderFont.values.where(
+                          (font) => font.isPremium,
+                        ))
+                          _FontSample(font: font),
+                        if (!state.unlocked) ...[
+                          const SizedBox(height: 24),
+                          _Heading('Choose your plan'),
+                          const SizedBox(height: 10),
+                          _PlanCard(
+                            key: const Key('paywall_yearly_plan_card'),
+                            plan: PremiumPlan.yearly,
+                            product: state.products[PremiumPlan.yearly],
+                            storeLoaded: state.products.isNotEmpty,
+                            selected: plan == PremiumPlan.yearly,
+                            onTap: () =>
+                                setState(() => _picked = PremiumPlan.yearly),
+                          ),
+                          const SizedBox(height: 10),
+                          _PlanCard(
+                            key: const Key('paywall_lifetime_plan_card'),
+                            plan: PremiumPlan.lifetime,
+                            product: state.products[PremiumPlan.lifetime],
+                            storeLoaded: state.products.isNotEmpty,
+                            selected: plan == PremiumPlan.lifetime,
+                            yearly: state.products[PremiumPlan.yearly],
+                            onTap: () =>
+                                setState(() => _picked = PremiumPlan.lifetime),
+                          ),
+                        ],
                       ],
                     ),
                   ),
-                  const SizedBox(height: 20),
-                  // Plan Option Card (Lifetime)
-                  InkWell(
-                    borderRadius: BorderRadius.circular(16),
-                    onTap: () => setState(() => _selectedPlan = PaywallPlan.lifetime),
-                    child: Card(
-                      key: const Key('paywall_lifetime_plan_card'),
-                      elevation: 0,
-                      color: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        side: BorderSide(
-                          color: _selectedPlan == PaywallPlan.lifetime
-                              ? WarmEditorialTokens.accentInkBlue
-                              : WarmEditorialTokens.hairlineDivider,
-                          width: _selectedPlan == PaywallPlan.lifetime ? 2 : 1,
-                        ),
-                      ),
-                      child: ListTile(
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                        leading: Icon(
-                          _selectedPlan == PaywallPlan.lifetime
-                              ? Icons.radio_button_checked
-                              : Icons.radio_button_off,
-                          color: _selectedPlan == PaywallPlan.lifetime
-                              ? WarmEditorialTokens.accentInkBlue
-                              : WarmEditorialTokens.subtitleSecondary,
-                        ),
-                        title: Text(
-                          'Lifetime — \$14.99 one-time',
-                          style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 15),
-                        ),
-                        subtitle: Text(
-                          'Pay once. Own it forever.',
-                          style: GoogleFonts.inter(fontSize: 12, color: colors.onSurfaceMuted),
-                        ),
+                ),
+                // The decision stays in view while the benefits scroll.
+                DecoratedBox(
+                  decoration: const BoxDecoration(
+                    border: Border(
+                      top: BorderSide(
+                        color: WarmEditorialTokens.hairlineDivider,
                       ),
                     ),
                   ),
-                  const SizedBox(height: 10),
-                  // Plan Option Card (Yearly)
-                  InkWell(
-                    borderRadius: BorderRadius.circular(16),
-                    onTap: () => setState(() => _selectedPlan = PaywallPlan.yearly),
-                    child: Card(
-                      key: const Key('paywall_yearly_plan_card'),
-                      elevation: 0,
-                      color: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        side: BorderSide(
-                          color: _selectedPlan == PaywallPlan.yearly
-                              ? WarmEditorialTokens.accentInkBlue
-                              : WarmEditorialTokens.hairlineDivider,
-                          width: _selectedPlan == PaywallPlan.yearly ? 2 : 1,
-                        ),
-                      ),
-                      child: ListTile(
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                        leading: Icon(
-                          _selectedPlan == PaywallPlan.yearly
-                              ? Icons.radio_button_checked
-                              : Icons.radio_button_off,
-                          color: _selectedPlan == PaywallPlan.yearly
-                              ? WarmEditorialTokens.accentInkBlue
-                              : WarmEditorialTokens.subtitleSecondary,
-                        ),
-                        title: Text(
-                          'Yearly — \$4.99 / year',
-                          style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 15),
-                        ),
-                        subtitle: Text(
-                          '7-day free trial. Cancel anytime.',
-                          style: GoogleFonts.inter(fontSize: 12, color: colors.onSurfaceMuted),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  if (message != null) ...[
-                    Semantics(
-                      liveRegion: true,
-                      child: Text(
-                        message,
-                        textAlign: TextAlign.center,
-                        style: text.bodyMedium?.copyWith(height: 1.45),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                  ],
-                  if (state.unlocked)
-                    FilledButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      child: Text(l10n.premiumDone),
-                    )
-                  else ...[
-                    FilledButton(
-                      key: const Key('paywall_unlock_button'),
-                      style: FilledButton.styleFrom(
-                        backgroundColor: WarmEditorialTokens.accentInkBlue,
-                        foregroundColor: Colors.white,
-                        minimumSize: const Size.fromHeight(48),
-                        shape: const StadiumBorder(),
-                      ),
-                      onPressed: state.isBusy ? null : cubit.buy,
-                      child: state.status == PremiumStatus.purchasing
-                          ? const SizedBox.square(
-                              dimension: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                            )
-                          : Text(
-                              _selectedPlan == PaywallPlan.yearly
-                                  ? 'Start 7-Day Free Trial'
-                                  : (state.product == null
-                                      ? 'Unlock Lifetime'
-                                      : l10n.premiumUnlockFor(state.product!.price)),
-                              style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 12, 24, 8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        if (message != null) ...[
+                          Semantics(
+                            liveRegion: true,
+                            child: Text(
+                              message,
+                              textAlign: TextAlign.center,
+                              style: text.bodyMedium?.copyWith(height: 1.45),
                             ),
+                          ),
+                          const SizedBox(height: 10),
+                        ],
+                        if (state.unlocked)
+                          FilledButton(
+                            style: FilledButton.styleFrom(
+                              minimumSize: const Size.fromHeight(48),
+                            ),
+                            onPressed: () => Navigator.of(context).pop(),
+                            child: Text(l10n.premiumDone),
+                          )
+                        else ...[
+                          FilledButton(
+                            key: const Key('paywall_unlock_button'),
+                            style: FilledButton.styleFrom(
+                              minimumSize: const Size.fromHeight(52),
+                            ),
+                            onPressed:
+                                state.isBusy ||
+                                    (state.products.isNotEmpty &&
+                                        product == null)
+                                ? null
+                                : () => cubit.buy(plan),
+                            child: state.status == PremiumStatus.purchasing
+                                ? const SizedBox.square(
+                                    dimension: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                : Text(_cta(plan, product)),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            _finePrint(plan, product),
+                            textAlign: TextAlign.center,
+                            style: text.bodySmall?.copyWith(
+                              color: colors.onSurfaceMuted,
+                              height: 1.35,
+                            ),
+                          ),
+                          TextButton(
+                            key: const Key('paywall_restore_button'),
+                            onPressed: state.isBusy ? null : cubit.restore,
+                            child: state.status == PremiumStatus.restoring
+                                ? const SizedBox.square(
+                                    dimension: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : Text(l10n.premiumRestore),
+                          ),
+                        ],
+                      ],
                     ),
-                    const SizedBox(height: 8),
-                    TextButton(
-                      key: const Key('paywall_restore_button'),
-                      onPressed: state.isBusy ? null : cubit.restore,
-                      child: state.status == PremiumStatus.restoring
-                          ? const SizedBox.square(
-                              dimension: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : Text(l10n.premiumRestore),
-                    ),
-                  ],
-                ],
-              );
-            },
-          ),
+                  ),
+                ),
+              ],
+            );
+          },
         ),
       ),
     );
   }
+
+  String _cta(PremiumPlan plan, BillingProduct? product) {
+    if (product == null) {
+      return plan == PremiumPlan.yearly ? 'Subscribe yearly' : 'Unlock forever';
+    }
+    return switch (plan) {
+      PremiumPlan.yearly when product.freeTrialDays != null =>
+        'Start ${product.freeTrialDays}-day free trial',
+      PremiumPlan.yearly => 'Subscribe for ${product.price} / year',
+      PremiumPlan.lifetime => context.l10n.premiumUnlockFor(product.price),
+    };
+  }
+
+  String _finePrint(PremiumPlan plan, BillingProduct? product) =>
+      switch (plan) {
+        PremiumPlan.yearly when product?.freeTrialDays != null =>
+          'Free for ${product!.freeTrialDays} days, then ${product.price} a '
+              'year. Cancel anytime in Google Play before the trial ends and '
+              "you won't be charged.",
+        PremiumPlan.yearly =>
+          'Renews every year until you cancel. Cancel anytime in Google Play.',
+        PremiumPlan.lifetime => context.l10n.premiumOneTime,
+      };
 
   String? _message(BuildContext context, PremiumState state) {
     final l10n = context.l10n;
@@ -292,52 +277,384 @@ class _PremiumPaywallSheetState extends State<PremiumPaywallSheet> {
       _ => null,
     };
   }
+}
 
-  Widget _buildHeroThemeCard(String name, Color bg, Color textColor) {
+class _Eyebrow extends StatelessWidget {
+  const _Eyebrow({required this.unlocked});
+
+  final bool unlocked;
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(
+          color: context.accentContainer,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              unlocked ? Icons.verified_rounded : Icons.auto_awesome_rounded,
+              size: 14,
+              color: context.accent,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              unlocked ? 'PATRON · ACTIVE' : 'LINGUAPAGES PATRON',
+              style: GoogleFonts.inter(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.8,
+                color: context.accent,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Three premium page themes as small open pages.
+class _HeroPreview extends StatelessWidget {
+  const _HeroPreview();
+
+  static const _themes = [
+    ReaderTheme.sepiaContrast,
+    ReaderTheme.twilight,
+    ReaderTheme.sage,
+  ];
+
+  static final _fonts = [
+    for (final font in ReaderFont.values)
+      if (font.isPremium) font,
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return ExcludeSemantics(
+      child: SizedBox(
+        key: const Key('paywall_3theme_preview'),
+        height: 132,
+        child: Row(
+          children: [
+            for (final (index, theme) in _themes.indexed) ...[
+              if (index > 0) const SizedBox(width: 10),
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Color(theme.backgroundArgb),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: WarmEditorialTokens.hairlineDivider,
+                    ),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color(0x14000000),
+                        blurRadius: 8,
+                        offset: Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Chapter ${index + 1}',
+                        style: GoogleFonts.inter(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.6,
+                          color: Color(theme.textArgb).withValues(alpha: 0.6),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Expanded(
+                        child: Text(
+                          'It was a bright cold day, and the pages turned '
+                          'themselves in the quiet light.',
+                          overflow: TextOverflow.fade,
+                          style: TextStyle(
+                            fontFamily: _fonts.isEmpty
+                                ? null
+                                : _fonts[index % _fonts.length].family,
+                            fontSize: 12,
+                            height: 1.35,
+                            color: Color(theme.textArgb),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// What premium includes, counted from the catalog so it stays true.
+class _Benefits extends StatelessWidget {
+  const _Benefits();
+
+  @override
+  Widget build(BuildContext context) {
+    final themes = ReaderTheme.values.where((t) => t.isPremium).length;
+    final fonts = ReaderFont.values.where((f) => f.isPremium).length;
+    final presets = AppearanceCatalog.presets.where((p) => p.isPremium).length;
+    final accents = AppAccent.values.where((a) => a.isPremium).toList();
+    final rows = [
+      (
+        Icons.palette_outlined,
+        '$themes extra reading themes',
+        'Twilight, high-contrast night and sepia, and Sage.',
+      ),
+      (
+        Icons.text_fields_rounded,
+        '$fonts book fonts',
+        'Literata, Source Serif and EB Garamond, set for long reading.',
+      ),
+      (
+        Icons.tune_rounded,
+        '$presets style presets',
+        context.l10n.premiumPresets,
+      ),
+      (
+        Icons.color_lens_outlined,
+        '${accents.length} app colour themes',
+        '${accents.map((a) => a.label).join(', ')}.',
+      ),
+    ];
     return Container(
-      width: 96,
-      height: 110,
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.fromLTRB(14, 6, 14, 6),
       decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(12),
+        color: WarmEditorialTokens.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: WarmEditorialTokens.hairlineDivider),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            name,
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w700,
-              color: textColor.withValues(alpha: 0.8),
+          for (final (icon, title, body) in rows)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: context.accentContainer,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(icon, size: 17, color: context.accent),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: WarmEditorialTokens.textPrimaryInk,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          body,
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            height: 1.35,
+                            color: WarmEditorialTokens.subtitleSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          Text(
-            '“A book has a soul…”',
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.newsreader(
-              fontSize: 11,
-              fontStyle: FontStyle.italic,
-              color: textColor,
-            ),
-          ),
-          Container(
-            height: 2,
-            width: 24,
-            color: textColor.withValues(alpha: 0.3),
-          ),
         ],
+      ),
+    );
+  }
+}
+
+/// One plan, as a radio card with the store's price.
+class _PlanCard extends StatelessWidget {
+  const _PlanCard({
+    required this.plan,
+    required this.product,
+    required this.storeLoaded,
+    required this.selected,
+    required this.onTap,
+    this.yearly,
+    super.key,
+  });
+
+  final PremiumPlan plan;
+  final BillingProduct? product;
+
+  /// Whether the store answered; a missing [product] then means the plan is
+  /// not offered rather than still loading.
+  final bool storeLoaded;
+  final bool selected;
+  final VoidCallback onTap;
+
+  /// The yearly plan, for showing how soon lifetime pays for itself.
+  final BillingProduct? yearly;
+
+  String? _perMonth(BillingProduct product) {
+    final raw = product.rawPrice;
+    final currency = product.currencyCode;
+    if (raw == null || currency == null) return null;
+    return NumberFormat.simpleCurrency(name: currency).format(raw / 12);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = context.accent;
+    final product = this.product;
+    final unavailable = storeLoaded && product == null;
+    final title = plan == PremiumPlan.yearly ? 'Yearly' : 'Lifetime';
+    final price = product == null
+        ? (unavailable ? 'Not available' : '…')
+        : plan == PremiumPlan.yearly
+        ? '${product.price} / year'
+        : '${product.price} once';
+    final perMonth = product == null || plan != PremiumPlan.yearly
+        ? null
+        : _perMonth(product);
+    final trial = product?.freeTrialDays;
+    final yearlyRaw = yearly?.rawPrice;
+    final lifetimeRaw = product?.rawPrice;
+    final years =
+        plan == PremiumPlan.lifetime &&
+            yearlyRaw != null &&
+            lifetimeRaw != null &&
+            yearlyRaw > 0
+        ? (lifetimeRaw / yearlyRaw).ceil()
+        : null;
+    final detail = switch (plan) {
+      PremiumPlan.yearly => [
+        ?perMonth == null ? null : '$perMonth / month',
+        if (trial != null) '$trial-day free trial' else 'Cancel anytime',
+      ].join(' · '),
+      PremiumPlan.lifetime =>
+        years == null
+            ? 'Pay once, keep it forever'
+            : 'Pay once, keep it forever · '
+                  'costs less than $years ${years == 1 ? 'year' : 'years'}',
+    };
+
+    return Semantics(
+      selected: selected,
+      button: true,
+      enabled: !unavailable,
+      child: Material(
+        color: selected ? accent.withValues(alpha: 0.06) : Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(
+            color: selected ? accent : WarmEditorialTokens.hairlineDivider,
+            width: selected ? 2 : 1,
+          ),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: unavailable ? null : onTap,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(14, 14, 16, 14),
+            child: Row(
+              children: [
+                Icon(
+                  selected
+                      ? Icons.radio_button_checked_rounded
+                      : Icons.radio_button_off_rounded,
+                  color: selected
+                      ? accent
+                      : WarmEditorialTokens.subtitleSecondary,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            title,
+                            style: GoogleFonts.inter(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              color: unavailable
+                                  ? WarmEditorialTokens.subtitleSecondary
+                                  : WarmEditorialTokens.textPrimaryInk,
+                            ),
+                          ),
+                          if (plan == PremiumPlan.lifetime) ...[
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 7,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: accent,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                'BEST VALUE',
+                                style: GoogleFonts.inter(
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 0.6,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                      if (!unavailable) ...[
+                        const SizedBox(height: 3),
+                        Text(
+                          detail,
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            color: WarmEditorialTokens.subtitleSecondary,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  price,
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: unavailable
+                        ? WarmEditorialTokens.subtitleSecondary
+                        : WarmEditorialTokens.textPrimaryInk,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

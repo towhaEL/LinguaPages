@@ -443,7 +443,7 @@ class _ContinueReadingCard extends StatelessWidget {
                             style: GoogleFonts.inter(
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
-                              color: WarmEditorialTokens.accentInkBlue,
+                              color: context.accent,
                             ),
                           ),
                         ],
@@ -455,7 +455,7 @@ class _ContinueReadingCard extends StatelessWidget {
                           value: book.progress.clamp(0.0, 1.0),
                           minHeight: 4,
                           backgroundColor: WarmEditorialTokens.hairlineDivider,
-                          valueColor: const AlwaysStoppedAnimation(WarmEditorialTokens.accentInkBlue),
+                          valueColor: AlwaysStoppedAnimation(context.accent),
                         ),
                       ),
                       const SizedBox(height: 10),
@@ -465,7 +465,7 @@ class _ContinueReadingCard extends StatelessWidget {
                         child: FilledButton.icon(
                           key: const Key('resume_reading_button'),
                           style: FilledButton.styleFrom(
-                            backgroundColor: WarmEditorialTokens.accentInkBlue,
+                            backgroundColor: context.accent,
                             foregroundColor: Colors.white,
                             shape: const StadiumBorder(),
                           ),
@@ -625,8 +625,8 @@ class _GridBook extends StatelessWidget {
                     child: Container(
                       width: 20,
                       height: 20,
-                      decoration: const BoxDecoration(
-                        color: WarmEditorialTokens.accentInkBlue,
+                      decoration: BoxDecoration(
+                        color: context.accent,
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
@@ -831,7 +831,7 @@ class _ViewChips extends StatelessWidget {
                 ? view != LibraryView.collection
                 : state.viewKey == key),
         onSelected: (_) => cubit.selectView(view, key: key),
-        selectedColor: WarmEditorialTokens.accentInkBlue,
+        selectedColor: context.accent,
         backgroundColor: WarmEditorialTokens.cardSurface,
         labelStyle: TextStyle(
           color:
@@ -1141,7 +1141,7 @@ class _LibraryEmpty extends StatelessWidget {
                     child: FilledButton.icon(
                       key: const Key('empty_import_files_button'),
                       style: FilledButton.styleFrom(
-                        backgroundColor: WarmEditorialTokens.accentInkBlue,
+                        backgroundColor: context.accent,
                         foregroundColor: Colors.white,
                         shape: const StadiumBorder(),
                       ),
@@ -1164,9 +1164,9 @@ class _LibraryEmpty extends StatelessWidget {
                     child: OutlinedButton.icon(
                       key: const Key('empty_import_folder_button'),
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: WarmEditorialTokens.accentInkBlue,
-                        side: const BorderSide(
-                          color: WarmEditorialTokens.accentInkBlue,
+                        foregroundColor: context.accent,
+                        side: BorderSide(
+                          color: context.accent,
                           width: 1.5,
                         ),
                         shape: const StadiumBorder(),

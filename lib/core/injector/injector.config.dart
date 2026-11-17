@@ -93,6 +93,7 @@ import '../../domain/use_cases/library/reset_book_details_use_case.dart'
 import '../../domain/use_cases/library/search_library_use_case.dart' as _i322;
 import '../../domain/use_cases/reader/save_reading_progress_use_case.dart'
     as _i214;
+import '../../presentation/app/cubit/app_preferences_cubit.dart' as _i166;
 import '../../presentation/screen/annotations/cubit/annotations_cubit.dart'
     as _i891;
 import '../../presentation/screen/home/cubits/library_cubit.dart' as _i655;
@@ -267,6 +268,9 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i990.ReadAloudSession>(
       () => _i990.ReadAloudSession(gh<_i214.SaveReadingProgressUseCase>()),
+    );
+    gh.lazySingleton<_i166.AppPreferencesCubit>(
+      () => _i166.AppPreferencesCubit(gh<_i55.SettingsRepository>()),
     );
     gh.lazySingleton<_i887.PremiumCubit>(
       () => _i887.PremiumCubit(

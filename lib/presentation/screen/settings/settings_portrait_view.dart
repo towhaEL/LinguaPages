@@ -26,6 +26,12 @@ import 'package:lingua_pages/presentation/theme/app_tokens.dart';
 import 'package:lingua_pages/presentation/theme/base/theme_extension.dart';
 import 'package:lingua_pages/presentation/theme/text/app_text.dart';
 import 'package:lingua_pages/presentation/widgets/app_bar/widgets.dart';
+import 'package:lingua_pages/domain/entity/premium/appearance_catalog.dart';
+import 'package:lingua_pages/presentation/app/cubit/app_preferences_cubit.dart';
+import 'package:lingua_pages/presentation/theme/app_accent_palette.dart';
+
+/// Keep in step with `version` in pubspec.yaml.
+const _appVersion = '1.0.0';
 
 class SettingsPortraitView extends StatelessWidget {
   const SettingsPortraitView({super.key});
@@ -37,33 +43,7 @@ class SettingsPortraitView extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: theme.background,
-      appBar: CustomAppBar(
-        title: l10n.settingsTitle,
-        showBackIcon: true,
-        action: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: Center(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: theme.surfaceContainerLow,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: theme.hairline),
-                ),
-                child: Text(
-                  'Offline',
-                  style: GoogleFonts.inter(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: theme.onSurfaceMuted,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
+      appBar: CustomAppBar(title: l10n.settingsTitle, showBackIcon: true),
       // A readable column on tablets and in landscape.
       body: Center(
         child: ConstrainedBox(
@@ -76,87 +56,12 @@ class SettingsPortraitView extends StatelessWidget {
               AppConstant.verticalGap24,
             ),
             children: [
-              // 1. Patron Promotion Banner
+              // 1. Premium: an offer while locked, a thank-you once unlocked.
               BlocBuilder<PremiumCubit, PremiumState>(
-                builder: (context, premium) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 20),
-                    child: Card(
-                      key: const Key('settings_patron_banner'),
-                      elevation: 0,
-                      color: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        side: const BorderSide(color: Color(0x332F4A7A)),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      const Icon(
-                                        Icons.verified,
-                                        color: WarmEditorialTokens.accentInkBlue,
-                                        size: 18,
-                                      ),
-                                      const SizedBox(width: 6),
-                                      Text(
-                                        'PATRON EDITION',
-                                        style: GoogleFonts.inter(
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w700,
-                                          letterSpacing: 0.8,
-                                          color: WarmEditorialTokens.accentInkBlue,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'Unlock 12 themes and 8 fonts',
-                                    style: GoogleFonts.newsreader(
-                                      fontSize: 17,
-                                      fontWeight: FontWeight.w600,
-                                      color: WarmEditorialTokens.textPrimaryInk,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    'Support private, DRM-free offline reading.',
-                                    style: GoogleFonts.inter(
-                                      fontSize: 12,
-                                      color: WarmEditorialTokens.subtitleSecondary,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            FilledButton(
-                              key: const Key('settings_patron_unlock_cta'),
-                              style: FilledButton.styleFrom(
-                                backgroundColor: WarmEditorialTokens.accentInkBlue,
-                                foregroundColor: Colors.white,
-                                shape: const StadiumBorder(),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 8,
-                                ),
-                              ),
-                              onPressed: () => showPremiumPaywall(context),
-                              child: const Text('Unlock'),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-                },
+                builder: (context, premium) => Padding(
+                  padding: const EdgeInsets.only(bottom: 20),
+                  child: _PatronBanner(unlocked: premium.unlocked),
+                ),
               ),
 
               // 2. Group: Appearance
@@ -200,7 +105,7 @@ class SettingsPortraitView extends StatelessWidget {
                   _SettingsTile(
                     icon: Icons.info_outline_rounded,
                     title: l10n.appName,
-                    subtitle: 'v1.0.0 (Build 104)',
+                    subtitle: 'Version $_appVersion',
                   ),
                   _SettingsTile(
                     icon: Icons.privacy_tip_outlined,
@@ -216,7 +121,7 @@ class SettingsPortraitView extends StatelessWidget {
                     onTap: () => showLicensePage(
                       context: context,
                       applicationName: l10n.appName,
-                      applicationVersion: '1.0.0',
+                      applicationVersion: _appVersion,
                     ),
                   ),
                 ],
@@ -230,7 +135,7 @@ class SettingsPortraitView extends StatelessWidget {
                   child: Column(
                     children: [
                       Text(
-                        'OpenPages v1.0.0 · 100% Offline & Private',
+                        '${l10n.appName} $_appVersion · Private by design',
                         style: GoogleFonts.inter(
                           fontSize: 12,
                           color: theme.onSurfaceMuted,
@@ -697,10 +602,7 @@ class _SettingsSection extends StatelessWidget {
           margin: EdgeInsets.zero,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
-            side: BorderSide(
-              color: theme.hairline,
-              width: 1.0,
-            ),
+            side: BorderSide(color: theme.hairline, width: 1.0),
           ),
           child: Column(children: children),
         ),
@@ -719,37 +621,180 @@ class _SettingsSection extends StatelessWidget {
   }
 }
 
-class _AppearanceSettings extends StatefulWidget {
-  const _AppearanceSettings();
+class _PatronBanner extends StatelessWidget {
+  const _PatronBanner({required this.unlocked});
 
-  @override
-  State<_AppearanceSettings> createState() => _AppearanceSettingsState();
-}
-
-class _AppearanceSettingsState extends State<_AppearanceSettings> {
-  double _scale = 100;
+  final bool unlocked;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        _SettingsTile(
-          icon: Icons.palette_outlined,
-          title: 'App Theme',
-          subtitle: 'Warm Ivory palette',
-          trailing: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: context.colors.surfaceContainerLow,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: context.colors.hairline),
-            ),
-            child: Text(
-              'System',
-              style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600),
-            ),
+    final accent = context.accent;
+    final themes = ReaderTheme.values.where((t) => t.isPremium).length;
+    final fonts = ReaderFont.values.where((f) => f.isPremium).length;
+    final accents = AppAccent.values.where((a) => a.isPremium).length;
+    return Material(
+      key: const Key('settings_patron_banner'),
+      color: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: accent.withValues(alpha: 0.2)),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => showPremiumPaywall(context),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          unlocked
+                              ? Icons.verified_rounded
+                              : Icons.auto_awesome_rounded,
+                          color: accent,
+                          size: 18,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          unlocked ? 'PATRON · ACTIVE' : 'PATRON EDITION',
+                          style: GoogleFonts.inter(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.8,
+                            color: accent,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      unlocked
+                          ? 'Every look is yours'
+                          : '$themes themes, $fonts fonts, $accents app colours',
+                      style: GoogleFonts.newsreader(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w600,
+                        color: WarmEditorialTokens.textPrimaryInk,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      unlocked
+                          ? 'Thank you for supporting private, offline reading.'
+                          : 'Yearly or lifetime. Reading stays free.',
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: WarmEditorialTokens.subtitleSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              if (unlocked)
+                const Icon(
+                  Icons.chevron_right,
+                  color: WarmEditorialTokens.subtitleSecondary,
+                )
+              else
+                FilledButton(
+                  key: const Key('settings_patron_unlock_cta'),
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size(0, 40),
+                    padding: const EdgeInsets.symmetric(horizontal: 18),
+                  ),
+                  onPressed: () => showPremiumPaywall(context),
+                  child: const Text('See plans'),
+                ),
+            ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _AppearanceSettings extends StatelessWidget {
+  const _AppearanceSettings();
+
+  @override
+  Widget build(BuildContext context) {
+    final preferences = context.watch<AppPreferencesCubit>();
+    final unlocked = context.select(
+      (PremiumCubit cubit) => cubit.state.unlocked,
+    );
+    final saved = preferences.state.accent;
+    final shown = AppearanceCatalog.effectiveAccent(saved, premium: unlocked);
+    final scale = preferences.state.interfaceScale;
+
+    return Column(
+      children: [
+        Padding(
+          padding: EdgeInsets.fromLTRB(
+            AppConstant.horizontalGap16,
+            AppConstant.verticalGap12,
+            AppConstant.horizontalGap16,
+            AppConstant.verticalGap8,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.palette_outlined,
+                    color: context.colors.onSurfaceMuted,
+                    size: 22,
+                  ),
+                  Gap(AppConstant.horizontalGap16),
+                  Expanded(
+                    child: AppText.bodyLarge(
+                      'App colour',
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  Text(
+                    shown.label,
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: context.colors.onSurfaceMuted,
+                    ),
+                  ),
+                ],
+              ),
+              Gap(AppConstant.verticalGap12),
+              Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: [
+                  for (final accent in AppAccent.values)
+                    _AccentSwatch(
+                      accent: accent,
+                      selected: accent == shown,
+                      locked: accent.isPremium && !unlocked,
+                      onTap: () => accent.isPremium && !unlocked
+                          ? showPremiumPaywall(context)
+                          : preferences.setAccent(accent),
+                    ),
+                ],
+              ),
+              if (saved != shown) ...[
+                Gap(AppConstant.verticalGap8),
+                AppText.bodySmall(
+                  '${saved.label} returns when Premium is active.',
+                  color: context.colors.onSurfaceMuted,
+                ),
+              ],
+            ],
+          ),
+        ),
+        const Divider(height: 1, indent: 16, endIndent: 16),
         Padding(
           padding: EdgeInsets.symmetric(
             horizontal: AppConstant.horizontalGap16,
@@ -759,14 +804,30 @@ class _AppearanceSettingsState extends State<_AppearanceSettings> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  AppText.bodyLarge(
-                    'Interface scale',
-                    fontWeight: FontWeight.w600,
+                  Icon(
+                    Icons.format_size_rounded,
+                    color: context.colors.onSurfaceMuted,
+                    size: 22,
                   ),
+                  Gap(AppConstant.horizontalGap16),
+                  Expanded(
+                    child: AppText.bodyLarge(
+                      'Interface scale',
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  if (scale != 1)
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        minimumSize: const Size(0, 32),
+                        visualDensity: VisualDensity.compact,
+                      ),
+                      onPressed: () => preferences.setInterfaceScale(1),
+                      child: const Text('Reset'),
+                    ),
                   Text(
-                    '${_scale.round()}%',
+                    '${(scale * 100).round()}%',
                     style: GoogleFonts.inter(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -777,24 +838,98 @@ class _AppearanceSettingsState extends State<_AppearanceSettings> {
               ),
               Row(
                 children: [
-                  const Text('A', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                  const Text(
+                    'A',
+                    textScaler: TextScaler.noScaling,
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                  ),
                   Expanded(
                     child: Slider(
-                      value: _scale,
-                      min: 80,
-                      max: 130,
-                      divisions: 5,
-                      activeColor: WarmEditorialTokens.accentInkBlue,
-                      onChanged: (val) => setState(() => _scale = val),
+                      value: scale,
+                      min: SettingsEntity.minInterfaceScale,
+                      max: SettingsEntity.maxInterfaceScale,
+                      // 5% steps.
+                      divisions: 9,
+                      label: '${(scale * 100).round()}%',
+                      // Applied live for a preview, saved on release.
+                      onChanged: (value) =>
+                          preferences.setInterfaceScale(value, persist: false),
+                      onChangeEnd: preferences.setInterfaceScale,
                     ),
                   ),
-                  const Text('A', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const Text(
+                    'A',
+                    textScaler: TextScaler.noScaling,
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
                 ],
+              ),
+              AppText.bodySmall(
+                "Resizes the app's text on top of your system font size. "
+                'Book text has its own size in the reader.',
+                color: context.colors.onSurfaceMuted,
               ),
             ],
           ),
         ),
       ],
+    );
+  }
+}
+
+class _AccentSwatch extends StatelessWidget {
+  const _AccentSwatch({
+    required this.accent,
+    required this.selected,
+    required this.locked,
+    required this.onTap,
+  });
+
+  final AppAccent accent;
+  final bool selected;
+  final bool locked;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = accent.colors.primary;
+    return Semantics(
+      label: locked ? '${accent.label}, premium' : accent.label,
+      selected: selected,
+      button: true,
+      excludeSemantics: true,
+      child: Tooltip(
+        message: accent.label,
+        child: InkResponse(
+          onTap: onTap,
+          radius: 26,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 160),
+            width: 40,
+            height: 40,
+            padding: const EdgeInsets.all(3),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: selected ? color : Colors.transparent,
+                width: 2,
+              ),
+            ),
+            child: DecoratedBox(
+              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+              child: Icon(
+                selected
+                    ? Icons.check_rounded
+                    : locked
+                    ? Icons.lock_rounded
+                    : null,
+                size: selected ? 18 : 14,
+                color: Colors.white.withValues(alpha: selected ? 1 : 0.85),
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -809,6 +944,9 @@ class _ReadAloudSettings extends StatefulWidget {
 class _ReadAloudSettingsState extends State<_ReadAloudSettings> {
   final SettingsRepository _settingsRepository = injector<SettingsRepository>();
   SettingsEntity? _settings;
+
+  /// The speed while the slider is dragged; saved when it is released.
+  double? _draggedSpeed;
 
   @override
   void initState() {
@@ -837,11 +975,17 @@ class _ReadAloudSettingsState extends State<_ReadAloudSettings> {
     }
   }
 
+  /// 0.75 shows as "0.75×", 1.5 as "1.5×", 2 as "2×".
+  static String _speedLabel(double speed) {
+    final text = speed.toStringAsFixed(2);
+    return '${text.replaceFirst(RegExp(r'\.?0+$'), '')}×';
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final settings = _settings;
-    final speed = settings?.readAloudSpeed ?? 1.0;
+    final speed = _draggedSpeed ?? settings?.readAloudSpeed ?? 1.0;
 
     return Column(
       children: [
@@ -861,17 +1005,20 @@ class _ReadAloudSettingsState extends State<_ReadAloudSettings> {
                     fontWeight: FontWeight.w600,
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
-                      color: WarmEditorialTokens.spokenHighlight,
+                      color: context.accentContainer,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
-                      '${speed.toStringAsFixed(1)}x',
+                      _speedLabel(speed),
                       style: GoogleFonts.inter(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
-                        color: WarmEditorialTokens.accentInkBlue,
+                        color: context.accent,
                       ),
                     ),
                   ),
@@ -882,10 +1029,16 @@ class _ReadAloudSettingsState extends State<_ReadAloudSettings> {
                 min: 0.5,
                 max: 2.5,
                 divisions: 8,
-                activeColor: WarmEditorialTokens.accentInkBlue,
+                label: _speedLabel(speed),
                 onChanged: settings == null
                     ? null
-                    : (val) => _update('readAloudSpeed', val),
+                    : (val) => setState(() => _draggedSpeed = val),
+                onChangeEnd: settings == null
+                    ? null
+                    : (val) async {
+                        await _update('readAloudSpeed', val);
+                        if (mounted) setState(() => _draggedSpeed = null);
+                      },
               ),
             ],
           ),

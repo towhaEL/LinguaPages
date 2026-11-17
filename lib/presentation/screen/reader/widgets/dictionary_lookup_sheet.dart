@@ -10,6 +10,7 @@ import 'package:lingua_pages/presentation/screen/reader/cubit/dictionary_lookup_
 import 'package:lingua_pages/presentation/screen/reader/cubit/dictionary_lookup_state.dart';
 import 'package:lingua_pages/presentation/theme/app_tokens.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:lingua_pages/presentation/theme/base/theme_extension.dart';
 
 /// Floating text selection toolbar matching Stitch screen 04c_text_selection_dictionary (3377a7d8).
 class FloatingSelectionToolbar extends StatelessWidget {
@@ -357,10 +358,10 @@ class DictionaryLookupSheet extends StatelessWidget {
                                       border: Border.all(color: WarmEditorialTokens.hairlineDivider),
                                     ),
                                     child: IconButton(
-                                      icon: const Icon(
+                                      icon: Icon(
                                         Icons.volume_up,
                                         size: 15,
-                                        color: WarmEditorialTokens.accentInkBlue,
+                                        color: context.accent,
                                       ),
                                       padding: EdgeInsets.zero,
                                       onPressed: () {},
@@ -414,7 +415,7 @@ class DictionaryLookupSheet extends StatelessWidget {
                       children: [
                         Chip(
                           label: Text('$pos · Local Lexicon'),
-                          backgroundColor: WarmEditorialTokens.accentInkBlue,
+                          backgroundColor: context.accent,
                           labelStyle: const TextStyle(
                             fontFamily: 'Inter',
                             color: Colors.white,
@@ -451,11 +452,11 @@ class DictionaryLookupSheet extends StatelessWidget {
                                 children: [
                                   Text(
                                     '${index + 1}. ',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontFamily: 'Inter',
                                       fontSize: 14,
                                       fontWeight: FontWeight.w700,
-                                      color: WarmEditorialTokens.accentInkBlue,
+                                      color: context.accent,
                                     ),
                                   ),
                                   Expanded(
@@ -475,10 +476,10 @@ class DictionaryLookupSheet extends StatelessWidget {
                                 const SizedBox(height: 6),
                                 Container(
                                   padding: const EdgeInsets.only(left: 10),
-                                  decoration: const BoxDecoration(
+                                  decoration: BoxDecoration(
                                     border: Border(
                                       left: BorderSide(
-                                        color: Color(0x4D2F4A7A),
+                                        color: context.accent.withValues(alpha: 0.3),
                                         width: 2.0,
                                       ),
                                     ),
@@ -533,7 +534,7 @@ class DictionaryLookupSheet extends StatelessWidget {
               side: const BorderSide(color: WarmEditorialTokens.hairlineDivider),
               shape: const StadiumBorder(),
             ),
-            icon: const Icon(Icons.style, size: 16, color: WarmEditorialTokens.accentInkBlue),
+            icon: Icon(Icons.style, size: 16, color: context.accent),
             label: const Text(
               'Add to Flashcards',
               style: TextStyle(

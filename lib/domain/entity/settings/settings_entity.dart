@@ -37,6 +37,8 @@ class SettingsEntity {
     this.onlineDictionary = true,
     this.libraryListView = false,
     this.librarySort = LibrarySort.recent,
+    this.appAccent = AppAccent.inkBlue,
+    this.interfaceScale = 1,
   });
 
   final ReaderTheme readerTheme;
@@ -110,6 +112,42 @@ class SettingsEntity {
   final bool libraryListView;
   final LibrarySort librarySort;
 
+  /// Primary colour of the app's own screens; the page keeps [readerTheme].
+  final AppAccent appAccent;
+
+  /// Multiplies the system text size across the app's own screens, 1 being
+  /// the system size. Book text has its own [fontSize].
+  final double interfaceScale;
+
+  static const minInterfaceScale = 0.85;
+  static const maxInterfaceScale = 1.3;
+
+  /// These settings with every reader appearance choice back at its
+  /// default. Behaviour, read-aloud, library and app settings are kept.
+  SettingsEntity withDefaultAppearance() {
+    const defaults = SettingsEntity();
+    return copyWith(
+      readerTheme: defaults.readerTheme,
+      readerFont: defaults.readerFont,
+      fontSize: defaults.fontSize,
+      lineSpacing: defaults.lineSpacing,
+      margin: defaults.margin,
+      readerTextAlignment: defaults.readerTextAlignment,
+      readerPdfFit: defaults.readerPdfFit,
+      readerPdfMode: defaults.readerPdfMode,
+      hyphenation: defaults.hyphenation,
+      paragraphSpacing: defaults.paragraphSpacing,
+      paragraphIndent: defaults.paragraphIndent,
+      letterSpacing: defaults.letterSpacing,
+      wordSpacing: defaults.wordSpacing,
+      fontWeight: defaults.fontWeight,
+      publisherStyles: defaults.publisherStyles,
+      readerColumns: defaults.readerColumns,
+      readerDirection: defaults.readerDirection,
+      readerImageFilter: defaults.readerImageFilter,
+    );
+  }
+
   SettingsEntity copyWith({
     ReaderTheme? readerTheme,
     ReaderFont? readerFont,
@@ -145,6 +183,8 @@ class SettingsEntity {
     bool? onlineDictionary,
     bool? libraryListView,
     LibrarySort? librarySort,
+    AppAccent? appAccent,
+    double? interfaceScale,
   }) {
     return SettingsEntity(
       readerTheme: readerTheme ?? this.readerTheme,
@@ -184,6 +224,8 @@ class SettingsEntity {
       onlineDictionary: onlineDictionary ?? this.onlineDictionary,
       libraryListView: libraryListView ?? this.libraryListView,
       librarySort: librarySort ?? this.librarySort,
+      appAccent: appAccent ?? this.appAccent,
+      interfaceScale: interfaceScale ?? this.interfaceScale,
     );
   }
 }
@@ -223,3 +265,15 @@ enum ReaderTapZones { sides, topBottom, off }
 enum ReaderOrientation { auto, portrait, landscape }
 
 enum ReaderProgressDisplay { none, page, percent }
+
+/// Primary colour schemes for the app's own screens.
+enum AppAccent {
+  inkBlue,
+  forest,
+  teal,
+  plum,
+  burgundy,
+  terracotta,
+  ochre,
+  graphite,
+}

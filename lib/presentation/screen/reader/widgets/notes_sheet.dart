@@ -12,12 +12,12 @@ import 'package:lingua_pages/presentation/theme/base/theme_extension.dart';
 /// A bookmark or a highlight in the Notes sheet.
 class ReaderNote {
   const ReaderNote.bookmark(BookmarkEntity value)
-      : bookmark = value,
-        highlight = null;
+    : bookmark = value,
+      highlight = null;
 
   const ReaderNote.highlight(HighlightEntity value)
-      : bookmark = null,
-        highlight = value;
+    : bookmark = null,
+      highlight = value;
 
   final BookmarkEntity? bookmark;
   final HighlightEntity? highlight;
@@ -28,9 +28,10 @@ class ReaderNote {
   bool get isHighlight => highlight != null;
 }
 
-enum _Tab { contents, bookmarks, highlights }
+enum _Tab { highlights, bookmarks }
 
-/// Side sheet drawer with 3 tabs (Contents, Bookmarks, Highlights) matching Stitch screen 04d_contents_annotations (60c9068e).
+/// The book's highlights and bookmarks, with export and share. Chapters live
+/// in the table of contents drawer.
 class NotesSheet extends StatefulWidget {
   const NotesSheet({
     required this.notes,
@@ -39,13 +40,6 @@ class NotesSheet extends StatefulWidget {
     required this.onEdited,
     required this.onExport,
     required this.onShare,
-    this.tableOfContents = const [],
-    this.onChapterSelected,
-    this.activeChapterIndex = 0,
-    this.bookTitle,
-    this.bookAuthor,
-    this.readingProgressLabel = 'Chapter 4 · Page 142 of 380',
-    this.readingProgressPercent = '37%',
     this.initialTab,
     super.key,
   });
@@ -59,22 +53,18 @@ class NotesSheet extends StatefulWidget {
   final Future<void> Function(
     List<HighlightEntity> highlights,
     List<BookmarkEntity> bookmarks,
-  ) onExport;
+  )
+  onExport;
 
   /// Shares what the sheet shows; [origin] anchors the iPad share popover.
   final Future<void> Function(
     List<HighlightEntity> highlights,
     List<BookmarkEntity> bookmarks,
     Rect? origin,
-  ) onShare;
+  )
+  onShare;
 
-  final List<String> tableOfContents;
-  final ValueChanged<int>? onChapterSelected;
-  final int activeChapterIndex;
-  final String? bookTitle;
-  final String? bookAuthor;
-  final String readingProgressLabel;
-  final String readingProgressPercent;
+  /// 'Bookmarks' opens on bookmarks; anything else on highlights.
   final String? initialTab;
 
   @override
@@ -89,15 +79,20 @@ class _NotesSheetState extends State<NotesSheet> {
   _Tab _parseInitialTab(String? tab) {
     if (tab == 'Bookmarks') return _Tab.bookmarks;
     if (tab == 'Highlights') return _Tab.highlights;
-    if (widget.tableOfContents.isNotEmpty) return _Tab.contents;
-    return _Tab.highlights;
+    // Open where there is something to see.
+    final hasHighlights = widget.notes.any((note) => note.isHighlight);
+    return hasHighlights || widget.notes.isEmpty
+        ? _Tab.highlights
+        : _Tab.bookmarks;
   }
 
-  List<ReaderNote> get _highlights =>
-      [..._notes.where((note) => note.isHighlight)];
+  List<ReaderNote> get _highlights => [
+    ..._notes.where((note) => note.isHighlight),
+  ];
 
-  List<ReaderNote> get _bookmarks =>
-      [..._notes.where((note) => !note.isHighlight)];
+  List<ReaderNote> get _bookmarks => [
+    ..._notes.where((note) => !note.isHighlight),
+  ];
 
   Future<void> _delete(ReaderNote note) async {
     final l10n = context.l10n;
@@ -148,9 +143,9 @@ class _NotesSheetState extends State<NotesSheet> {
   }
 
   Future<void> _export() => widget.onExport(
-        [for (final note in _notes) ?note.highlight],
-        [for (final note in _notes) ?note.bookmark],
-      );
+    [for (final note in _notes) ?note.highlight],
+    [for (final note in _notes) ?note.bookmark],
+  );
 
   Future<void> _share(BuildContext buttonContext) {
     final box = buttonContext.findRenderObject() as RenderBox?;
@@ -163,159 +158,111 @@ class _NotesSheetState extends State<NotesSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final tocCount = widget.tableOfContents.length;
-    final bookmarksCount = _bookmarks.length;
+    final accent = Theme.of(context).colorScheme.primary;
     final highlightsCount = _highlights.length;
-    final hasToc = widget.tableOfContents.isNotEmpty;
+    final bookmarksCount = _bookmarks.length;
+    final empty = _notes.isEmpty;
 
+    // Transparent: the sheet paints the surface; this hosts ink and tiles.
     return Material(
-      color: const Color(0xFFFCF9F4),
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(WarmEditorialTokens.bottomSheetRadiusLarge)),
+      type: MaterialType.transparency,
       child: SafeArea(
         top: false,
         child: SizedBox(
-          height: MediaQuery.sizeOf(context).height * 0.82,
+          // A fixed height so switching tabs does not resize the sheet.
+          height: MediaQuery.sizeOf(context).height * 0.7,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Top Action Header
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                padding: const EdgeInsets.fromLTRB(20, 0, 8, 12),
+                child: Row(
                   children: [
-                    // Action Icons Row
-                    Row(
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.arrow_back, color: WarmEditorialTokens.subtitleSecondary),
-                          onPressed: () => Navigator.of(context).maybePop(),
-                        ),
-                        const SizedBox(width: 4),
-                        Expanded(
-                          child: Text(
-                            hasToc ? 'Outline & Notes' : 'Notes & Highlights',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Notes',
+                            style: TextStyle(
                               fontFamily: 'Newsreader',
-                              fontSize: 18,
+                              fontSize: 22,
                               fontWeight: FontWeight.w600,
                               color: WarmEditorialTokens.textPrimaryInk,
                             ),
                           ),
-                        ),
-                        IconButton(
-                          key: const Key('export_markdown_button'),
-                          icon: const Icon(Icons.file_download_outlined, color: WarmEditorialTokens.subtitleSecondary),
-                          tooltip: 'Export as Markdown',
-                          onPressed: _export,
-                        ),
-                        Builder(
-                          builder: (buttonContext) => IconButton(
-                            key: const Key('share_markdown_button'),
-                            icon: const Icon(Icons.ios_share_outlined, color: WarmEditorialTokens.subtitleSecondary),
-                            tooltip: 'Share',
-                            onPressed: () => _share(buttonContext),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-
-                    // Tab Segmented Pill Switcher
-                    Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFEBE8E3),
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                      child: Row(
-                        children: [
-                          if (hasToc)
-                            _buildTabButton(
-                              title: 'Contents',
-                              count: tocCount > 0 ? tocCount : 18,
-                              active: _activeTab == _Tab.contents,
-                              onTap: () => setState(() => _activeTab = _Tab.contents),
+                          Text(
+                            '$highlightsCount '
+                            '${highlightsCount == 1 ? 'highlight' : 'highlights'}'
+                            ' · $bookmarksCount '
+                            '${bookmarksCount == 1 ? 'bookmark' : 'bookmarks'}',
+                            style: const TextStyle(
+                              fontFamily: 'Inter',
+                              fontSize: 12,
+                              color: WarmEditorialTokens.subtitleSecondary,
                             ),
-                          _buildTabButton(
-                            title: 'Bookmarks',
-                            count: bookmarksCount,
-                            active: _activeTab == _Tab.bookmarks,
-                            onTap: () => setState(() => _activeTab = _Tab.bookmarks),
-                          ),
-                          _buildTabButton(
-                            title: 'Highlights',
-                            count: highlightsCount,
-                            active: _activeTab == _Tab.highlights,
-                            onTap: () => setState(() => _activeTab = _Tab.highlights),
                           ),
                         ],
                       ),
                     ),
-                  ],
-                ),
-              ),
-
-              const Divider(height: 1, color: WarmEditorialTokens.hairlineDivider),
-
-              // Tab Body Content
-              Expanded(
-                child: switch (_activeTab) {
-                  _Tab.contents => _buildContentsTab(),
-                  _Tab.bookmarks => _buildBookmarksTab(),
-                  _Tab.highlights => _buildHighlightsTab(),
-                },
-              ),
-
-              // Drawer Sticky Footer
-              Container(
-                padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  border: Border(top: BorderSide(color: WarmEditorialTokens.hairlineDivider)),
-                ),
-                child: Column(
-                  children: [
-                    SizedBox(
-                      width: double.infinity,
-                      height: 44,
-                      child: OutlinedButton.icon(
-                        style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: WarmEditorialTokens.hairlineDivider),
-                          shape: const StadiumBorder(),
-                          backgroundColor: Colors.white,
-                        ),
-                        onPressed: _export,
-                        icon: const Icon(Icons.download, size: 18, color: WarmEditorialTokens.subtitleSecondary),
-                        label: const Text(
-                          'Export as Markdown (.md)',
-                          style: TextStyle(
-                            fontFamily: 'Inter',
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: WarmEditorialTokens.textPrimaryInk,
-                          ),
-                        ),
+                    IconButton(
+                      key: const Key('export_markdown_button'),
+                      icon: const Icon(Icons.content_copy_rounded, size: 20),
+                      color: WarmEditorialTokens.subtitleSecondary,
+                      tooltip: 'Copy as Markdown',
+                      onPressed: empty ? null : _export,
+                    ),
+                    Builder(
+                      builder: (buttonContext) => IconButton(
+                        key: const Key('share_markdown_button'),
+                        icon: const Icon(Icons.ios_share_rounded, size: 20),
+                        color: WarmEditorialTokens.subtitleSecondary,
+                        tooltip: 'Share',
+                        onPressed: empty ? null : () => _share(buttonContext),
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    const Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Local Offline Vault',
-                          style: TextStyle(fontFamily: 'Inter', fontSize: 11, color: WarmEditorialTokens.subtitleSecondary),
-                        ),
-                        Text(
-                          '24.8 KB',
-                          style: TextStyle(fontFamily: 'Inter', fontSize: 11, color: WarmEditorialTokens.subtitleSecondary),
-                        ),
-                      ],
-                    ),
                   ],
                 ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Container(
+                  padding: const EdgeInsets.all(3),
+                  decoration: BoxDecoration(
+                    color: WarmEditorialTokens.surfaceContainerLow,
+                    borderRadius: BorderRadius.circular(22),
+                    border: Border.all(
+                      color: WarmEditorialTokens.hairlineDivider,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      _buildTabButton(
+                        title: 'Highlights',
+                        count: highlightsCount,
+                        active: _activeTab == _Tab.highlights,
+                        accent: accent,
+                        onTap: () =>
+                            setState(() => _activeTab = _Tab.highlights),
+                      ),
+                      _buildTabButton(
+                        title: 'Bookmarks',
+                        count: bookmarksCount,
+                        active: _activeTab == _Tab.bookmarks,
+                        accent: accent,
+                        onTap: () =>
+                            setState(() => _activeTab = _Tab.bookmarks),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Expanded(
+                child: switch (_activeTab) {
+                  _Tab.highlights => _buildHighlightsTab(),
+                  _Tab.bookmarks => _buildBookmarksTab(),
+                },
               ),
             ],
           ),
@@ -328,246 +275,67 @@ class _NotesSheetState extends State<NotesSheet> {
     required String title,
     required int count,
     required bool active,
+    required Color accent,
     required VoidCallback onTap,
   }) {
     return Expanded(
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          decoration: BoxDecoration(
-            color: active ? WarmEditorialTokens.accentInkBlue : Colors.transparent,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Flexible(
-                child: Text(
-                  title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontFamily: 'Inter',
-                    fontSize: 12,
-                    fontWeight: active ? FontWeight.w600 : FontWeight.w500,
-                    color: active ? Colors.white : WarmEditorialTokens.subtitleSecondary,
+      child: Semantics(
+        selected: active,
+        button: true,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: onTap,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            decoration: BoxDecoration(
+              color: active ? Colors.white : Colors.transparent,
+              borderRadius: BorderRadius.circular(19),
+              boxShadow: active
+                  ? const [
+                      BoxShadow(
+                        color: Color(0x14000000),
+                        blurRadius: 4,
+                        offset: Offset(0, 1),
+                      ),
+                    ]
+                  : null,
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Flexible(
+                  child: Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 13,
+                      fontWeight: active ? FontWeight.w600 : FontWeight.w500,
+                      color: active
+                          ? WarmEditorialTokens.textPrimaryInk
+                          : WarmEditorialTokens.subtitleSecondary,
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 4),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                decoration: BoxDecoration(
-                  color: active ? Colors.white24 : Colors.black.withValues(alpha: 0.05),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
+                const SizedBox(width: 6),
+                Text(
                   '$count',
                   style: TextStyle(
                     fontFamily: 'Inter',
-                    fontSize: 10,
+                    fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: active ? Colors.white : WarmEditorialTokens.subtitleSecondary,
+                    color: active
+                        ? accent
+                        : WarmEditorialTokens.subtitleSecondary,
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildContentsTab() {
-    final toc = widget.tableOfContents.isNotEmpty
-        ? widget.tableOfContents
-        : [
-            'Front Matter: Title Page',
-            'Chapter 1: The Cemetery of Forgotten Books',
-            'Chapter 2: The Bookshop on Santa Ana',
-            'Chapter 3: Barceloneta Bells',
-            'Chapter Four: The Silent Harbour',
-            'Chapter 5: The City of Shadows',
-          ];
-
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        // Reading Progress Banner
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: WarmEditorialTokens.surfaceContainerLow,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: WarmEditorialTokens.hairlineDivider),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 28,
-                height: 28,
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.auto_stories, size: 16, color: WarmEditorialTokens.accentInkBlue),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.readingProgressLabel,
-                      style: const TextStyle(
-                        fontFamily: 'Inter',
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: WarmEditorialTokens.textPrimaryInk,
-                      ),
-                    ),
-                    Text(
-                      '${widget.readingProgressPercent} completed',
-                      style: const TextStyle(
-                        fontFamily: 'Inter',
-                        fontSize: 11,
-                        color: WarmEditorialTokens.subtitleSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: WarmEditorialTokens.spokenHighlight,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  widget.readingProgressPercent,
-                  style: const TextStyle(
-                    fontFamily: 'Inter',
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: WarmEditorialTokens.accentInkBlue,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
-
-        // TOC List
-        for (final (index, chapter) in toc.indexed)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 6),
-            child: InkWell(
-              onTap: () {
-                widget.onChapterSelected?.call(index);
-              },
-              borderRadius: BorderRadius.circular(12),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                decoration: BoxDecoration(
-                  color: index == widget.activeChapterIndex
-                      ? Colors.white
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(12),
-                  border: index == widget.activeChapterIndex
-                      ? Border.all(color: WarmEditorialTokens.hairlineDivider)
-                      : null,
-                ),
-                child: Row(
-                  children: [
-                    if (index == widget.activeChapterIndex) ...[
-                      Container(
-                        width: 3.5,
-                        height: 28,
-                        decoration: BoxDecoration(
-                          color: WarmEditorialTokens.accentInkBlue,
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Container(
-                        width: 6,
-                        height: 6,
-                        decoration: const BoxDecoration(
-                          color: WarmEditorialTokens.accentInkBlue,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                    ],
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  chapter,
-                                  style: TextStyle(
-                                    fontFamily: 'Newsreader',
-                                    fontSize: 14,
-                                    fontWeight: index == widget.activeChapterIndex
-                                        ? FontWeight.w600
-                                        : FontWeight.w400,
-                                    fontStyle: index == widget.activeChapterIndex
-                                        ? FontStyle.italic
-                                        : FontStyle.normal,
-                                    color: index == widget.activeChapterIndex
-                                        ? WarmEditorialTokens.accentInkBlue
-                                        : WarmEditorialTokens.textPrimaryInk,
-                                  ),
-                                ),
-                              ),
-                              if (index == widget.activeChapterIndex)
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: WarmEditorialTokens.accentInkBlue.withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: const Text(
-                                    'Current',
-                                    style: TextStyle(
-                                      fontFamily: 'Inter',
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w600,
-                                      color: WarmEditorialTokens.accentInkBlue,
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
-                          if (index == widget.activeChapterIndex)
-                            const Text(
-                              'Reading now · Page 142',
-                              style: TextStyle(fontFamily: 'Inter', fontSize: 11, color: WarmEditorialTokens.subtitleSecondary),
-                            ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'p. ${index * 36 + 1}',
-                      style: const TextStyle(
-                        fontFamily: 'Inter',
-                        fontSize: 11,
-                        color: WarmEditorialTokens.subtitleSecondary,
-                        fontFeatures: [FontFeature.tabularFigures()],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-      ],
     );
   }
 
@@ -580,17 +348,29 @@ class _NotesSheetState extends State<NotesSheet> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.bookmark_outline, size: 40, color: WarmEditorialTokens.subtitleSecondary),
+              Icon(
+                Icons.bookmark_outline,
+                size: 40,
+                color: WarmEditorialTokens.subtitleSecondary,
+              ),
               SizedBox(height: 12),
               Text(
                 'No bookmarks yet',
-                style: TextStyle(fontFamily: 'Newsreader', fontSize: 18, fontWeight: FontWeight.w600),
+                style: TextStyle(
+                  fontFamily: 'Newsreader',
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               SizedBox(height: 6),
               Text(
                 'Tap the bookmark icon while reading to save your spot.',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontFamily: 'Inter', fontSize: 12, color: WarmEditorialTokens.subtitleSecondary),
+                style: TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 12,
+                  color: WarmEditorialTokens.subtitleSecondary,
+                ),
               ),
             ],
           ),
@@ -599,9 +379,10 @@ class _NotesSheetState extends State<NotesSheet> {
     }
 
     return ListView.separated(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(8, 4, 8, 16),
       itemCount: bookmarks.length,
-      separatorBuilder: (_, _) => const Divider(height: 1, color: WarmEditorialTokens.hairlineDivider),
+      separatorBuilder: (_, _) =>
+          const Divider(height: 1, color: WarmEditorialTokens.hairlineDivider),
       itemBuilder: (context, index) {
         final note = bookmarks[index];
         final bm = note.bookmark!;
@@ -614,19 +395,34 @@ class _NotesSheetState extends State<NotesSheet> {
           onTap: () {
             widget.onSelected(note);
           },
-          leading: const Icon(Icons.bookmark_rounded, color: WarmEditorialTokens.accentInkBlue),
+          leading: Icon(
+            Icons.bookmark_rounded,
+            color: Theme.of(context).colorScheme.primary,
+          ),
           title: Text(
             bm.title,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontFamily: 'Inter', fontSize: 14, fontWeight: FontWeight.w600),
+            style: const TextStyle(
+              fontFamily: 'Inter',
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
           ),
           subtitle: Text(
             meta,
-            style: const TextStyle(fontFamily: 'Inter', fontSize: 11, color: WarmEditorialTokens.subtitleSecondary),
+            style: const TextStyle(
+              fontFamily: 'Inter',
+              fontSize: 11,
+              color: WarmEditorialTokens.subtitleSecondary,
+            ),
           ),
           trailing: IconButton(
-            icon: const Icon(Icons.delete_outline, size: 18, color: WarmEditorialTokens.subtitleSecondary),
+            icon: const Icon(
+              Icons.delete_outline,
+              size: 18,
+              color: WarmEditorialTokens.subtitleSecondary,
+            ),
             onPressed: () => _delete(note),
           ),
         );
@@ -643,17 +439,29 @@ class _NotesSheetState extends State<NotesSheet> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.brush_outlined, size: 40, color: WarmEditorialTokens.subtitleSecondary),
+              Icon(
+                Icons.brush_outlined,
+                size: 40,
+                color: WarmEditorialTokens.subtitleSecondary,
+              ),
               SizedBox(height: 12),
               Text(
                 'No highlights yet',
-                style: TextStyle(fontFamily: 'Newsreader', fontSize: 18, fontWeight: FontWeight.w600),
+                style: TextStyle(
+                  fontFamily: 'Newsreader',
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               SizedBox(height: 6),
               Text(
                 'Select text in any chapter to highlight passages and add notes.',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontFamily: 'Inter', fontSize: 12, color: WarmEditorialTokens.subtitleSecondary),
+                style: TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 12,
+                  color: WarmEditorialTokens.subtitleSecondary,
+                ),
               ),
             ],
           ),
@@ -662,7 +470,7 @@ class _NotesSheetState extends State<NotesSheet> {
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
       itemCount: highlights.length,
       itemBuilder: (context, index) {
         final note = highlights[index];
@@ -731,7 +539,11 @@ class _NotesSheetState extends State<NotesSheet> {
                             ),
                             child: Row(
                               children: [
-                                const Icon(Icons.edit_note, size: 16, color: WarmEditorialTokens.subtitleSecondary),
+                                const Icon(
+                                  Icons.edit_note,
+                                  size: 16,
+                                  color: WarmEditorialTokens.subtitleSecondary,
+                                ),
                                 const SizedBox(width: 6),
                                 Expanded(
                                   child: Text(
@@ -764,11 +576,21 @@ class _NotesSheetState extends State<NotesSheet> {
                             Row(
                               children: [
                                 IconButton(
-                                  icon: const Icon(Icons.edit_outlined, size: 16, color: WarmEditorialTokens.subtitleSecondary),
+                                  icon: const Icon(
+                                    Icons.edit_outlined,
+                                    size: 16,
+                                    color:
+                                        WarmEditorialTokens.subtitleSecondary,
+                                  ),
                                   onPressed: () => _edit(note),
                                 ),
                                 IconButton(
-                                  icon: const Icon(Icons.delete_outline, size: 16, color: WarmEditorialTokens.subtitleSecondary),
+                                  icon: const Icon(
+                                    Icons.delete_outline,
+                                    size: 16,
+                                    color:
+                                        WarmEditorialTokens.subtitleSecondary,
+                                  ),
                                   onPressed: () => _delete(note),
                                 ),
                               ],

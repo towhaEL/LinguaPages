@@ -31,17 +31,14 @@ void main() {
       ),
     ];
 
-    testWidgets('renders 3 tabs and switches between them', (tester) async {
+    testWidgets('shows highlights and bookmarks tabs, without contents',
+        (tester) async {
       await tester.pumpHarness(
         NotesSheet(
           notes: [
             ReaderNote.bookmark(bookmarks.first),
             ReaderNote.highlight(highlights.first),
           ],
-          tableOfContents: const ['Prologue', 'Chapter 1', 'Chapter 2', 'Chapter 3', 'Chapter 4: The Silent Harbour'],
-          activeChapterIndex: 4,
-          bookTitle: 'The Shadow of the Wind',
-          bookAuthor: 'Carlos Ruiz Zafón',
           onSelected: (_) {},
           onDeleted: (_) async {},
           onEdited: (_) async => null,
@@ -50,24 +47,37 @@ void main() {
         ),
       );
 
-      // Verify tabs exist
-      expect(find.text('Contents'), findsOneWidget);
-      expect(find.text('Bookmarks'), findsOneWidget);
+      expect(find.text('Contents'), findsNothing);
       expect(find.text('Highlights'), findsOneWidget);
-
-      // Contents tab shows chapters
-      expect(find.text('Chapter 4: The Silent Harbour'), findsOneWidget);
+      expect(find.text('Bookmarks'), findsOneWidget);
+      expect(find.text('1 highlight · 1 bookmark'), findsOneWidget);
       expect(find.byKey(const Key('export_markdown_button')), findsOneWidget);
 
-      // Tap Bookmarks tab
+      // Opens on highlights.
+      expect(
+        find.text('“A secret is only as good as the keeper who guards it.”'),
+        findsOneWidget,
+      );
+
       await tester.tap(find.text('Bookmarks'));
       await tester.pumpAndSettle();
       expect(find.text('Morning Fog in Chapter 4'), findsOneWidget);
+    });
 
-      // Tap Highlights tab
-      await tester.tap(find.text('Highlights'));
-      await tester.pumpAndSettle();
-      expect(find.text('“A secret is only as good as the keeper who guards it.”'), findsOneWidget);
+    testWidgets('opens on bookmarks when there are no highlights',
+        (tester) async {
+      await tester.pumpHarness(
+        NotesSheet(
+          notes: [ReaderNote.bookmark(bookmarks.first)],
+          onSelected: (_) {},
+          onDeleted: (_) async {},
+          onEdited: (_) async => null,
+          onExport: (_, _) async {},
+          onShare: (_, _, _) async {},
+        ),
+      );
+
+      expect(find.text('Morning Fog in Chapter 4'), findsOneWidget);
     });
 
     testWidgets('export markdown button triggers callback', (tester) async {

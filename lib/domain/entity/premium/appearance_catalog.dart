@@ -41,6 +41,14 @@ abstract final class AppearanceCatalog {
     ),
   ];
 
+  /// Accent colours anyone can use; the rest need premium.
+  static const freeAccents = {AppAccent.inkBlue, AppAccent.forest};
+
+  /// The accent the app shows: a locked premium accent falls back to the
+  /// default, and returns after a restore because the choice is kept.
+  static AppAccent effectiveAccent(AppAccent accent, {required bool premium}) =>
+      premium || !accent.isPremium ? accent : AppAccent.inkBlue;
+
   /// Whether [settings] use any appearance item that needs premium.
   static bool usesPremium(SettingsEntity settings) =>
       settings.readerTheme.isPremium || settings.readerFont.isPremium;
@@ -82,6 +90,10 @@ abstract final class AppearanceCatalog {
           : next.readerFont,
     );
   }
+}
+
+extension AppAccentAppearance on AppAccent {
+  bool get isPremium => !AppearanceCatalog.freeAccents.contains(this);
 }
 
 extension ReaderThemeAppearance on ReaderTheme {

@@ -11,4 +11,10 @@ extension ThemeContext on BuildContext {
   AppColors get colors => appThemeData.extension<AppColors>()!;
 
   BandColors get bands => appThemeData.extension<BandColors>()!;
+
+  /// The chosen app accent; use it rather than a fixed brand colour.
+  Color get accent => appThemeData.colorScheme.primary;
+
+  /// A pale tint of [accent] for badges and selected states.
+  Color get accentContainer => appThemeData.colorScheme.primaryContainer;
 }

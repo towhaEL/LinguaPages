@@ -8,6 +8,7 @@ import 'package:lingua_pages/presentation/screen/reader/read_aloud/read_aloud_cu
 import 'package:lingua_pages/presentation/screen/reader/read_aloud/sleep_timer.dart';
 import 'package:lingua_pages/presentation/theme/app_tokens.dart';
 import 'package:lingua_pages/presentation/widgets/book/book_cover.dart';
+import 'package:lingua_pages/presentation/theme/base/theme_extension.dart';
 
 const _speeds = [0.75, 1.0, 1.25, 1.5, 1.75, 2.0];
 
@@ -179,7 +180,7 @@ class ReadAloudPlayer extends StatelessWidget {
                   key: const Key('read_aloud_progress'),
                   value: progress.clamp(0.0, 1.0),
                   minHeight: 3,
-                  color: WarmEditorialTokens.accentInkBlue,
+                  color: context.accent,
                   backgroundColor: WarmEditorialTokens.surfaceContainerHighest,
                 ),
               ],
@@ -218,7 +219,7 @@ class _PlayPauseButton extends StatelessWidget {
       label: state.isPlaying ? l10n.readAloudPause : l10n.readAloudPlay,
       child: Material(
         key: const Key('read_aloud_play_pause_hero'),
-        color: WarmEditorialTokens.accentInkBlue,
+        color: context.accent,
         shape: const CircleBorder(),
         child: InkWell(
           customBorder: const CircleBorder(),
@@ -322,12 +323,12 @@ class _ReadAloudControls extends StatelessWidget {
                     children: [
                       Text(
                         l10n.readAloudListening.toUpperCase(),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: 'Inter',
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
                           letterSpacing: 1.1,
-                          color: WarmEditorialTokens.accentInkBlue,
+                          color: context.accent,
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -371,7 +372,7 @@ class _ReadAloudControls extends StatelessWidget {
                       child: LinearProgressIndicator(
                         value: clamped,
                         minHeight: 5,
-                        color: WarmEditorialTokens.accentInkBlue,
+                        color: context.accent,
                         backgroundColor:
                             WarmEditorialTokens.surfaceContainerHighest,
                       ),
@@ -519,9 +520,9 @@ class _VoicePicker extends StatelessWidget {
       title: Text(voice.name, maxLines: 1, overflow: TextOverflow.ellipsis),
       subtitle: Text(voice.language),
       trailing: voice.id == state.voice?.id
-          ? const Icon(
+          ? Icon(
               Icons.check_rounded,
-              color: WarmEditorialTokens.accentInkBlue,
+              color: context.accent,
             )
           : null,
       onTap: () => Navigator.of(context).pop(voice),

@@ -7,6 +7,7 @@ import 'package:lingua_pages/presentation/route/app_router.gr.dart';
 import 'package:lingua_pages/presentation/screen/home/components/library_content.dart';
 import 'package:lingua_pages/presentation/screen/home/cubits/library_cubit.dart';
 import 'package:lingua_pages/presentation/theme/app_tokens.dart';
+import 'package:lingua_pages/presentation/theme/base/theme_extension.dart';
 
 class HomePortraitView extends StatelessWidget {
   const HomePortraitView({super.key});
@@ -18,11 +19,11 @@ class HomePortraitView extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: const Padding(
+        leading: Padding(
           padding: EdgeInsets.only(left: 16),
           child: Icon(
             Icons.local_library_outlined,
-            color: WarmEditorialTokens.accentInkBlue,
+            color: context.accent,
             size: 24,
           ),
         ),
@@ -50,7 +51,7 @@ class HomePortraitView extends StatelessWidget {
       floatingActionButton: FloatingActionButton.extended(
         key: const Key('library_import_fab'),
         onPressed: () => _import(context),
-        backgroundColor: WarmEditorialTokens.accentInkBlue,
+        backgroundColor: context.accent,
         foregroundColor: Colors.white,
         shape: const StadiumBorder(),
         icon: const Icon(Icons.add, size: 20),
@@ -74,6 +75,7 @@ class HomePortraitView extends StatelessWidget {
     final l10n = context.l10n;
     final folder = await showModalBottomSheet<bool>(
       context: context,
+      showDragHandle: false,
       backgroundColor: WarmEditorialTokens.cardSurface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
@@ -96,9 +98,9 @@ class HomePortraitView extends StatelessWidget {
             const SizedBox(height: 8),
             ListTile(
               contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-              leading: const Icon(
+              leading: Icon(
                 Icons.upload_file_rounded,
-                color: WarmEditorialTokens.accentInkBlue,
+                color: context.accent,
               ),
               title: Text(
                 l10n.libraryImportFile,
@@ -108,9 +110,9 @@ class HomePortraitView extends StatelessWidget {
             ),
             ListTile(
               contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-              leading: const Icon(
+              leading: Icon(
                 Icons.folder_open_rounded,
-                color: WarmEditorialTokens.accentInkBlue,
+                color: context.accent,
               ),
               title: Text(
                 l10n.libraryImportFolder,

@@ -7,6 +7,7 @@ import 'package:lingua_pages/domain/use_cases/library/import_document_use_case.d
 import 'package:lingua_pages/l10n/l10n.dart';
 import 'package:lingua_pages/presentation/route/app_router.gr.dart';
 import 'package:lingua_pages/presentation/theme/app_colors.dart';
+import 'package:lingua_pages/presentation/theme/base/theme_extension.dart';
 
 /// 4-page horizontal PageView carousel for OpenPages first-run onboarding.
 ///
@@ -113,9 +114,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
+            Icon(
               Icons.local_library_outlined,
-              color: AppColors.accentInkBlueColor,
+              color: context.accent,
               size: 24,
             ),
             const SizedBox(width: 8),
@@ -539,7 +540,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: AppColors.accentInkBlueColor),
+          Icon(icon, size: 14, color: context.accent),
           const SizedBox(width: 6),
           Text(
             label,
@@ -573,7 +574,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               height: 8,
               decoration: BoxDecoration(
                 color: isActive
-                    ? AppColors.accentInkBlueColor
+                    ? context.accent
                     : const Color(0xFFC4C6D0),
                 borderRadius: BorderRadius.circular(4),
               ),
@@ -604,7 +605,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               style: FilledButton.styleFrom(
                 minimumSize: const Size.fromHeight(52),
                 shape: const StadiumBorder(),
-                backgroundColor: AppColors.accentInkBlueColor,
+                backgroundColor: context.accent,
                 foregroundColor: Colors.white,
                 elevation: 0,
               ),
@@ -651,7 +652,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               style: FilledButton.styleFrom(
                 minimumSize: const Size.fromHeight(52),
                 shape: const StadiumBorder(),
-                backgroundColor: AppColors.accentInkBlueColor,
+                backgroundColor: context.accent,
                 foregroundColor: Colors.white,
                 elevation: 0,
               ),

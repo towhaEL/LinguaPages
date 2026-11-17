@@ -190,6 +190,25 @@ class ReadiumDocumentSession {
 
   static const _highlightGroup = 'highlights';
 
+  /// Marks the search hit at [locator], replacing the previous one; null
+  /// clears it.
+  Future<void> showSearchMatch(Locator? locator) => _readium.applyDecorations(
+    _searchGroup,
+    [
+      if (locator != null)
+        ReaderDecoration(
+          id: 'search-match',
+          locator: locator,
+          style: ReaderDecorationStyle(
+            style: DecorationStyle.highlight,
+            tint: const Color(0x99FFC94D),
+          ),
+        ),
+    ],
+  );
+
+  static const _searchGroup = 'search';
+
   Future<List<TextSearchResult>> search(String query) =>
       _readium.searchInPublication(query);
 

@@ -9,7 +9,7 @@ import 'package:lingua_pages/domain/service/billing_service.dart';
 import 'package:lingua_pages/presentation/screen/premium/cubit/premium_state.dart';
 import 'package:logger/logger.dart';
 
-/// App-wide premium appearance entitlement.
+/// App-wide premium entitlement, from either the yearly or lifetime plan.
 ///
 /// The cached entitlement decides immediately, so the reader never waits on
 /// the store and an offline user keeps what they bought. The store is then
@@ -39,28 +39,28 @@ class PremiumCubit extends Cubit<PremiumState> {
     final cached = await _entitlements.getCurrent();
     if (isClosed) return;
     emit(state.copyWith(unlocked: cached.isActive));
-    await Future.wait([_verify(), loadProduct()]);
+    await Future.wait([_verify(), loadProducts()]);
   }
 
-  Future<void> loadProduct() async {
-    final product = await _billing.loadProduct();
-    if (isClosed || product == null) return;
-    emit(state.copyWith(product: product));
+  Future<void> loadProducts() async {
+    final products = await _billing.loadProducts();
+    if (isClosed || products.isEmpty) return;
+    emit(state.copyWith(products: products));
   }
 
-  Future<void> buy() async {
+  Future<void> buy(PremiumPlan plan) async {
     if (state.isBusy) return;
     emit(state.copyWith(status: PremiumStatus.purchasing));
     try {
-      await _billing.buy();
+      await _billing.buy(plan);
     } on Object catch (error) {
       _logger.w('Purchase could not start', error: error);
       if (isClosed) return;
       emit(
         state.copyWith(
-          status: state.product == null
-              ? PremiumStatus.storeUnavailable
-              : PremiumStatus.failed,
+          status: state.products.containsKey(plan)
+              ? PremiumStatus.failed
+              : PremiumStatus.storeUnavailable,
         ),
       );
     }

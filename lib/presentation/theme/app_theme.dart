@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:lingua_pages/domain/entity/settings/settings_entity.dart';
+import 'package:lingua_pages/presentation/theme/app_accent_palette.dart';
 import 'package:lingua_pages/presentation/theme/app_colors.dart';
 import 'package:lingua_pages/presentation/theme/app_text_styles.dart';
 import 'package:lingua_pages/presentation/theme/base/band_colors.dart';
@@ -31,8 +33,11 @@ class AppTheme {
   );
 
   /// Default Light Theme using Warm Editorial Minimalism.
-  static ThemeData light({Orientation orientation = Orientation.portrait}) {
-    return warmEditorial(orientation: orientation);
+  static ThemeData light({
+    Orientation orientation = Orientation.portrait,
+    AppAccent accent = AppAccent.inkBlue,
+  }) {
+    return warmEditorial(orientation: orientation, accent: accent);
   }
 
   /// Dark Theme using Warm Editorial Minimalism.
@@ -327,10 +332,17 @@ class AppTheme {
   /// Master Warm Editorial Theme configuration.
   static ThemeData warmEditorial({
     Orientation orientation = Orientation.portrait,
+    AppAccent accent = AppAccent.inkBlue,
   }) {
-    const appColors = AppColors.warmEditorial;
-    const bandColors = BandColors(
-      epub: AppColors.accentInkBlueColor,
+    final palette = accent.colors;
+    final primary = palette.primary;
+    final appColors = AppColors.warmEditorial.copyWith(
+      primary: primary,
+      accentInkBlue: primary,
+      accentContainer: palette.container,
+    );
+    final bandColors = BandColors(
+      epub: primary,
       pdf: AppColors.destructiveColor,
       txt: AppColors.secondarySlateColor,
       markdown: Color(0xFF2E7D32),
@@ -355,12 +367,12 @@ class AppTheme {
       brightness: Brightness.light,
       scaffoldBackgroundColor: AppColors.canvasBackground,
       canvasColor: AppColors.canvasBackground,
-      colorScheme: const ColorScheme(
+      colorScheme: ColorScheme(
         brightness: Brightness.light,
-        primary: AppColors.accentInkBlueColor,
+        primary: primary,
         onPrimary: Colors.white,
-        primaryContainer: AppColors.accentContainerColor,
-        onPrimaryContainer: AppColors.accentInkBlueColor,
+        primaryContainer: palette.container,
+        onPrimaryContainer: primary,
         secondary: AppColors.secondarySlateColor,
         onSecondary: Colors.white,
         secondaryContainer: AppColors.surfaceContainerLowColor,
@@ -438,7 +450,7 @@ class AppTheme {
       ),
       chipTheme: ChipThemeData(
         backgroundColor: AppColors.cardSurface,
-        selectedColor: AppColors.accentInkBlueColor,
+        selectedColor: primary,
         side: hairlineBorder,
         shape: const StadiumBorder(),
         labelStyle: GoogleFonts.inter(
@@ -455,7 +467,7 @@ class AppTheme {
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          backgroundColor: AppColors.accentInkBlueColor,
+          backgroundColor: primary,
           foregroundColor: Colors.white,
           disabledBackgroundColor: AppColors.surfaceContainerHighestColor,
           disabledForegroundColor: AppColors.secondarySlateColor,
@@ -471,7 +483,7 @@ class AppTheme {
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: AppColors.accentInkBlueColor,
+          foregroundColor: primary,
           side: const BorderSide(color: AppColors.hairlineDivider, width: 1.0),
           minimumSize: const Size(64, 48),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -485,7 +497,7 @@ class AppTheme {
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: AppColors.accentInkBlueColor,
+          foregroundColor: primary,
           minimumSize: const Size(48, 48),
           shape: pill,
           textStyle: GoogleFonts.inter(
@@ -500,8 +512,8 @@ class AppTheme {
           minimumSize: const Size(48, 48),
         ),
       ),
-      floatingActionButtonTheme: const FloatingActionButtonThemeData(
-        backgroundColor: AppColors.accentInkBlueColor,
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
+        backgroundColor: primary,
         foregroundColor: Colors.white,
         elevation: 4,
         shape: StadiumBorder(),
@@ -533,7 +545,7 @@ class AppTheme {
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
         backgroundColor: AppColors.primaryInkColor,
-        actionTextColor: AppColors.accentContainerColor,
+        actionTextColor: palette.container,
         contentTextStyle: GoogleFonts.inter(
           fontSize: 14,
           fontWeight: FontWeight.w500,
@@ -566,22 +578,22 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(
-            color: AppColors.accentInkBlueColor,
+          borderSide: BorderSide(
+            color: primary,
             width: 1.5,
           ),
         ),
       ),
-      progressIndicatorTheme: const ProgressIndicatorThemeData(
-        color: AppColors.accentInkBlueColor,
+      progressIndicatorTheme: ProgressIndicatorThemeData(
+        color: primary,
         linearTrackColor: AppColors.surfaceContainerHighestColor,
         circularTrackColor: Colors.transparent,
       ),
-      sliderTheme: const SliderThemeData(
-        activeTrackColor: AppColors.accentInkBlueColor,
+      sliderTheme: SliderThemeData(
+        activeTrackColor: primary,
         inactiveTrackColor: AppColors.surfaceContainerHighestColor,
-        thumbColor: AppColors.accentInkBlueColor,
-        overlayColor: Color(0x2E2F4A7A),
+        thumbColor: primary,
+        overlayColor: primary.withValues(alpha: 0.18),
       ),
       switchTheme: SwitchThemeData(
         thumbColor: WidgetStateProperty.resolveWith(
@@ -591,7 +603,7 @@ class AppTheme {
         ),
         trackColor: WidgetStateProperty.resolveWith(
           (states) => states.contains(WidgetState.selected)
-              ? AppColors.accentInkBlueColor
+              ? primary
               : AppColors.surfaceContainerHighestColor,
         ),
         trackOutlineColor: WidgetStateProperty.resolveWith(
@@ -600,10 +612,10 @@ class AppTheme {
               : AppColors.hairlineDivider,
         ),
       ),
-      textSelectionTheme: const TextSelectionThemeData(
-        cursorColor: AppColors.accentInkBlueColor,
-        selectionColor: Color(0x40D6E2F5),
-        selectionHandleColor: AppColors.accentInkBlueColor,
+      textSelectionTheme: TextSelectionThemeData(
+        cursorColor: primary,
+        selectionColor: palette.container.withValues(alpha: 0.6),
+        selectionHandleColor: primary,
       ),
     );
   }

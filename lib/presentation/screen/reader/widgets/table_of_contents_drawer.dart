@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lingua_pages/presentation/theme/app_tokens.dart';
+import 'package:lingua_pages/presentation/theme/base/theme_extension.dart';
 
 /// Clean slide-in Table of Contents drawer.
 class TableOfContentsDrawer extends StatelessWidget {
@@ -104,7 +105,7 @@ class TableOfContentsDrawer extends StatelessWidget {
                                   borderRadius: BorderRadius.circular(10),
                                   border: isActive
                                       ? Border.all(
-                                          color: WarmEditorialTokens.accentInkBlue.withValues(alpha: 0.3),
+                                          color: context.accent.withValues(alpha: 0.3),
                                           width: 1,
                                         )
                                       : null,
@@ -125,7 +126,7 @@ class TableOfContentsDrawer extends StatelessWidget {
                                         width: 3.5,
                                         height: 20,
                                         decoration: BoxDecoration(
-                                          color: WarmEditorialTokens.accentInkBlue,
+                                          color: context.accent,
                                           borderRadius: BorderRadius.circular(2),
                                         ),
                                       ),
@@ -141,7 +142,7 @@ class TableOfContentsDrawer extends StatelessWidget {
                                           fontSize: isActive ? 15 : 14,
                                           fontWeight: isActive ? FontWeight.w700 : FontWeight.w400,
                                           color: isActive
-                                              ? WarmEditorialTokens.accentInkBlue
+                                              ? context.accent
                                               : WarmEditorialTokens.textPrimaryInk,
                                         ),
                                       ),

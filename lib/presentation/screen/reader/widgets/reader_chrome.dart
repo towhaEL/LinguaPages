@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:lingua_pages/presentation/theme/app_tokens.dart';
 import 'package:lingua_pages/presentation/theme/base/theme_extension.dart';
 import 'package:lingua_pages/presentation/widgets/book/band_progress_bar.dart';
 
@@ -152,7 +151,7 @@ class ReaderTopBar extends StatelessWidget {
                     key: const Key('reader_bookmark_button'),
                     icon: Icon(
                       isBookmarked ? Icons.bookmark : Icons.bookmark_outline,
-                      color: isBookmarked ? WarmEditorialTokens.accentInkBlue : null,
+                      color: isBookmarked ? context.accent : null,
                     ),
                     tooltip: 'Bookmark',
                     onPressed: onBookmarkPressed,

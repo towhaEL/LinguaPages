@@ -8,7 +8,8 @@ import 'package:lingua_pages/core/env/app_environment.dart';
 import 'package:lingua_pages/domain/service/billing_service.dart';
 import 'package:logger/logger.dart';
 
-/// Google Play Billing through the official `in_app_purchase` plugin.
+/// Google Play Billing through the official `in_app_purchase` plugin, for
+/// the yearly subscription and the lifetime unlock.
 ///
 /// shortcut: purchases are trusted from the Play client without server-side
 /// token verification; add a verification backend if piracy becomes material.
@@ -22,14 +23,18 @@ class PlayBillingService implements BillingService {
 
   final InAppPurchase _store;
   final Logger _logger;
-  ProductDetails? _product;
+  final Map<PremiumPlan, ProductDetails> _products = {};
+
+  static final _productIds = {
+    for (final plan in PremiumPlan.values) BillingService.productId(plan),
+  };
 
   @override
   late final Stream<BillingEvent> events = _store.purchaseStream
       .asyncExpand(
         (purchases) => Stream.fromFutures(
           purchases
-              .where((p) => p.productID == BillingService.premiumProductId)
+              .where((p) => _productIds.contains(p.productID))
               .map(_handle),
         ),
       )
@@ -52,33 +57,88 @@ class PlayBillingService implements BillingService {
   }
 
   @override
-  Future<BillingProduct?> loadProduct() async {
+  Future<Map<PremiumPlan, BillingProduct>> loadProducts() async {
     try {
-      if (!await _store.isAvailable()) return null;
-      final response = await _store.queryProductDetails({
-        BillingService.premiumProductId,
-      });
+      if (!await _store.isAvailable()) return const {};
+      final response = await _store.queryProductDetails(_productIds);
       if (response.error != null) {
         _logger.w('Product query failed: ${response.error!.message}');
       }
-      final product = response.productDetails.firstOrNull;
-      _product = product;
-      return product == null
-          ? null
-          : BillingProduct(id: product.id, price: product.price);
+      final products = <PremiumPlan, BillingProduct>{};
+      for (final details in response.productDetails) {
+        final plan = BillingService.planFor(details.id);
+        if (plan == null) continue;
+        final product = _toProduct(plan, details);
+        // A subscription comes once per base plan and offer; prefer the one
+        // with a free trial, which Play only offers to eligible users.
+        final current = products[plan];
+        if (current != null &&
+            (current.freeTrialDays != null || product.freeTrialDays == null)) {
+          continue;
+        }
+        products[plan] = product;
+        _products[plan] = details;
+      }
+      return products;
     } on PlatformException catch (error) {
       _logger.w('Store unavailable', error: error);
-      return null;
+      return const {};
     }
   }
 
-  @override
-  Future<void> buy() async {
-    if (_product == null) await loadProduct();
-    final product = _product;
-    if (product == null) {
-      throw StateError('The premium product is not available in the store.');
+  static BillingProduct _toProduct(PremiumPlan plan, ProductDetails details) {
+    final offers = details is GooglePlayProductDetails
+        ? details.productDetails.subscriptionOfferDetails
+        : null;
+    final phases = offers == null || details is! GooglePlayProductDetails
+        ? null
+        : offers[details.subscriptionIndex ?? 0].pricingPhases;
+    if (phases == null || phases.isEmpty) {
+      return BillingProduct(
+        id: details.id,
+        plan: plan,
+        price: details.price,
+        rawPrice: details.rawPrice,
+        currencyCode: details.currencyCode,
+      );
     }
+    // The last phase is the recurring price; a free first phase is a trial.
+    final recurring = phases.last;
+    final trial = phases.first.priceAmountMicros == 0 && phases.length > 1
+        ? _periodDays(phases.first.billingPeriod)
+        : null;
+    return BillingProduct(
+      id: details.id,
+      plan: plan,
+      price: recurring.formattedPrice,
+      rawPrice: recurring.priceAmountMicros / 1000000,
+      currencyCode: recurring.priceCurrencyCode,
+      freeTrialDays: trial,
+    );
+  }
+
+  /// Days in an ISO 8601 period such as P7D, P1W or P1M.
+  static int? _periodDays(String period) {
+    final match = RegExp(r'^P(\d+)([DWMY])$').firstMatch(period);
+    if (match == null) return null;
+    final count = int.parse(match.group(1)!);
+    return switch (match.group(2)) {
+      'D' => count,
+      'W' => count * 7,
+      'M' => count * 30,
+      _ => count * 365,
+    };
+  }
+
+  @override
+  Future<void> buy(PremiumPlan plan) async {
+    if (!_products.containsKey(plan)) await loadProducts();
+    final product = _products[plan];
+    if (product == null) {
+      throw StateError('The $plan plan is not available in the store.');
+    }
+    // Subscriptions are bought as non-consumables too; the plugin picks the
+    // offer from the product's offer token.
     await _store.buyNonConsumable(
       purchaseParam: PurchaseParam(productDetails: product),
     );
@@ -86,6 +146,8 @@ class PlayBillingService implements BillingService {
 
   @override
   Future<bool?> ownsPremium() async {
+    // Play only lists subscriptions that are still active, so an expired or
+    // canceled-and-lapsed yearly plan reads as not owned.
     try {
       final android = _store
           .getPlatformAddition<InAppPurchaseAndroidPlatformAddition>();
@@ -93,7 +155,7 @@ class PlayBillingService implements BillingService {
       if (response.error != null) return null;
       var owned = false;
       for (final purchase in response.pastPurchases) {
-        if (purchase.productID != BillingService.premiumProductId) continue;
+        if (!_productIds.contains(purchase.productID)) continue;
         if (purchase.pendingCompletePurchase) await _complete(purchase);
         owned |=
             purchase.status == PurchaseStatus.purchased ||
