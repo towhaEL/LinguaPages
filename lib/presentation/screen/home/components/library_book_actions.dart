@@ -103,15 +103,7 @@ Future<void> showBookActions(BuildContext context, BookEntity book) async {
     case _BookAction.collections:
       await _pickCollections(context, book);
     case _BookAction.details:
-      await showModalBottomSheet<void>(
-        context: context,
-        isScrollControlled: true,
-        showDragHandle: true,
-        builder: (_) => BlocProvider.value(
-          value: cubit,
-          child: _BookDetailsSheet(book: book),
-        ),
-      );
+      await showBookDetailsEditor(context, book);
     case _BookAction.trash:
       final moved = await cubit.moveToTrash(book);
       if (!context.mounted) return;
@@ -138,6 +130,20 @@ Future<void> showBookActions(BuildContext context, BookEntity book) async {
     case _BookAction.deleteForever:
       await _deleteForever(context, book);
   }
+}
+
+/// The sheet for editing [book]'s title, author, series and language.
+Future<void> showBookDetailsEditor(BuildContext context, BookEntity book) {
+  final cubit = context.read<LibraryCubit>();
+  return showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    showDragHandle: true,
+    builder: (_) => BlocProvider.value(
+      value: cubit,
+      child: _BookDetailsSheet(book: book),
+    ),
+  );
 }
 
 /// Shows a snackbar only when the change failed; success is visible.

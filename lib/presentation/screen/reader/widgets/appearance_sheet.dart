@@ -19,6 +19,8 @@ class AppearanceSheet extends StatefulWidget {
     this.fontSize,
     this.onFontSizeChanged,
     this.onReset,
+    this.brightness,
+    this.followsSystemBrightness = false,
     this.onBrightnessChanged,
     this.onResetBrightness,
   });
@@ -35,6 +37,13 @@ class AppearanceSheet extends StatefulWidget {
   final double? fontSize;
   final ValueChanged<double>? onFontSizeChanged;
   final VoidCallback? onReset;
+
+  /// The reader's current window brightness, 0–1, so the slider starts
+  /// where the brightness rail and edge swipe left it.
+  final double? brightness;
+
+  /// Whether the reader is following the system brightness.
+  final bool followsSystemBrightness;
   final ValueChanged<double>? onBrightnessChanged;
   final VoidCallback? onResetBrightness;
 
@@ -50,8 +59,8 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
       widget.fontSize ?? _settings.fontSize.clamp(12.0, 28.0);
   late double _lineSpacing = _settings.lineSpacing.clamp(1.1, 2.2);
   late double _margin = _settings.margin.clamp(12.0, 44.0);
-  double _brightness = 0.85;
-  bool _followSystemBrightness = false;
+  late double _brightness = (widget.brightness ?? 0.85).clamp(0.1, 1.0);
+  late bool _followSystemBrightness = widget.followsSystemBrightness;
 
   static String _themeToName(ReaderTheme theme) => switch (theme) {
     ReaderTheme.light => 'Paper',
@@ -90,6 +99,10 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
     if (widget.fontSize != null && widget.fontSize != oldWidget.fontSize) {
       _fontSize = widget.fontSize!;
     }
+    if (widget.brightness != null &&
+        widget.brightness != oldWidget.brightness) {
+      _brightness = widget.brightness!.clamp(0.1, 1.0);
+    }
   }
 
   void _updateSettings(SettingsEntity next) {
@@ -113,6 +126,7 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
 
   void _reset() {
     widget.onResetBrightness?.call();
+    setState(() => _followSystemBrightness = true);
     if (widget.onReset != null) {
       widget.onReset!();
       return;
@@ -125,7 +139,6 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
       _lineSpacing = 1.5;
       _margin = 16;
       _brightness = 0.85;
-      _followSystemBrightness = false;
     });
     widget.onThemeSelected?.call('Paper');
     widget.onFontSizeChanged?.call(18);
@@ -730,10 +743,8 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                                 Expanded(
                                   child: SliderTheme(
                                     data: SliderTheme.of(context).copyWith(
-                                      activeTrackColor:
-                                          context.accent,
-                                      thumbColor:
-                                          context.accent,
+                                      activeTrackColor: context.accent,
+                                      thumbColor: context.accent,
                                     ),
                                     child: Slider(
                                       key: const Key('appearance_font_slider'),
@@ -807,10 +818,8 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                                 Expanded(
                                   child: SliderTheme(
                                     data: SliderTheme.of(context).copyWith(
-                                      activeTrackColor:
-                                          context.accent,
-                                      thumbColor:
-                                          context.accent,
+                                      activeTrackColor: context.accent,
+                                      thumbColor: context.accent,
                                     ),
                                     child: Slider(
                                       value: _lineSpacing.clamp(1.1, 2.2),
@@ -887,10 +896,8 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                                 Expanded(
                                   child: SliderTheme(
                                     data: SliderTheme.of(context).copyWith(
-                                      activeTrackColor:
-                                          context.accent,
-                                      thumbColor:
-                                          context.accent,
+                                      activeTrackColor: context.accent,
+                                      thumbColor: context.accent,
                                     ),
                                     child: Slider(
                                       value: _margin.clamp(12.0, 44.0),
@@ -1141,8 +1148,7 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                                 horizontal: 16,
                                 vertical: 2,
                               ),
-                              activeTrackColor:
-                                  context.accent,
+                              activeTrackColor: context.accent,
                               title: const Text(
                                 'Justify text',
                                 style: TextStyle(
@@ -1184,8 +1190,7 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                                 horizontal: 16,
                                 vertical: 2,
                               ),
-                              activeTrackColor:
-                                  context.accent,
+                              activeTrackColor: context.accent,
                               title: const Text(
                                 'Hyphenation',
                                 style: TextStyle(
@@ -1221,8 +1226,7 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                                 horizontal: 16,
                                 vertical: 2,
                               ),
-                              activeTrackColor:
-                                  context.accent,
+                              activeTrackColor: context.accent,
                               title: const Text(
                                 'Publisher styles',
                                 style: TextStyle(
@@ -1306,10 +1310,8 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                               Expanded(
                                 child: SliderTheme(
                                   data: SliderTheme.of(context).copyWith(
-                                    activeTrackColor:
-                                        context.accent,
-                                    thumbColor:
-                                        context.accent,
+                                    activeTrackColor: context.accent,
+                                    thumbColor: context.accent,
                                   ),
                                   child: Slider(
                                     value: _brightness,
@@ -1357,8 +1359,7 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                                   'switch_follow_system_brightness',
                                 ),
                                 value: _followSystemBrightness,
-                                activeTrackColor:
-                                    context.accent,
+                                activeTrackColor: context.accent,
                                 onChanged: (val) {
                                   setState(() => _followSystemBrightness = val);
                                   if (val) {

@@ -25,7 +25,7 @@ class _SplashPortraitViewState extends State<SplashPortraitView> {
       context.replaceRoute(
         injector<OnboardingPreferences>().isComplete
             ? const DashboardRoute()
-            : const OnboardingRoute(),
+            : OnboardingRoute(),
       );
     });
   }

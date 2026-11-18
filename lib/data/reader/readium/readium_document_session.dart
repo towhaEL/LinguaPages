@@ -170,9 +170,7 @@ class ReadiumDocumentSession {
         PdfLocator(:final locatorJson) => locatorJson,
         TextLocator() => null,
       };
-      final locator = json == null
-          ? null
-          : Locator.fromJson(jsonDecode(json) as Map<String, dynamic>);
+      final locator = _parseLocator(json);
       if (locator == null) continue;
       decorations.add(
         ReaderDecoration(
@@ -189,6 +187,16 @@ class ReadiumDocumentSession {
   }
 
   static const _highlightGroup = 'highlights';
+
+  /// One unreadable saved locator must not stop the rest from drawing.
+  static Locator? _parseLocator(String? json) {
+    if (json == null) return null;
+    try {
+      return Locator.fromJson(jsonDecode(json) as Map<String, dynamic>);
+    } catch (_) {
+      return null;
+    }
+  }
 
   /// Marks the search hit at [locator], replacing the previous one; null
   /// clears it.

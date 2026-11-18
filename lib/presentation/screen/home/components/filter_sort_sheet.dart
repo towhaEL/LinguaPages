@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lingua_pages/domain/entity/document/document_models.dart';
 import 'package:lingua_pages/domain/entity/library/book_entity.dart';
+import 'package:lingua_pages/l10n/l10n.dart';
 import 'package:lingua_pages/presentation/route/app_router.gr.dart';
 import 'package:lingua_pages/presentation/screen/home/cubits/library_cubit.dart';
 import 'package:lingua_pages/presentation/screen/home/cubits/library_state.dart';
@@ -410,6 +411,16 @@ class _FilterSortSheetState extends State<FilterSortSheet> {
                         onTap: () {
                           Navigator.of(context).pop();
                           context.router.push(const AnnotationsRoute());
+                        },
+                      ),
+                      const Divider(height: 1, color: WarmEditorialTokens.hairlineDivider),
+                      _browseItem(
+                        icon: Icons.style_outlined,
+                        title: context.l10n.savedWordsTitle,
+                        count: null,
+                        onTap: () {
+                          Navigator.of(context).pop();
+                          context.router.push(const SavedWordsRoute());
                         },
                       ),
                       const Divider(height: 1, color: WarmEditorialTokens.hairlineDivider),

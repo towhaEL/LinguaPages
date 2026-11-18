@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:lingua_pages/core/document/document_locator.dart';
 import 'package:lingua_pages/domain/entity/reader/bookmark_entity.dart';
 import 'package:lingua_pages/domain/entity/reader/highlight_entity.dart';
+import 'package:lingua_pages/domain/entity/vocabulary/saved_word_entity.dart';
 import 'package:lingua_pages/l10n/l10n.dart';
 import 'package:lingua_pages/presentation/theme/app_tokens.dart';
 import 'package:lingua_pages/presentation/theme/base/theme_extension.dart';
@@ -28,7 +29,7 @@ class ReaderNote {
   bool get isHighlight => highlight != null;
 }
 
-enum _Tab { highlights, bookmarks }
+enum _Tab { highlights, bookmarks, words }
 
 /// The book's highlights and bookmarks, with export and share. Chapters live
 /// in the table of contents drawer.
@@ -41,10 +42,16 @@ class NotesSheet extends StatefulWidget {
     required this.onExport,
     required this.onShare,
     this.initialTab,
+    this.savedWords = const [],
+    this.onWordDeleted,
     super.key,
   });
 
   final List<ReaderNote> notes;
+
+  /// Words saved from the dictionary lookup while reading this book.
+  final List<SavedWordEntity> savedWords;
+  final Future<void> Function(SavedWordEntity word)? onWordDeleted;
   final ValueChanged<ReaderNote> onSelected;
   final Future<void> Function(ReaderNote note) onDeleted;
   final Future<HighlightEntity?> Function(HighlightEntity highlight) onEdited;
@@ -64,7 +71,7 @@ class NotesSheet extends StatefulWidget {
   )
   onShare;
 
-  /// 'Bookmarks' opens on bookmarks; anything else on highlights.
+  /// 'Bookmarks' or 'Words' opens on that tab; anything else on highlights.
   final String? initialTab;
 
   @override
@@ -75,9 +82,11 @@ class _NotesSheetState extends State<NotesSheet> {
   late final List<ReaderNote> _notes = [...widget.notes]
     ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
   late _Tab _activeTab = _parseInitialTab(widget.initialTab);
+  late final List<SavedWordEntity> _words = [...widget.savedWords];
 
   _Tab _parseInitialTab(String? tab) {
     if (tab == 'Bookmarks') return _Tab.bookmarks;
+    if (tab == 'Words') return _Tab.words;
     if (tab == 'Highlights') return _Tab.highlights;
     // Open where there is something to see.
     final hasHighlights = widget.notes.any((note) => note.isHighlight);
@@ -131,6 +140,13 @@ class _NotesSheetState extends State<NotesSheet> {
     } finally {}
   }
 
+  Future<void> _deleteWord(SavedWordEntity word) async {
+    final onWordDeleted = widget.onWordDeleted;
+    if (onWordDeleted == null) return;
+    await onWordDeleted(word);
+    if (mounted) setState(() => _words.removeWhere((w) => w.id == word.id));
+  }
+
   Future<void> _edit(ReaderNote note) async {
     try {
       final updated = await widget.onEdited(note.highlight!);
@@ -161,6 +177,7 @@ class _NotesSheetState extends State<NotesSheet> {
     final accent = Theme.of(context).colorScheme.primary;
     final highlightsCount = _highlights.length;
     final bookmarksCount = _bookmarks.length;
+    final wordsCount = _words.length;
     final empty = _notes.isEmpty;
 
     // Transparent: the sheet paints the surface; this hosts ink and tiles.
@@ -195,7 +212,9 @@ class _NotesSheetState extends State<NotesSheet> {
                             '$highlightsCount '
                             '${highlightsCount == 1 ? 'highlight' : 'highlights'}'
                             ' · $bookmarksCount '
-                            '${bookmarksCount == 1 ? 'bookmark' : 'bookmarks'}',
+                            '${bookmarksCount == 1 ? 'bookmark' : 'bookmarks'}'
+                            ' · $wordsCount '
+                            '${wordsCount == 1 ? 'word' : 'words'}',
                             style: const TextStyle(
                               fontFamily: 'Inter',
                               fontSize: 12,
@@ -235,23 +254,65 @@ class _NotesSheetState extends State<NotesSheet> {
                       color: WarmEditorialTokens.hairlineDivider,
                     ),
                   ),
-                  child: Row(
+                  // One pill slides under fixed labels, so switching tabs
+                  // never fades a button through grey or reflows its text.
+                  child: Stack(
                     children: [
-                      _buildTabButton(
-                        title: 'Highlights',
-                        count: highlightsCount,
-                        active: _activeTab == _Tab.highlights,
-                        accent: accent,
-                        onTap: () =>
-                            setState(() => _activeTab = _Tab.highlights),
+                      Positioned.fill(
+                        child: AnimatedAlign(
+                          duration: const Duration(milliseconds: 220),
+                          curve: Curves.easeOutCubic,
+                          // -1, 0 and 1 across the three tabs.
+                          alignment: Alignment(
+                            _activeTab.index * 2 / (_Tab.values.length - 1) - 1,
+                            0,
+                          ),
+                          child: FractionallySizedBox(
+                            widthFactor: 1 / _Tab.values.length,
+                            heightFactor: 1,
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(19),
+                                boxShadow: const [
+                                  BoxShadow(
+                                    color: Color(0x14000000),
+                                    blurRadius: 4,
+                                    offset: Offset(0, 1),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
-                      _buildTabButton(
-                        title: 'Bookmarks',
-                        count: bookmarksCount,
-                        active: _activeTab == _Tab.bookmarks,
-                        accent: accent,
-                        onTap: () =>
-                            setState(() => _activeTab = _Tab.bookmarks),
+                      Row(
+                        children: [
+                          _buildTabButton(
+                            title: 'Highlights',
+                            count: highlightsCount,
+                            active: _activeTab == _Tab.highlights,
+                            accent: accent,
+                            onTap: () =>
+                                setState(() => _activeTab = _Tab.highlights),
+                          ),
+                          _buildTabButton(
+                            title: 'Bookmarks',
+                            count: bookmarksCount,
+                            active: _activeTab == _Tab.bookmarks,
+                            accent: accent,
+                            onTap: () =>
+                                setState(() => _activeTab = _Tab.bookmarks),
+                          ),
+                          _buildTabButton(
+                            title: 'Words',
+                            count: wordsCount,
+                            active: _activeTab == _Tab.words,
+                            accent: accent,
+                            onTap: () =>
+                                setState(() => _activeTab = _Tab.words),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -262,6 +323,7 @@ class _NotesSheetState extends State<NotesSheet> {
                 child: switch (_activeTab) {
                   _Tab.highlights => _buildHighlightsTab(),
                   _Tab.bookmarks => _buildBookmarksTab(),
+                  _Tab.words => _buildWordsTab(),
                 },
               ),
             ],
@@ -285,22 +347,8 @@ class _NotesSheetState extends State<NotesSheet> {
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: onTap,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 180),
+          child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 8),
-            decoration: BoxDecoration(
-              color: active ? Colors.white : Colors.transparent,
-              borderRadius: BorderRadius.circular(19),
-              boxShadow: active
-                  ? const [
-                      BoxShadow(
-                        color: Color(0x14000000),
-                        blurRadius: 4,
-                        offset: Offset(0, 1),
-                      ),
-                    ]
-                  : null,
-            ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -312,7 +360,7 @@ class _NotesSheetState extends State<NotesSheet> {
                     style: TextStyle(
                       fontFamily: 'Inter',
                       fontSize: 13,
-                      fontWeight: active ? FontWeight.w600 : FontWeight.w500,
+                      fontWeight: FontWeight.w600,
                       color: active
                           ? WarmEditorialTokens.textPrimaryInk
                           : WarmEditorialTokens.subtitleSecondary,
@@ -425,6 +473,107 @@ class _NotesSheetState extends State<NotesSheet> {
             ),
             onPressed: () => _delete(note),
           ),
+        );
+      },
+    );
+  }
+
+  Widget _buildWordsTab() {
+    final words = _words;
+    if (words.isEmpty) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.style_outlined,
+                size: 40,
+                color: WarmEditorialTokens.subtitleSecondary,
+              ),
+              SizedBox(height: 12),
+              Text(
+                'No saved words yet',
+                style: TextStyle(
+                  fontFamily: 'Newsreader',
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              SizedBox(height: 6),
+              Text(
+                'Look up a word and tap Save word to keep it with this book.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 12,
+                  color: WarmEditorialTokens.subtitleSecondary,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return ListView.separated(
+      padding: const EdgeInsets.fromLTRB(8, 4, 8, 16),
+      itemCount: words.length,
+      separatorBuilder: (_, _) =>
+          const Divider(height: 1, color: WarmEditorialTokens.hairlineDivider),
+      itemBuilder: (context, index) {
+        final word = words[index];
+        final heading = [?word.phonetic, ?word.partOfSpeech].join(' · ');
+        return ListTile(
+          leading: Icon(
+            Icons.style_outlined,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+          title: Text.rich(
+            TextSpan(
+              children: [
+                TextSpan(
+                  text: word.word,
+                  style: const TextStyle(
+                    fontFamily: 'Newsreader',
+                    fontSize: 17,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                if (heading.isNotEmpty)
+                  TextSpan(
+                    text: '  $heading',
+                    style: const TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 12,
+                      fontStyle: FontStyle.italic,
+                      color: WarmEditorialTokens.subtitleSecondary,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          subtitle: Text(
+            word.definition ?? DateFormat.MMMd().format(word.createdAt),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontFamily: 'Inter',
+              fontSize: 12,
+              color: WarmEditorialTokens.textPrimaryInk,
+            ),
+          ),
+          trailing: widget.onWordDeleted == null
+              ? null
+              : IconButton(
+                  icon: const Icon(
+                    Icons.delete_outline,
+                    size: 18,
+                    color: WarmEditorialTokens.subtitleSecondary,
+                  ),
+                  onPressed: () => _deleteWord(word),
+                ),
         );
       },
     );

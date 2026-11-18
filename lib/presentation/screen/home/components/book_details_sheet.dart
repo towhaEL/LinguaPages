@@ -8,6 +8,7 @@ import 'package:lingua_pages/l10n/l10n.dart';
 import 'package:lingua_pages/presentation/route/app_router.gr.dart';
 import 'package:lingua_pages/presentation/screen/home/components/library_book_actions.dart';
 import 'package:lingua_pages/presentation/screen/home/cubits/library_cubit.dart';
+import 'package:lingua_pages/presentation/screen/reader/read_aloud/background_read_aloud.dart';
 import 'package:lingua_pages/presentation/theme/app_tokens.dart';
 import 'package:lingua_pages/presentation/widgets/book/book_cover.dart';
 import 'package:share_plus/share_plus.dart';
@@ -20,9 +21,29 @@ Future<void> showBookDetailsSheet(BuildContext context, BookEntity book) {
     isScrollControlled: true,
     showDragHandle: false,
     backgroundColor: Colors.transparent,
-    builder: (_) => BlocProvider.value(
+    // Follow-up sheets open from [context]: the details sheet's own context
+    // is gone once it closes.
+    builder: (sheetContext) => BlocProvider.value(
       value: cubit,
-      child: BookDetailsSheet(book: book),
+      child: BookDetailsSheet(
+        book: book,
+        onCollect: () {
+          Navigator.of(sheetContext).pop();
+          showBookActions(context, book);
+        },
+        onEdit: () {
+          Navigator.of(sheetContext).pop();
+          showBookDetailsEditor(context, book);
+        },
+        onListen: () async {
+          Navigator.of(sheetContext).pop();
+          final started = await listenInBackground(book);
+          if (started || !context.mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(context.l10n.readAloudCouldNotStart)),
+          );
+        },
+      ),
     ),
   );
 }
@@ -32,11 +53,19 @@ class BookDetailsSheet extends StatelessWidget {
     super.key,
     required this.book,
     this.onRead,
+    this.onListen,
+    this.onCollect,
+    this.onEdit,
     this.onTrash,
   });
 
   final BookEntity book;
   final VoidCallback? onRead;
+
+  /// Starts reading the book aloud in the background.
+  final VoidCallback? onListen;
+  final VoidCallback? onCollect;
+  final VoidCallback? onEdit;
   final VoidCallback? onTrash;
 
   @override
@@ -204,13 +233,15 @@ class BookDetailsSheet extends StatelessWidget {
                                   children: [
                                     Expanded(
                                       child: Text(
-                                        book.currentChapterTitle ?? 'Reading progress',
+                                        book.currentChapterTitle ??
+                                            'Reading progress',
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                         style: GoogleFonts.inter(
                                           fontSize: 11,
                                           fontWeight: FontWeight.w500,
-                                          color: WarmEditorialTokens.textPrimaryInk,
+                                          color: WarmEditorialTokens
+                                              .textPrimaryInk,
                                         ),
                                       ),
                                     ),
@@ -220,8 +251,7 @@ class BookDetailsSheet extends StatelessWidget {
                                       style: GoogleFonts.inter(
                                         fontSize: 11,
                                         fontWeight: FontWeight.w700,
-                                        color:
-                                            context.accent,
+                                        color: context.accent,
                                       ),
                                     ),
                                   ],
@@ -280,6 +310,24 @@ class BookDetailsSheet extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 8),
+                    // Listen in the background, under the mini player.
+                    SizedBox(
+                      width: 48,
+                      height: 48,
+                      child: IconButton.outlined(
+                        key: const Key('book_details_listen_button'),
+                        style: IconButton.styleFrom(
+                          backgroundColor: WarmEditorialTokens.cardSurface,
+                          side: const BorderSide(
+                            color: WarmEditorialTokens.hairlineDivider,
+                          ),
+                        ),
+                        onPressed: onListen,
+                        icon: const Icon(Icons.headphones_outlined, size: 20),
+                        tooltip: l10n.readerToolListen,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
                     // Collect Button
                     SizedBox(
                       width: 48,
@@ -291,10 +339,7 @@ class BookDetailsSheet extends StatelessWidget {
                             color: WarmEditorialTokens.hairlineDivider,
                           ),
                         ),
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                          showBookActions(context, book);
-                        },
+                        onPressed: onCollect,
                         icon: const Icon(Icons.bookmark_add_outlined, size: 20),
                         tooltip: 'Collect',
                       ),
@@ -311,10 +356,8 @@ class BookDetailsSheet extends StatelessWidget {
                             color: WarmEditorialTokens.hairlineDivider,
                           ),
                         ),
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                          showBookActions(context, book);
-                        },
+                        key: const Key('book_details_edit_button'),
+                        onPressed: onEdit,
                         icon: const Icon(Icons.edit_outlined, size: 20),
                         tooltip: 'Edit details',
                       ),
@@ -436,10 +479,12 @@ class BookDetailsSheet extends StatelessWidget {
                     onPressed:
                         onTrash ??
                         () async {
+                          // Taken before closing: this context goes with the
+                          // sheet.
+                          final messenger = ScaffoldMessenger.of(context);
                           Navigator.of(context).pop();
                           final moved = await cubit.moveToTrash(book);
-                          if (!context.mounted) return;
-                          ScaffoldMessenger.of(context).showSnackBar(
+                          messenger.showSnackBar(
                             SnackBar(
                               content: Text(
                                 moved

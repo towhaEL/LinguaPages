@@ -13,4 +13,8 @@ abstract interface class SelectionTextService {
   Future<List<TextApp>> textApps();
 
   Future<void> sendToApp(TextApp app, String text);
+
+  /// Clears the native reader's text selection, whose handles otherwise
+  /// stay drawn above sheets opened from it.
+  Future<void> clearReaderSelection();
 }

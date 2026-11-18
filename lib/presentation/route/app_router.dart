@@ -17,5 +17,6 @@ class AppRouter extends RootStackRouter {
     ),
     AutoRoute(page: ReaderRoute.page),
     AutoRoute(page: AnnotationsRoute.page),
+    AutoRoute(page: SavedWordsRoute.page),
   ];
 }

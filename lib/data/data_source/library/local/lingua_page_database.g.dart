@@ -3477,6 +3477,529 @@ class BookCollectionsCompanion extends UpdateCompanion<BookCollection> {
   }
 }
 
+class $SavedWordsTable extends SavedWords
+    with TableInfo<$SavedWordsTable, SavedWord> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SavedWordsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _wordMeta = const VerificationMeta('word');
+  @override
+  late final GeneratedColumn<String> word = GeneratedColumn<String>(
+    'word',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _definitionMeta = const VerificationMeta(
+    'definition',
+  );
+  @override
+  late final GeneratedColumn<String> definition = GeneratedColumn<String>(
+    'definition',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _partOfSpeechMeta = const VerificationMeta(
+    'partOfSpeech',
+  );
+  @override
+  late final GeneratedColumn<String> partOfSpeech = GeneratedColumn<String>(
+    'part_of_speech',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _phoneticMeta = const VerificationMeta(
+    'phonetic',
+  );
+  @override
+  late final GeneratedColumn<String> phonetic = GeneratedColumn<String>(
+    'phonetic',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _bookIdMeta = const VerificationMeta('bookId');
+  @override
+  late final GeneratedColumn<String> bookId = GeneratedColumn<String>(
+    'book_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _bookTitleMeta = const VerificationMeta(
+    'bookTitle',
+  );
+  @override
+  late final GeneratedColumn<String> bookTitle = GeneratedColumn<String>(
+    'book_title',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    word,
+    definition,
+    partOfSpeech,
+    phonetic,
+    bookId,
+    bookTitle,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'saved_words';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<SavedWord> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('word')) {
+      context.handle(
+        _wordMeta,
+        word.isAcceptableOrUnknown(data['word']!, _wordMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_wordMeta);
+    }
+    if (data.containsKey('definition')) {
+      context.handle(
+        _definitionMeta,
+        definition.isAcceptableOrUnknown(data['definition']!, _definitionMeta),
+      );
+    }
+    if (data.containsKey('part_of_speech')) {
+      context.handle(
+        _partOfSpeechMeta,
+        partOfSpeech.isAcceptableOrUnknown(
+          data['part_of_speech']!,
+          _partOfSpeechMeta,
+        ),
+      );
+    }
+    if (data.containsKey('phonetic')) {
+      context.handle(
+        _phoneticMeta,
+        phonetic.isAcceptableOrUnknown(data['phonetic']!, _phoneticMeta),
+      );
+    }
+    if (data.containsKey('book_id')) {
+      context.handle(
+        _bookIdMeta,
+        bookId.isAcceptableOrUnknown(data['book_id']!, _bookIdMeta),
+      );
+    }
+    if (data.containsKey('book_title')) {
+      context.handle(
+        _bookTitleMeta,
+        bookTitle.isAcceptableOrUnknown(data['book_title']!, _bookTitleMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  SavedWord map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SavedWord(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      word: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}word'],
+      )!,
+      definition: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}definition'],
+      ),
+      partOfSpeech: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}part_of_speech'],
+      ),
+      phonetic: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}phonetic'],
+      ),
+      bookId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}book_id'],
+      ),
+      bookTitle: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}book_title'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $SavedWordsTable createAlias(String alias) {
+    return $SavedWordsTable(attachedDatabase, alias);
+  }
+}
+
+class SavedWord extends DataClass implements Insertable<SavedWord> {
+  /// The normalized word.
+  final String id;
+  final String word;
+  final String? definition;
+  final String? partOfSpeech;
+  final String? phonetic;
+
+  /// Not a reference: the word stays saved after its book is deleted.
+  final String? bookId;
+  final String? bookTitle;
+  final DateTime createdAt;
+  const SavedWord({
+    required this.id,
+    required this.word,
+    this.definition,
+    this.partOfSpeech,
+    this.phonetic,
+    this.bookId,
+    this.bookTitle,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['word'] = Variable<String>(word);
+    if (!nullToAbsent || definition != null) {
+      map['definition'] = Variable<String>(definition);
+    }
+    if (!nullToAbsent || partOfSpeech != null) {
+      map['part_of_speech'] = Variable<String>(partOfSpeech);
+    }
+    if (!nullToAbsent || phonetic != null) {
+      map['phonetic'] = Variable<String>(phonetic);
+    }
+    if (!nullToAbsent || bookId != null) {
+      map['book_id'] = Variable<String>(bookId);
+    }
+    if (!nullToAbsent || bookTitle != null) {
+      map['book_title'] = Variable<String>(bookTitle);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  SavedWordsCompanion toCompanion(bool nullToAbsent) {
+    return SavedWordsCompanion(
+      id: Value(id),
+      word: Value(word),
+      definition: definition == null && nullToAbsent
+          ? const Value.absent()
+          : Value(definition),
+      partOfSpeech: partOfSpeech == null && nullToAbsent
+          ? const Value.absent()
+          : Value(partOfSpeech),
+      phonetic: phonetic == null && nullToAbsent
+          ? const Value.absent()
+          : Value(phonetic),
+      bookId: bookId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(bookId),
+      bookTitle: bookTitle == null && nullToAbsent
+          ? const Value.absent()
+          : Value(bookTitle),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory SavedWord.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SavedWord(
+      id: serializer.fromJson<String>(json['id']),
+      word: serializer.fromJson<String>(json['word']),
+      definition: serializer.fromJson<String?>(json['definition']),
+      partOfSpeech: serializer.fromJson<String?>(json['partOfSpeech']),
+      phonetic: serializer.fromJson<String?>(json['phonetic']),
+      bookId: serializer.fromJson<String?>(json['bookId']),
+      bookTitle: serializer.fromJson<String?>(json['bookTitle']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'word': serializer.toJson<String>(word),
+      'definition': serializer.toJson<String?>(definition),
+      'partOfSpeech': serializer.toJson<String?>(partOfSpeech),
+      'phonetic': serializer.toJson<String?>(phonetic),
+      'bookId': serializer.toJson<String?>(bookId),
+      'bookTitle': serializer.toJson<String?>(bookTitle),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  SavedWord copyWith({
+    String? id,
+    String? word,
+    Value<String?> definition = const Value.absent(),
+    Value<String?> partOfSpeech = const Value.absent(),
+    Value<String?> phonetic = const Value.absent(),
+    Value<String?> bookId = const Value.absent(),
+    Value<String?> bookTitle = const Value.absent(),
+    DateTime? createdAt,
+  }) => SavedWord(
+    id: id ?? this.id,
+    word: word ?? this.word,
+    definition: definition.present ? definition.value : this.definition,
+    partOfSpeech: partOfSpeech.present ? partOfSpeech.value : this.partOfSpeech,
+    phonetic: phonetic.present ? phonetic.value : this.phonetic,
+    bookId: bookId.present ? bookId.value : this.bookId,
+    bookTitle: bookTitle.present ? bookTitle.value : this.bookTitle,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  SavedWord copyWithCompanion(SavedWordsCompanion data) {
+    return SavedWord(
+      id: data.id.present ? data.id.value : this.id,
+      word: data.word.present ? data.word.value : this.word,
+      definition: data.definition.present
+          ? data.definition.value
+          : this.definition,
+      partOfSpeech: data.partOfSpeech.present
+          ? data.partOfSpeech.value
+          : this.partOfSpeech,
+      phonetic: data.phonetic.present ? data.phonetic.value : this.phonetic,
+      bookId: data.bookId.present ? data.bookId.value : this.bookId,
+      bookTitle: data.bookTitle.present ? data.bookTitle.value : this.bookTitle,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SavedWord(')
+          ..write('id: $id, ')
+          ..write('word: $word, ')
+          ..write('definition: $definition, ')
+          ..write('partOfSpeech: $partOfSpeech, ')
+          ..write('phonetic: $phonetic, ')
+          ..write('bookId: $bookId, ')
+          ..write('bookTitle: $bookTitle, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    word,
+    definition,
+    partOfSpeech,
+    phonetic,
+    bookId,
+    bookTitle,
+    createdAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SavedWord &&
+          other.id == this.id &&
+          other.word == this.word &&
+          other.definition == this.definition &&
+          other.partOfSpeech == this.partOfSpeech &&
+          other.phonetic == this.phonetic &&
+          other.bookId == this.bookId &&
+          other.bookTitle == this.bookTitle &&
+          other.createdAt == this.createdAt);
+}
+
+class SavedWordsCompanion extends UpdateCompanion<SavedWord> {
+  final Value<String> id;
+  final Value<String> word;
+  final Value<String?> definition;
+  final Value<String?> partOfSpeech;
+  final Value<String?> phonetic;
+  final Value<String?> bookId;
+  final Value<String?> bookTitle;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const SavedWordsCompanion({
+    this.id = const Value.absent(),
+    this.word = const Value.absent(),
+    this.definition = const Value.absent(),
+    this.partOfSpeech = const Value.absent(),
+    this.phonetic = const Value.absent(),
+    this.bookId = const Value.absent(),
+    this.bookTitle = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  SavedWordsCompanion.insert({
+    required String id,
+    required String word,
+    this.definition = const Value.absent(),
+    this.partOfSpeech = const Value.absent(),
+    this.phonetic = const Value.absent(),
+    this.bookId = const Value.absent(),
+    this.bookTitle = const Value.absent(),
+    required DateTime createdAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       word = Value(word),
+       createdAt = Value(createdAt);
+  static Insertable<SavedWord> custom({
+    Expression<String>? id,
+    Expression<String>? word,
+    Expression<String>? definition,
+    Expression<String>? partOfSpeech,
+    Expression<String>? phonetic,
+    Expression<String>? bookId,
+    Expression<String>? bookTitle,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (word != null) 'word': word,
+      if (definition != null) 'definition': definition,
+      if (partOfSpeech != null) 'part_of_speech': partOfSpeech,
+      if (phonetic != null) 'phonetic': phonetic,
+      if (bookId != null) 'book_id': bookId,
+      if (bookTitle != null) 'book_title': bookTitle,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  SavedWordsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? word,
+    Value<String?>? definition,
+    Value<String?>? partOfSpeech,
+    Value<String?>? phonetic,
+    Value<String?>? bookId,
+    Value<String?>? bookTitle,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return SavedWordsCompanion(
+      id: id ?? this.id,
+      word: word ?? this.word,
+      definition: definition ?? this.definition,
+      partOfSpeech: partOfSpeech ?? this.partOfSpeech,
+      phonetic: phonetic ?? this.phonetic,
+      bookId: bookId ?? this.bookId,
+      bookTitle: bookTitle ?? this.bookTitle,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (word.present) {
+      map['word'] = Variable<String>(word.value);
+    }
+    if (definition.present) {
+      map['definition'] = Variable<String>(definition.value);
+    }
+    if (partOfSpeech.present) {
+      map['part_of_speech'] = Variable<String>(partOfSpeech.value);
+    }
+    if (phonetic.present) {
+      map['phonetic'] = Variable<String>(phonetic.value);
+    }
+    if (bookId.present) {
+      map['book_id'] = Variable<String>(bookId.value);
+    }
+    if (bookTitle.present) {
+      map['book_title'] = Variable<String>(bookTitle.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SavedWordsCompanion(')
+          ..write('id: $id, ')
+          ..write('word: $word, ')
+          ..write('definition: $definition, ')
+          ..write('partOfSpeech: $partOfSpeech, ')
+          ..write('phonetic: $phonetic, ')
+          ..write('bookId: $bookId, ')
+          ..write('bookTitle: $bookTitle, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$LinguaPageDatabase extends GeneratedDatabase {
   _$LinguaPageDatabase(QueryExecutor e) : super(e);
   $LinguaPageDatabaseManager get managers => $LinguaPageDatabaseManager(this);
@@ -3493,6 +4016,7 @@ abstract class _$LinguaPageDatabase extends GeneratedDatabase {
   late final $BookCollectionsTable bookCollections = $BookCollectionsTable(
     this,
   );
+  late final $SavedWordsTable savedWords = $SavedWordsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -3506,6 +4030,7 @@ abstract class _$LinguaPageDatabase extends GeneratedDatabase {
     dictionaryCacheEntries,
     collections,
     bookCollections,
+    savedWords,
   ];
 }
 
@@ -6443,6 +6968,267 @@ typedef $$BookCollectionsTableProcessedTableManager =
       BookCollection,
       PrefetchHooks Function({bool bookId, bool collectionId})
     >;
+typedef $$SavedWordsTableCreateCompanionBuilder =
+    SavedWordsCompanion Function({
+      required String id,
+      required String word,
+      Value<String?> definition,
+      Value<String?> partOfSpeech,
+      Value<String?> phonetic,
+      Value<String?> bookId,
+      Value<String?> bookTitle,
+      required DateTime createdAt,
+      Value<int> rowid,
+    });
+typedef $$SavedWordsTableUpdateCompanionBuilder =
+    SavedWordsCompanion Function({
+      Value<String> id,
+      Value<String> word,
+      Value<String?> definition,
+      Value<String?> partOfSpeech,
+      Value<String?> phonetic,
+      Value<String?> bookId,
+      Value<String?> bookTitle,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+
+class $$SavedWordsTableFilterComposer
+    extends Composer<_$LinguaPageDatabase, $SavedWordsTable> {
+  $$SavedWordsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get word => $composableBuilder(
+    column: $table.word,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get definition => $composableBuilder(
+    column: $table.definition,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get partOfSpeech => $composableBuilder(
+    column: $table.partOfSpeech,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get phonetic => $composableBuilder(
+    column: $table.phonetic,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get bookId => $composableBuilder(
+    column: $table.bookId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get bookTitle => $composableBuilder(
+    column: $table.bookTitle,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$SavedWordsTableOrderingComposer
+    extends Composer<_$LinguaPageDatabase, $SavedWordsTable> {
+  $$SavedWordsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get word => $composableBuilder(
+    column: $table.word,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get definition => $composableBuilder(
+    column: $table.definition,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get partOfSpeech => $composableBuilder(
+    column: $table.partOfSpeech,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get phonetic => $composableBuilder(
+    column: $table.phonetic,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get bookId => $composableBuilder(
+    column: $table.bookId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get bookTitle => $composableBuilder(
+    column: $table.bookTitle,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$SavedWordsTableAnnotationComposer
+    extends Composer<_$LinguaPageDatabase, $SavedWordsTable> {
+  $$SavedWordsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get word =>
+      $composableBuilder(column: $table.word, builder: (column) => column);
+
+  GeneratedColumn<String> get definition => $composableBuilder(
+    column: $table.definition,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get partOfSpeech => $composableBuilder(
+    column: $table.partOfSpeech,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get phonetic =>
+      $composableBuilder(column: $table.phonetic, builder: (column) => column);
+
+  GeneratedColumn<String> get bookId =>
+      $composableBuilder(column: $table.bookId, builder: (column) => column);
+
+  GeneratedColumn<String> get bookTitle =>
+      $composableBuilder(column: $table.bookTitle, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$SavedWordsTableTableManager
+    extends
+        RootTableManager<
+          _$LinguaPageDatabase,
+          $SavedWordsTable,
+          SavedWord,
+          $$SavedWordsTableFilterComposer,
+          $$SavedWordsTableOrderingComposer,
+          $$SavedWordsTableAnnotationComposer,
+          $$SavedWordsTableCreateCompanionBuilder,
+          $$SavedWordsTableUpdateCompanionBuilder,
+          (
+            SavedWord,
+            BaseReferences<_$LinguaPageDatabase, $SavedWordsTable, SavedWord>,
+          ),
+          SavedWord,
+          PrefetchHooks Function()
+        > {
+  $$SavedWordsTableTableManager(_$LinguaPageDatabase db, $SavedWordsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SavedWordsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SavedWordsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$SavedWordsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> word = const Value.absent(),
+                Value<String?> definition = const Value.absent(),
+                Value<String?> partOfSpeech = const Value.absent(),
+                Value<String?> phonetic = const Value.absent(),
+                Value<String?> bookId = const Value.absent(),
+                Value<String?> bookTitle = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SavedWordsCompanion(
+                id: id,
+                word: word,
+                definition: definition,
+                partOfSpeech: partOfSpeech,
+                phonetic: phonetic,
+                bookId: bookId,
+                bookTitle: bookTitle,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String word,
+                Value<String?> definition = const Value.absent(),
+                Value<String?> partOfSpeech = const Value.absent(),
+                Value<String?> phonetic = const Value.absent(),
+                Value<String?> bookId = const Value.absent(),
+                Value<String?> bookTitle = const Value.absent(),
+                required DateTime createdAt,
+                Value<int> rowid = const Value.absent(),
+              }) => SavedWordsCompanion.insert(
+                id: id,
+                word: word,
+                definition: definition,
+                partOfSpeech: partOfSpeech,
+                phonetic: phonetic,
+                bookId: bookId,
+                bookTitle: bookTitle,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$SavedWordsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$LinguaPageDatabase,
+      $SavedWordsTable,
+      SavedWord,
+      $$SavedWordsTableFilterComposer,
+      $$SavedWordsTableOrderingComposer,
+      $$SavedWordsTableAnnotationComposer,
+      $$SavedWordsTableCreateCompanionBuilder,
+      $$SavedWordsTableUpdateCompanionBuilder,
+      (
+        SavedWord,
+        BaseReferences<_$LinguaPageDatabase, $SavedWordsTable, SavedWord>,
+      ),
+      SavedWord,
+      PrefetchHooks Function()
+    >;
 
 class $LinguaPageDatabaseManager {
   final _$LinguaPageDatabase _db;
@@ -6466,4 +7252,6 @@ class $LinguaPageDatabaseManager {
       $$CollectionsTableTableManager(_db, _db.collections);
   $$BookCollectionsTableTableManager get bookCollections =>
       $$BookCollectionsTableTableManager(_db, _db.bookCollections);
+  $$SavedWordsTableTableManager get savedWords =>
+      $$SavedWordsTableTableManager(_db, _db.savedWords);
 }

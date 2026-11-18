@@ -28,7 +28,7 @@ void main() {
         expect(book.isFavorite, isFalse);
         expect(book.series, isNull);
         expect(await database.select(database.collections).get(), isEmpty);
-        expect(nativeDatabase.userVersion, 9);
+        expect(nativeDatabase.userVersion, 10);
 
         expect(await database.select(database.highlights).get(), isEmpty);
         expect(await database.select(database.bookmarks).get(), isEmpty);
@@ -87,7 +87,7 @@ void main() {
         (await database.select(database.appSettings).getSingle()).value,
         '20',
       );
-      expect(nativeDatabase.userVersion, 9);
+      expect(nativeDatabase.userVersion, 10);
       expect(
         _tableNames(nativeDatabase),
         isNot(
@@ -142,7 +142,7 @@ void main() {
         await database.select(database.dictionaryCacheEntries).get(),
         hasLength(1),
       );
-      expect(nativeDatabase.userVersion, 9);
+      expect(nativeDatabase.userVersion, 10);
     });
 
     test('preserves annotations while adding later library columns', () async {
@@ -170,7 +170,7 @@ void main() {
 
       expect(highlights.single.selectedText, 'hello');
       expect(settings.single.value, '15');
-      expect(nativeDatabase.userVersion, 9);
+      expect(nativeDatabase.userVersion, 10);
     });
   });
 }

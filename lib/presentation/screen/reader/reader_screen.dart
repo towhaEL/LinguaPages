@@ -28,6 +28,8 @@ import 'package:lingua_pages/domain/repository/settings/settings_repository.dart
 import 'package:lingua_pages/domain/service/document_engine.dart';
 import 'package:lingua_pages/domain/service/document_engine_factory.dart';
 import 'package:lingua_pages/domain/service/read_aloud_service.dart';
+import 'package:lingua_pages/domain/entity/vocabulary/saved_word_entity.dart';
+import 'package:lingua_pages/domain/repository/vocabulary/saved_word_repository.dart';
 import 'package:lingua_pages/domain/service/screen_brightness_service.dart';
 import 'package:lingua_pages/domain/service/selection_text_service.dart';
 import 'package:lingua_pages/domain/service/volume_key_service.dart';
@@ -43,6 +45,7 @@ import 'package:lingua_pages/presentation/screen/reader/widgets/marked_text.dart
 import 'package:lingua_pages/presentation/screen/reader/widgets/notes_sheet.dart';
 import 'package:lingua_pages/presentation/screen/reader/widgets/reader_search.dart';
 import 'package:lingua_pages/presentation/screen/reader/widgets/table_of_contents_drawer.dart';
+import 'package:lingua_pages/presentation/screen/reader/read_aloud/background_read_aloud.dart';
 import 'package:lingua_pages/presentation/screen/reader/read_aloud/read_aloud_cubit.dart';
 import 'package:lingua_pages/presentation/screen/reader/read_aloud/read_aloud_player.dart';
 import 'package:lingua_pages/presentation/screen/reader/read_aloud/read_aloud_mini_player.dart';
@@ -151,8 +154,13 @@ class _ReaderScreenState extends State<ReaderScreen>
   (DocumentLocator, String)? _searchMatch;
   StreamSubscription<PageTurn>? _pageTurnSubscription;
 
-  /// The edge-swipe brightness, once the reader has set one.
+  /// The reader-only brightness, once the rail, edge swipe or appearance
+  /// sheet has set one; null while following the system.
   double? _readerBrightness;
+
+  /// The window's brightness when the reader opened, shown while following
+  /// the system.
+  double _systemBrightness = .65;
   bool _adjustingBrightness = false;
 
   /// Screen settings this reader changed and must undo on exit.
@@ -172,6 +180,7 @@ class _ReaderScreenState extends State<ReaderScreen>
     _volumeKeys = injector<VolumeKeyService>();
     _brightness = injector<ScreenBrightnessService>();
     _selectionText = injector<SelectionTextService>();
+    unawaited(_loadSystemBrightness());
     _readAloudSession = injector<ReadAloudSession>()
       ..readerOpened(widget.book.id)
       ..addListener(_onReadAloudSessionChanged);
@@ -338,6 +347,9 @@ class _ReaderScreenState extends State<ReaderScreen>
         state == AppLifecycleState.detached) {
       _progressTimer?.cancel();
       unawaited(_flushPendingProgress());
+    } else if (state == AppLifecycleState.resumed) {
+      // The native view can be rebuilt while in the background.
+      _drawReadiumHighlights();
     }
   }
 
@@ -431,15 +443,13 @@ class _ReaderScreenState extends State<ReaderScreen>
                         ),
                       ),
                       child: Slider(
-                        value: (_readerBrightness ?? 0.65).clamp(0.05, 1.0),
+                        value: (_readerBrightness ?? _systemBrightness).clamp(
+                          0.05,
+                          1.0,
+                        ),
                         activeColor: context.accent,
                         inactiveColor: WarmEditorialTokens.hairlineDivider,
-                        onChanged: (val) {
-                          setState(() => _readerBrightness = val);
-                          unawaited(
-                            _brightness.set(val).catchError((Object _) {}),
-                          );
-                        },
+                        onChanged: _setReaderBrightness,
                       ),
                     ),
                   ),
@@ -633,7 +643,7 @@ class _ReaderScreenState extends State<ReaderScreen>
           child: LayoutBuilder(
             builder: (context, constraints) => GestureDetector(
               behavior: HitTestBehavior.translucent,
-              onVerticalDragStart: (_) => unawaited(_startBrightnessDrag()),
+              onVerticalDragStart: (_) => _startBrightnessDrag(),
               onVerticalDragUpdate: (details) =>
                   _updateBrightness(details, constraints.maxHeight),
               onVerticalDragEnd: (_) =>
@@ -1109,7 +1119,9 @@ class _ReaderScreenState extends State<ReaderScreen>
 
   void _handleReadiumStatus(ReadiumReaderStatus status) {
     if (!mounted) return;
-    if (status == ReadiumReaderStatus.ready && !_readiumReady) {
+    // The navigator drops decorations whenever it reloads its pages, so
+    // highlights are drawn again each time it becomes ready.
+    if (status == ReadiumReaderStatus.ready) {
       _readiumReady = true;
       _drawReadiumHighlights();
     }
@@ -1518,9 +1530,10 @@ class _ReaderScreenState extends State<ReaderScreen>
 
   Future<void> _showNotesSheet({String initialTab = 'Highlights'}) async {
     try {
-      final (bookmarks, highlights) = await (
+      final (bookmarks, highlights, savedWords) = await (
         _bookmarkRepository.getByBookId(widget.book.id),
         _highlightRepository.getByBookId(widget.book.id),
+        _savedWordsFor(widget.book.id),
       ).wait;
       if (!mounted) return;
 
@@ -1534,6 +1547,9 @@ class _ReaderScreenState extends State<ReaderScreen>
             ...highlights.map(ReaderNote.highlight),
           ],
           initialTab: initialTab,
+          savedWords: savedWords,
+          onWordDeleted: (word) =>
+              injector<SavedWordRepository>().delete(word.word),
           onSelected: (note) {
             Navigator.of(sheetContext).pop();
             unawaited(_goToDocumentLocator(note.locator));
@@ -1596,6 +1612,15 @@ class _ReaderScreenState extends State<ReaderScreen>
         );
       },
     );
+  }
+
+  /// The book's saved words; the notes still open if they cannot be read.
+  Future<List<SavedWordEntity>> _savedWordsFor(String bookId) async {
+    try {
+      return await injector<SavedWordRepository>().getByBookId(bookId);
+    } catch (_) {
+      return const [];
+    }
   }
 
   Future<void> _showAnnotations() async =>
@@ -1778,6 +1803,8 @@ class _ReaderScreenState extends State<ReaderScreen>
     if (selectedText == null || selectedText.isEmpty) return;
     final action = _SelectionAction.values.asNameMap()[event.actionId];
     if (action == null) return;
+    // The native handles would otherwise show through the sheet it opens.
+    await _selectionText.clearReaderSelection();
     await _runSelectionAction(
       action,
       selectedText,
@@ -1790,6 +1817,7 @@ class _ReaderScreenState extends State<ReaderScreen>
     return switch (action) {
       _SelectionAction.highlight => l10n.readerHighlight,
       _SelectionAction.lookup => l10n.readerLookup,
+      _SelectionAction.listen => l10n.readerListenFromHere,
       _SelectionAction.copy => MaterialLocalizations.of(
         context,
       ).copyButtonLabel,
@@ -1810,6 +1838,8 @@ class _ReaderScreenState extends State<ReaderScreen>
         await _showHighlightColorSheet(text, locator());
       case _SelectionAction.lookup:
         await _showLookupSheet(text, locator());
+      case _SelectionAction.listen:
+        await _listenFrom(locator());
       case _SelectionAction.copy:
         await Clipboard.setData(ClipboardData(text: text));
       case _SelectionAction.share:
@@ -1911,6 +1941,8 @@ class _ReaderScreenState extends State<ReaderScreen>
       isScrollControlled: true,
       builder: (context) => DictionaryLookupSheet(
         selectedText: selectedText,
+        bookId: widget.book.id,
+        bookTitle: widget.book.title,
         onHighlight: () => _showHighlightColorSheet(selectedText, locator),
         onColorSelected: (color) {
           Navigator.of(context).pop();
@@ -1998,14 +2030,7 @@ class _ReaderScreenState extends State<ReaderScreen>
         customColor: WarmEditorialTokens.spokenHighlight,
       ),
     for (final highlight in _highlights)
-      if (highlight.locator case TextLocator(
-        :final offset,
-      ) when _engine?.pageIndexForOffset(offset) == pageIndex)
-        PageMark(
-          start: offset - _engine!.pageStartOffset(pageIndex),
-          text: highlight.selectedText,
-          color: highlight.color,
-        ),
+      ?_textHighlightMark(highlight, pageIndex),
     if (_searchMatch case (
       TextLocator(:final offset),
       final text,
@@ -2019,6 +2044,38 @@ class _ReaderScreenState extends State<ReaderScreen>
   ];
 
   static const _searchMatchColor = Color(0x99FFC94D);
+
+  /// The part of text [highlight] on fallback page [pageIndex], if any. A
+  /// highlight can run over a page break, or come to after a font change, so
+  /// each page marks only its own share; searching for the whole quote on one
+  /// page would miss it and hide the highlight.
+  PageMark? _textHighlightMark(HighlightEntity highlight, int pageIndex) {
+    final engine = _engine;
+    final text = highlight.selectedText;
+    if (engine == null || text.isEmpty) return null;
+    if (highlight.locator case TextLocator(:final offset)) {
+      final pageStart = engine.pageStartOffset(pageIndex);
+      final pageEnd = _pageEndOffset(engine, pageIndex);
+      // The saved quote was trimmed, so it starts a little after the offset.
+      const slack = 64;
+      if (offset >= pageEnd || offset + text.length + slack <= pageStart) {
+        return null;
+      }
+      final start = engine.text.indexOf(text, offset);
+      if (start < 0 || start - offset > slack) return null;
+      final end = start + text.length;
+      if (start >= pageEnd || end <= pageStart) return null;
+      final from = math.max(start, pageStart);
+      final part = engine.text.substring(from, math.min(end, pageEnd)).trim();
+      if (part.isEmpty) return null;
+      return PageMark(
+        start: from - pageStart,
+        text: part,
+        color: highlight.color,
+      );
+    }
+    return null;
+  }
 
   List<PageMark> _pdfTextPageMarks(int pageIndex) => [
     for (final highlight in _highlights)
@@ -2097,15 +2154,16 @@ class _ReaderScreenState extends State<ReaderScreen>
   void _applyDisplay(SettingsEntity previous) {
     final display = _display;
     if (_usesReadium && _publication != null) {
+      // New preferences can reload the navigator's pages, which loses the
+      // highlights, so they are drawn again once the settings are in.
       unawaited(
-        _readiumSession.applySettings(
-          settings: display,
-          format: widget.book.format,
-        ),
+        _readiumSession
+            .applySettings(settings: display, format: widget.book.format)
+            .catchError((Object _) {})
+            .whenComplete(() {
+              if (mounted) _drawReadiumHighlights();
+            }),
       );
-      if (previous.readerTheme.isDarkPage != display.readerTheme.isDarkPage) {
-        _drawReadiumHighlights();
-      }
     }
     if (!_usesReadium && previous.readerMode != display.readerMode) {
       unawaited(_openDocument());
@@ -2171,17 +2229,22 @@ class _ReaderScreenState extends State<ReaderScreen>
   }
 
   /// Readium reads native books itself; fallback text uses the platform's
-  /// text-to-speech one sentence at a time.
-  ReadAloudService _createReadAloudService() {
+  /// text-to-speech one sentence at a time. Reading starts at the page on
+  /// screen, or at [readiumStart] / [textStart] when given.
+  ReadAloudService _createReadAloudService({
+    Locator? readiumStart,
+    int? textStart,
+  }) {
     if (_usesReadium) {
       return ReadiumReadAloudService(
-        currentLocator: () => _currentReadiumLocator ?? _savedLocator,
+        currentLocator: () =>
+            readiumStart ?? _currentReadiumLocator ?? _savedLocator,
       );
     }
     final engine = _engine!;
     return FlutterTtsReadAloudService(
       text: engine.text,
-      startOffset: () => engine.pageStartOffset(_visiblePageIndex),
+      startOffset: () => textStart ?? engine.pageStartOffset(_visiblePageIndex),
       chapterAt: _chapterAt,
       // Saved the way the reader saves its own pages, so the book reopens
       // where listening got to.
@@ -2253,8 +2316,28 @@ class _ReaderScreenState extends State<ReaderScreen>
     }
   }
 
+  /// Starts reading aloud at [locator], where a selection begins, in place
+  /// of any reading of this book already going.
+  Future<void> _listenFrom(DocumentLocator locator) async {
+    Locator? readiumStart;
+    int? textStart;
+    switch (locator) {
+      case EpubLocator(:final locatorJson?) when _usesReadium:
+        readiumStart = Locator.fromJsonString(locatorJson);
+      case TextLocator(:final offset) when !_usesReadium:
+        textStart = offset;
+      default:
+        return;
+    }
+    if (_readAloudSession.isFor(widget.book.id)) {
+      await _readAloudSession.end();
+    }
+    if (!mounted) return;
+    await _startReadAloud(readiumStart: readiumStart, textStart: textStart);
+  }
+
   /// Starts reading this book aloud, or resumes it if it already is.
-  Future<void> _startReadAloud() async {
+  Future<void> _startReadAloud({Locator? readiumStart, int? textStart}) async {
     _hideChrome();
     final session = _readAloudSession;
     if (session.isFor(widget.book.id)) {
@@ -2262,7 +2345,10 @@ class _ReaderScreenState extends State<ReaderScreen>
       if (!cubit.state.isPlaying) await cubit.play();
       return;
     }
-    final service = _createReadAloudService();
+    final service = _createReadAloudService(
+      readiumStart: readiumStart,
+      textStart: textStart,
+    );
     final cubit = ReadAloudCubit(
       service,
       _settingsRepository,
@@ -2357,22 +2443,38 @@ class _ReaderScreenState extends State<ReaderScreen>
     _applyDisplay(previous);
   }
 
-  Future<void> _startBrightnessDrag() async {
-    setState(() => _adjustingBrightness = true);
+  Future<void> _loadSystemBrightness() async {
     try {
-      _readerBrightness ??= await _brightness.current();
+      final value = await _brightness.current();
+      if (mounted) setState(() => _systemBrightness = value);
     } catch (_) {
-      _readerBrightness ??= .5;
+      // Keep the default; the rail still works.
     }
+  }
+
+  /// Every brightness control (rail, edge swipe, appearance sheet) goes
+  /// through here so they all show the same value.
+  void _setReaderBrightness(double value) {
+    setState(() => _readerBrightness = value);
+    unawaited(_brightness.set(value).catchError((Object _) {}));
+  }
+
+  void _followSystemBrightness() {
+    setState(() => _readerBrightness = null);
+    unawaited(_brightness.reset().catchError((Object _) {}));
+    unawaited(_loadSystemBrightness());
+  }
+
+  void _startBrightnessDrag() {
+    setState(() => _adjustingBrightness = true);
+    _readerBrightness ??= _systemBrightness;
   }
 
   void _updateBrightness(DragUpdateDetails details, double height) {
     final current = _readerBrightness;
     if (current == null || height <= 0) return;
     // A full-height swipe covers the whole range; up is brighter.
-    final next = (current - details.delta.dy / height).clamp(.02, 1.0);
-    setState(() => _readerBrightness = next);
-    unawaited(_brightness.set(next).catchError((Object _) {}));
+    _setReaderBrightness((current - details.delta.dy / height).clamp(.02, 1.0));
   }
 
   void _applyWakeLock(bool enabled) {
@@ -2407,8 +2509,10 @@ class _ReaderScreenState extends State<ReaderScreen>
         onChanged: _handleReaderSettingsChanged,
         onReset: () =>
             _handleReaderSettingsChanged(_settings.withDefaultAppearance()),
-        onBrightnessChanged: (b) => _brightness.set(b),
-        onResetBrightness: () => _brightness.reset(),
+        brightness: _readerBrightness ?? _systemBrightness,
+        followsSystemBrightness: _readerBrightness == null,
+        onBrightnessChanged: _setReaderBrightness,
+        onResetBrightness: _followSystemBrightness,
       ),
     );
     if (!mounted) return;
@@ -2669,12 +2773,7 @@ class _ReaderScreenState extends State<ReaderScreen>
 
   /// PDFs stay on the pdfrx reader: Readium's Pdfium adapter has no text
   /// selection and ignores the PDF display mode, theme and typeface.
-  bool _shouldUseReadium(DocumentFormat format) {
-    if (kIsWeb) return false;
-    if (format != DocumentFormat.epub) return false;
-    return defaultTargetPlatform == TargetPlatform.android ||
-        defaultTargetPlatform == TargetPlatform.iOS;
-  }
+  bool _shouldUseReadium(DocumentFormat format) => readsWithReadium(format);
 }
 
 class _FixedPage extends StatefulWidget {
@@ -3180,7 +3279,11 @@ class _PdfTextPage extends StatelessWidget {
             marks,
             darkPage: darkPage,
           ),
-          contextMenuBuilder: _readerContextMenu(onSelectionAction),
+          contextMenuBuilder: _readerContextMenu(
+            onSelectionAction,
+            // PDF page text has no offsets into the spoken text.
+            canListen: false,
+          ),
           textAlign: _readerTextAlign(textAlignment),
           style: Theme.of(context).textTheme.bodyLarge
               ?.copyWith(
@@ -3398,16 +3501,33 @@ TextStyle? _sheetTitleStyle(BuildContext context) => Theme.of(
 
 /// Reader selection actions. Copy and Send to app only appear in the native
 /// reader's menu; fallback pages get them from the platform's own items.
-enum _SelectionAction { highlight, lookup, copy, share, searchWeb, sendToApp }
+enum _SelectionAction {
+  highlight,
+  lookup,
+  listen,
+  copy,
+  share,
+  searchWeb,
+  sendToApp,
+}
 
 /// The fallback pages' selection toolbar: Highlight and Look up first, as in
 /// the EPUB reader, then the platform's own items (Copy, Select all, ...).
 EditableTextContextMenuBuilder _readerContextMenu(
-  void Function(TextSelection selection, _SelectionAction action) onAction,
-) => (context, state) {
+  void Function(TextSelection selection, _SelectionAction action) onAction, {
+  bool canListen = true,
+}) => (context, state) {
   final selection = state.textEditingValue.selection;
   void run(_SelectionAction action) {
-    state.hideToolbar();
+    state
+      ..hideToolbar()
+      // Collapsed, so the handles do not sit above the sheet it opens.
+      ..userUpdateTextEditingValue(
+        state.textEditingValue.copyWith(
+          selection: TextSelection.collapsed(offset: selection.extentOffset),
+        ),
+        SelectionChangedCause.toolbar,
+      );
     onAction(selection, action);
   }
 
@@ -3422,6 +3542,11 @@ EditableTextContextMenuBuilder _readerContextMenu(
         label: context.l10n.readerLookup,
         onPressed: () => run(_SelectionAction.lookup),
       ),
+      if (canListen)
+        ContextMenuButtonItem(
+          label: context.l10n.readerListenFromHere,
+          onPressed: () => run(_SelectionAction.listen),
+        ),
       ContextMenuButtonItem(
         label: context.l10n.readerShareSelection,
         onPressed: () => run(_SelectionAction.share),

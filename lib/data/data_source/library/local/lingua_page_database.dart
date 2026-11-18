@@ -139,6 +139,27 @@ class DictionaryCacheEntries extends Table {
 }
 
 // ---------------------------------------------------------------------------
+// Vocabulary — words saved from the dictionary lookup
+// ---------------------------------------------------------------------------
+
+class SavedWords extends Table {
+  /// The normalized word.
+  TextColumn get id => text()();
+  TextColumn get word => text()();
+  TextColumn get definition => text().nullable()();
+  TextColumn get partOfSpeech => text().nullable()();
+  TextColumn get phonetic => text().nullable()();
+
+  /// Not a reference: the word stays saved after its book is deleted.
+  TextColumn get bookId => text().nullable()();
+  TextColumn get bookTitle => text().nullable()();
+  DateTimeColumn get createdAt => dateTime()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+// ---------------------------------------------------------------------------
 // Database
 // ---------------------------------------------------------------------------
 
@@ -152,6 +173,7 @@ class DictionaryCacheEntries extends Table {
     DictionaryCacheEntries,
     Collections,
     BookCollections,
+    SavedWords,
   ],
 )
 class LinguaPageDatabase extends _$LinguaPageDatabase {
@@ -160,7 +182,7 @@ class LinguaPageDatabase extends _$LinguaPageDatabase {
   LinguaPageDatabase.defaults() : super(driftDatabase(name: 'lingua_page'));
 
   @override
-  int get schemaVersion => 9;
+  int get schemaVersion => 10;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -198,6 +220,9 @@ class LinguaPageDatabase extends _$LinguaPageDatabase {
         await m.addColumn(libraryBooks, libraryBooks.seriesIndex);
         await m.createTable(collections);
         await m.createTable(bookCollections);
+      }
+      if (from < 10) {
+        await m.createTable(savedWords);
       }
     },
   );

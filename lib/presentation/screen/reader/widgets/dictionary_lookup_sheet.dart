@@ -6,6 +6,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lingua_pages/core/injector/injector.dart';
 import 'package:lingua_pages/domain/entity/dictionary/dictionary_entry.dart';
 import 'package:lingua_pages/domain/entity/reader/highlight_entity.dart';
+import 'package:lingua_pages/domain/entity/vocabulary/saved_word_entity.dart';
+import 'package:lingua_pages/domain/repository/vocabulary/saved_word_repository.dart';
+import 'package:lingua_pages/l10n/l10n.dart';
 import 'package:lingua_pages/presentation/screen/reader/cubit/dictionary_lookup_cubit.dart';
 import 'package:lingua_pages/presentation/screen/reader/cubit/dictionary_lookup_state.dart';
 import 'package:lingua_pages/presentation/theme/app_tokens.dart';
@@ -65,7 +68,10 @@ class FloatingSelectionToolbar extends StatelessWidget {
                 child: Container(
                   width: 16,
                   height: 16,
-                  decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+                  decoration: BoxDecoration(
+                    color: color,
+                    shape: BoxShape.circle,
+                  ),
                 ),
               ),
             ),
@@ -80,7 +86,11 @@ class FloatingSelectionToolbar extends StatelessWidget {
             ),
             child: const Text(
               'Define',
-              style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
           IconButton(
@@ -120,10 +130,16 @@ class DictionaryLookupSheet extends StatelessWidget {
     this.onCopyPressed,
     this.onColorSelected,
     this.showFloatingToolbar = false,
+    this.bookId,
+    this.bookTitle,
     super.key,
   });
 
   final String selectedText;
+
+  /// The book the word is looked up in, kept with a saved word.
+  final String? bookId;
+  final String? bookTitle;
   final Future<void> Function() onHighlight;
   final DictionaryEntry? entry;
   final VoidCallback? onDefinePressed;
@@ -147,7 +163,8 @@ class DictionaryLookupSheet extends StatelessWidget {
         builder: (context, state) {
           if (state.status == DictionaryLookupStatus.loading) {
             return _buildLoadingSheet(context);
-          } else if (state.status == DictionaryLookupStatus.found && state.entries.isNotEmpty) {
+          } else if (state.status == DictionaryLookupStatus.found &&
+              state.entries.isNotEmpty) {
             return _buildSheetContent(context, state.entries);
           } else if (state.status == DictionaryLookupStatus.notFound ||
               state.status == DictionaryLookupStatus.offline) {
@@ -162,9 +179,20 @@ class DictionaryLookupSheet extends StatelessWidget {
   }
 
   Widget _buildLoadingSheet(BuildContext context) {
+    // Full width like the loaded sheet; its centred content would otherwise
+    // shrink it.
+    return SizedBox(
+      width: double.infinity,
+      child: _buildLoadingContent(context),
+    );
+  }
+
+  Widget _buildLoadingContent(BuildContext context) {
     return Material(
       color: Colors.white,
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(WarmEditorialTokens.bottomSheetRadiusLarge)),
+      borderRadius: const BorderRadius.vertical(
+        top: Radius.circular(WarmEditorialTokens.bottomSheetRadiusLarge),
+      ),
       child: SafeArea(
         top: false,
         child: Padding(
@@ -196,7 +224,9 @@ class DictionaryLookupSheet extends StatelessWidget {
   Widget _buildOfflineFallbackSheet(BuildContext context, String word) {
     return Material(
       color: Colors.white,
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(WarmEditorialTokens.bottomSheetRadiusLarge)),
+      borderRadius: const BorderRadius.vertical(
+        top: Radius.circular(WarmEditorialTokens.bottomSheetRadiusLarge),
+      ),
       child: SafeArea(
         top: false,
         child: Padding(
@@ -219,7 +249,11 @@ class DictionaryLookupSheet extends StatelessWidget {
               const SizedBox(height: 12),
               const Row(
                 children: [
-                  Icon(Icons.search_off_rounded, color: WarmEditorialTokens.subtitleSecondary, size: 24),
+                  Icon(
+                    Icons.search_off_rounded,
+                    color: WarmEditorialTokens.subtitleSecondary,
+                    size: 24,
+                  ),
                   SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -247,7 +281,9 @@ class DictionaryLookupSheet extends StatelessWidget {
   Widget _buildErrorSheet(BuildContext context, String word) {
     return Material(
       color: Colors.white,
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(WarmEditorialTokens.bottomSheetRadiusLarge)),
+      borderRadius: const BorderRadius.vertical(
+        top: Radius.circular(WarmEditorialTokens.bottomSheetRadiusLarge),
+      ),
       child: SafeArea(
         top: false,
         child: Padding(
@@ -270,7 +306,11 @@ class DictionaryLookupSheet extends StatelessWidget {
               const SizedBox(height: 12),
               const Text(
                 'Lookup failed. You can still highlight or copy this text.',
-                style: TextStyle(fontFamily: 'Inter', fontSize: 13, color: WarmEditorialTokens.subtitleSecondary),
+                style: TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 13,
+                  color: WarmEditorialTokens.subtitleSecondary,
+                ),
               ),
               const SizedBox(height: 24),
               _buildFastActionRow(context, word),
@@ -283,9 +323,14 @@ class DictionaryLookupSheet extends StatelessWidget {
     );
   }
 
-  Widget _buildSheetContent(BuildContext context, List<DictionaryEntry> entries) {
+  Widget _buildSheetContent(
+    BuildContext context,
+    List<DictionaryEntry> entries,
+  ) {
     final first = entries.first;
-    final primaryMeaning = first.meanings.isNotEmpty ? first.meanings.first : null;
+    final primaryMeaning = first.meanings.isNotEmpty
+        ? first.meanings.first
+        : null;
     final pos = primaryMeaning?.partOfSpeech ?? 'adjective';
 
     return Column(
@@ -302,7 +347,9 @@ class DictionaryLookupSheet extends StatelessWidget {
         ],
         Material(
           color: Colors.white,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(WarmEditorialTokens.bottomSheetRadiusLarge)),
+          borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(WarmEditorialTokens.bottomSheetRadiusLarge),
+          ),
           child: SafeArea(
             top: false,
             child: ConstrainedBox(
@@ -345,7 +392,8 @@ class DictionaryLookupSheet extends StatelessWidget {
                                       style: const TextStyle(
                                         fontFamily: 'Inter',
                                         fontSize: 14,
-                                        color: WarmEditorialTokens.subtitleSecondary,
+                                        color: WarmEditorialTokens
+                                            .subtitleSecondary,
                                       ),
                                     ),
                                   // Audio button
@@ -353,9 +401,13 @@ class DictionaryLookupSheet extends StatelessWidget {
                                     width: 28,
                                     height: 28,
                                     decoration: BoxDecoration(
-                                      color: WarmEditorialTokens.surfaceContainerLow,
+                                      color: WarmEditorialTokens
+                                          .surfaceContainerLow,
                                       shape: BoxShape.circle,
-                                      border: Border.all(color: WarmEditorialTokens.hairlineDivider),
+                                      border: Border.all(
+                                        color:
+                                            WarmEditorialTokens.hairlineDivider,
+                                      ),
                                     ),
                                     child: IconButton(
                                       icon: Icon(
@@ -373,7 +425,12 @@ class DictionaryLookupSheet extends StatelessWidget {
                               // Etymology Note
                               Row(
                                 children: [
-                                  const Icon(Icons.history_edu, size: 14, color: WarmEditorialTokens.subtitleSecondary),
+                                  const Icon(
+                                    Icons.history_edu,
+                                    size: 14,
+                                    color:
+                                        WarmEditorialTokens.subtitleSecondary,
+                                  ),
                                   const SizedBox(width: 4),
                                   Expanded(
                                     child: Text(
@@ -384,7 +441,8 @@ class DictionaryLookupSheet extends StatelessWidget {
                                         fontFamily: 'Inter',
                                         fontSize: 11,
                                         fontStyle: FontStyle.italic,
-                                        color: WarmEditorialTokens.subtitleSecondary,
+                                        color: WarmEditorialTokens
+                                            .subtitleSecondary,
                                       ),
                                     ),
                                   ),
@@ -392,11 +450,6 @@ class DictionaryLookupSheet extends StatelessWidget {
                               ),
                             ],
                           ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.bookmark_add_outlined, size: 20),
-                          color: WarmEditorialTokens.subtitleSecondary,
-                          onPressed: () {},
                         ),
                         IconButton(
                           icon: const Icon(Icons.close, size: 20),
@@ -426,7 +479,8 @@ class DictionaryLookupSheet extends StatelessWidget {
                         for (final meaning in first.meanings.skip(1))
                           Chip(
                             label: Text(meaning.partOfSpeech),
-                            backgroundColor: WarmEditorialTokens.surfaceContainerLow,
+                            backgroundColor:
+                                WarmEditorialTokens.surfaceContainerLow,
                             labelStyle: const TextStyle(
                               fontFamily: 'Inter',
                               color: WarmEditorialTokens.subtitleSecondary,
@@ -436,7 +490,10 @@ class DictionaryLookupSheet extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 16),
-                    const Divider(height: 1, color: WarmEditorialTokens.hairlineDivider),
+                    const Divider(
+                      height: 1,
+                      color: WarmEditorialTokens.hairlineDivider,
+                    ),
                     const SizedBox(height: 14),
 
                     // Definitions List with left accent border blockquotes
@@ -466,7 +523,8 @@ class DictionaryLookupSheet extends StatelessWidget {
                                         fontFamily: 'Inter',
                                         fontSize: 14,
                                         height: 1.45,
-                                        color: WarmEditorialTokens.textPrimaryInk,
+                                        color:
+                                            WarmEditorialTokens.textPrimaryInk,
                                       ),
                                     ),
                                   ),
@@ -479,7 +537,9 @@ class DictionaryLookupSheet extends StatelessWidget {
                                   decoration: BoxDecoration(
                                     border: Border(
                                       left: BorderSide(
-                                        color: context.accent.withValues(alpha: 0.3),
+                                        color: context.accent.withValues(
+                                          alpha: 0.3,
+                                        ),
                                         width: 2.0,
                                       ),
                                     ),
@@ -490,7 +550,8 @@ class DictionaryLookupSheet extends StatelessWidget {
                                       fontFamily: 'Newsreader',
                                       fontSize: 14,
                                       fontStyle: FontStyle.italic,
-                                      color: WarmEditorialTokens.subtitleSecondary,
+                                      color:
+                                          WarmEditorialTokens.subtitleSecondary,
                                     ),
                                   ),
                                 ),
@@ -500,7 +561,7 @@ class DictionaryLookupSheet extends StatelessWidget {
                         ),
 
                     const SizedBox(height: 12),
-                    _buildFastActionRow(context, first.word),
+                    _buildFastActionRow(context, first.word, entry: first),
                     const SizedBox(height: 16),
                     _buildFooter(),
                   ],
@@ -524,27 +585,19 @@ class DictionaryLookupSheet extends StatelessWidget {
     );
   }
 
-  Widget _buildFastActionRow(BuildContext context, String word) {
+  Widget _buildFastActionRow(
+    BuildContext context,
+    String word, {
+    DictionaryEntry? entry,
+  }) {
     return Row(
       children: [
         Expanded(
-          child: OutlinedButton.icon(
-            style: OutlinedButton.styleFrom(
-              backgroundColor: WarmEditorialTokens.surfaceContainerLow,
-              side: const BorderSide(color: WarmEditorialTokens.hairlineDivider),
-              shape: const StadiumBorder(),
-            ),
-            icon: Icon(Icons.style, size: 16, color: context.accent),
-            label: const Text(
-              'Add to Flashcards',
-              style: TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: WarmEditorialTokens.textPrimaryInk,
-              ),
-            ),
-            onPressed: () {},
+          child: _SaveWordButton(
+            word: word,
+            entry: entry,
+            bookId: bookId,
+            bookTitle: bookTitle,
           ),
         ),
         const SizedBox(width: 8),
@@ -554,7 +607,11 @@ class DictionaryLookupSheet extends StatelessWidget {
             side: const BorderSide(color: WarmEditorialTokens.hairlineDivider),
             shape: const StadiumBorder(),
           ),
-          icon: const Icon(Icons.content_copy, size: 16, color: WarmEditorialTokens.subtitleSecondary),
+          icon: const Icon(
+            Icons.content_copy,
+            size: 16,
+            color: WarmEditorialTokens.subtitleSecondary,
+          ),
           label: const Text(
             'Copy',
             style: TextStyle(
@@ -571,7 +628,11 @@ class DictionaryLookupSheet extends StatelessWidget {
             backgroundColor: WarmEditorialTokens.surfaceContainerLow,
             side: const BorderSide(color: WarmEditorialTokens.hairlineDivider),
           ),
-          icon: const Icon(Icons.open_in_new, size: 16, color: WarmEditorialTokens.subtitleSecondary),
+          icon: const Icon(
+            Icons.open_in_new,
+            size: 16,
+            color: WarmEditorialTokens.subtitleSecondary,
+          ),
           onPressed: () {
             final uri = Uri.parse('https://en.wiktionary.org/wiki/$word');
             unawaited(launchUrl(uri, mode: LaunchMode.externalApplication));
@@ -585,7 +646,9 @@ class DictionaryLookupSheet extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.only(top: 10),
       decoration: const BoxDecoration(
-        border: Border(top: BorderSide(color: WarmEditorialTokens.hairlineDivider)),
+        border: Border(
+          top: BorderSide(color: WarmEditorialTokens.hairlineDivider),
+        ),
       ),
       child: const Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -622,8 +685,119 @@ class DictionaryLookupSheet extends StatelessWidget {
 
   void _copy(BuildContext context, String text) {
     unawaited(Clipboard.setData(ClipboardData(text: text)));
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Copied to clipboard')),
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Copied to clipboard')));
+  }
+}
+
+/// Saves the looked-up word to Saved words, or removes it again.
+class _SaveWordButton extends StatefulWidget {
+  const _SaveWordButton({
+    required this.word,
+    this.entry,
+    this.bookId,
+    this.bookTitle,
+  });
+
+  final String word;
+  final DictionaryEntry? entry;
+  final String? bookId;
+  final String? bookTitle;
+
+  @override
+  State<_SaveWordButton> createState() => _SaveWordButtonState();
+}
+
+class _SaveWordButtonState extends State<_SaveWordButton> {
+  SavedWordRepository? get _repository =>
+      injector.isRegistered<SavedWordRepository>()
+      ? injector<SavedWordRepository>()
+      : null;
+
+  /// Null until known, so the button does not flip after loading.
+  bool? _saved;
+  var _busy = false;
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_load());
+  }
+
+  Future<void> _load() async {
+    final repository = _repository;
+    if (repository == null) return;
+    try {
+      final saved = await repository.isSaved(widget.word);
+      if (mounted) setState(() => _saved = saved);
+    } catch (_) {
+      if (mounted) setState(() => _saved = false);
+    }
+  }
+
+  Future<void> _toggle() async {
+    final repository = _repository;
+    if (repository == null || _busy) return;
+    final l10n = context.l10n;
+    final messenger = ScaffoldMessenger.of(context);
+    final save = _saved != true;
+    setState(() => _busy = true);
+    try {
+      if (save) {
+        final meaning = widget.entry?.meanings.firstOrNull;
+        await repository.save(
+          SavedWordEntity(
+            word: widget.entry?.word ?? widget.word,
+            definition: meaning?.definitions.firstOrNull?.definition,
+            partOfSpeech: meaning?.partOfSpeech,
+            phonetic: widget.entry?.phonetic,
+            bookId: widget.bookId,
+            bookTitle: widget.bookTitle,
+            createdAt: DateTime.now(),
+          ),
+        );
+      } else {
+        await repository.delete(widget.word);
+      }
+      if (mounted) setState(() => _saved = save);
+    } catch (_) {
+      messenger.showSnackBar(SnackBar(content: Text(l10n.libraryActionFailed)));
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final saved = _saved == true;
+    return OutlinedButton.icon(
+      key: const Key('lookup_save_word_button'),
+      style: OutlinedButton.styleFrom(
+        backgroundColor: saved
+            ? context.accent.withValues(alpha: 0.1)
+            : WarmEditorialTokens.surfaceContainerLow,
+        side: BorderSide(
+          color: saved ? context.accent : WarmEditorialTokens.hairlineDivider,
+        ),
+        shape: const StadiumBorder(),
+      ),
+      icon: Icon(
+        saved ? Icons.check_rounded : Icons.style,
+        size: 16,
+        color: context.accent,
+      ),
+      label: Text(
+        saved ? l10n.lookupWordSaved : l10n.lookupSaveWord,
+        style: const TextStyle(
+          fontFamily: 'Inter',
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: WarmEditorialTokens.textPrimaryInk,
+        ),
+      ),
+      onPressed: _saved == null || _repository == null ? null : _toggle,
     );
   }
 }

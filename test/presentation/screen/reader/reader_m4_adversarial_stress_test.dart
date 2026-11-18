@@ -384,13 +384,13 @@ void main() {
         ),
       );
 
-      expect(find.text('Add to Flashcards'), findsOneWidget);
+      expect(find.text('Save word'), findsOneWidget);
       expect(find.text('Copy'), findsOneWidget);
       expect(find.text('From Wiktionary · CC BY-SA 3.0 · Offline Lexicon'), findsOneWidget);
       expect(find.text('0 B used'), findsOneWidget);
 
-      // Tap Add to Flashcards (safe invocation)
-      await tester.tap(find.text('Add to Flashcards'));
+      // Tap Save word (safe invocation)
+      await tester.tap(find.text('Save word'));
       await tester.pumpAndSettle();
 
       // Tap Copy

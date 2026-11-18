@@ -228,6 +228,7 @@
   "readerExportAnnotations": "Copy Markdown export",
   "readerExportCopied": "Annotations copied as Markdown",
   "readerLookup": "Look up",
+  "readerListenFromHere": "Listen from here",
   "readerLookupFailed": "Lookup could not be completed",
   "readerNoDefinition": "No definition found",
   "readerCopy": "Copy",
@@ -339,6 +340,7 @@
   },
   "readAloudShowControls": "Read-aloud controls",
   "readAloudOtherVoices": "Other languages",
+  "readAloudCouldNotStart": "Couldn't start reading this book aloud.",
   "readerCornerTheme": "Switch light or dark page",
   "readerLayoutSection": "Layout",
   "readerHyphenation": "Hyphenation",
@@ -517,6 +519,23 @@
   "dictionaryNotFoundBody": "The dictionary has no entry for this word. Inflected forms sometimes need their base form, such as \"run\" for \"ran\".",
   "readerHighlightChooseColor": "Choose a color to save",
   "annotationsTitle": "Annotations",
+  "savedWordsTitle": "Saved words",
+  "savedWordsEmptyTitle": "No saved words yet",
+  "savedWordsEmptyBody": "Look up a word while reading and tap Save word to keep it here.",
+  "savedWordsSearchHint": "Search saved words",
+  "savedWordsNoMatches": "No saved words match",
+  "savedWordsLoadFailed": "Saved words could not be loaded",
+  "savedWordsRemoved": "Removed \"{word}\"",
+  "@savedWordsRemoved": {
+    "placeholders": {
+      "word": {
+        "type": "String"
+      }
+    }
+  },
+  "lookupSaveWord": "Save word",
+  "lookupWordSaved": "Saved",
+  "lookupRemoveSavedWord": "Remove from saved words",
   "annotationsSearchHint": "Search highlights, notes and bookmarks",
   "annotationsAll": "All",
   "annotationsHighlights": "Highlights",

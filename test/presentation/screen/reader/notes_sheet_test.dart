@@ -50,7 +50,7 @@ void main() {
       expect(find.text('Contents'), findsNothing);
       expect(find.text('Highlights'), findsOneWidget);
       expect(find.text('Bookmarks'), findsOneWidget);
-      expect(find.text('1 highlight · 1 bookmark'), findsOneWidget);
+      expect(find.text('1 highlight · 1 bookmark · 0 words'), findsOneWidget);
       expect(find.byKey(const Key('export_markdown_button')), findsOneWidget);
 
       // Opens on highlights.

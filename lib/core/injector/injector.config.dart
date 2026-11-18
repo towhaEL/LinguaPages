@@ -57,6 +57,8 @@ import '../../data/repository_impl/reader/drift_reader_repositories.dart'
     as _i487;
 import '../../data/repository_impl/settings/drift_settings_repository.dart'
     as _i143;
+import '../../data/repository_impl/vocabulary/drift_saved_word_repository.dart'
+    as _i905;
 import '../../domain/repository/backup/backup_repository.dart' as _i862;
 import '../../domain/repository/dictionary/dictionary_repository.dart' as _i900;
 import '../../domain/repository/library/collection_repository.dart' as _i949;
@@ -68,6 +70,7 @@ import '../../domain/repository/reader/highlight_repository.dart' as _i749;
 import '../../domain/repository/reader/reading_session_repository.dart'
     as _i121;
 import '../../domain/repository/settings/settings_repository.dart' as _i55;
+import '../../domain/repository/vocabulary/saved_word_repository.dart' as _i922;
 import '../../domain/service/billing_service.dart' as _i1033;
 import '../../domain/service/document_engine_factory.dart' as _i304;
 import '../../domain/service/document_import_service.dart' as _i536;
@@ -102,6 +105,8 @@ import '../../presentation/screen/reader/cubit/dictionary_lookup_cubit.dart'
     as _i377;
 import '../../presentation/screen/reader/read_aloud/read_aloud_session.dart'
     as _i990;
+import '../../presentation/screen/saved_words/cubit/saved_words_cubit.dart'
+    as _i279;
 import '../feature_flags/app_feature_flags.dart' as _i101;
 import '../helper/secure_storage_service.dart' as _i693;
 import '../storage/onboarding_preferences.dart' as _i732;
@@ -201,6 +206,15 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i47.DocumentMetadataExtractor>(
       () => _i570.LocalDocumentMetadataExtractor(),
+    );
+    gh.lazySingleton<_i922.SavedWordRepository>(
+      () => _i905.DriftSavedWordRepository(gh<_i211.LinguaPageDatabase>()),
+    );
+    gh.factory<_i279.SavedWordsCubit>(
+      () => _i279.SavedWordsCubit(
+        gh<_i922.SavedWordRepository>(),
+        gh<_i974.Logger>(),
+      ),
     );
     gh.lazySingleton<_i1036.DictionaryDataSource>(
       () => _i610.RemoteDictionaryDataSource(gh<_i361.Dio>()),

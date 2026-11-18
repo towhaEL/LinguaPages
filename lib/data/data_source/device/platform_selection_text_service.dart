@@ -41,4 +41,15 @@ class PlatformSelectionTextService implements SelectionTextService {
     // Read-only: an app's reply never replaces book text.
     await _processText.processTextAction(app.id, text, true);
   }
+
+  @override
+  Future<void> clearReaderSelection() async {
+    try {
+      await _channel.invokeMethod<void>('clearSelection');
+    } on MissingPluginException {
+      // Only Android draws the handles above Flutter.
+    } on PlatformException {
+      // Best effort: the handles go once the sheet is closed.
+    }
+  }
 }

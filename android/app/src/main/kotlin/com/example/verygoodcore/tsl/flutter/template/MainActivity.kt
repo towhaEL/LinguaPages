@@ -7,6 +7,9 @@ import android.net.Uri
 import android.provider.DocumentsContract
 import android.provider.OpenableColumns
 import android.view.KeyEvent
+import android.view.View
+import android.view.ViewGroup
+import android.webkit.WebView
 import androidx.activity.result.contract.ActivityResultContracts
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
@@ -125,11 +128,44 @@ class MainActivity : FlutterFragmentActivity() {
             when (call.method) {
                 "webSearch" -> result.success(webSearch(call.arguments as? String ?: ""))
                 "openTtsSettings" -> result.success(openTtsSettings())
+                "clearSelection" -> {
+                    clearReaderSelection()
+                    result.success(null)
+                }
                 else -> result.notImplemented()
             }
         }
 
         handleDocumentIntent(intent, emitDocument = false)
+    }
+
+    // The Readium reader's WebViews draw their selection handles in their own
+    // window, above any Flutter sheet, so a selection action clears them here.
+    private fun clearReaderSelection() {
+        val roots = mutableListOf<View>(window.decorView)
+        supportFragmentManager.fragments.forEach { fragment ->
+            fragment.view?.let(roots::add)
+            fragment.childFragmentManager.fragments.forEach { child ->
+                child.view?.let(roots::add)
+            }
+        }
+        val seen = mutableSetOf<WebView>()
+        fun walk(view: View) {
+            if (view is WebView) {
+                if (seen.add(view)) {
+                    view.evaluateJavascript(
+                        "window.getSelection() && window.getSelection().removeAllRanges();",
+                        null,
+                    )
+                    view.clearFocus()
+                }
+                return
+            }
+            if (view is ViewGroup) {
+                for (index in 0 until view.childCount) walk(view.getChildAt(index))
+            }
+        }
+        roots.forEach(::walk)
     }
 
     // Where voices are installed and the default engine is chosen.
