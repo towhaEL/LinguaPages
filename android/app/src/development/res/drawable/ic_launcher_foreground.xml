@@ -1,18 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Three paperbacks with the EPUB, PDF and TXT format bands (DESIGN.md). -->
+<!-- The "op" mark: split O and a bookmark p with a TXT-blue ribbon (docs/brand/logo-op). -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-  <path android:fillColor="#FFF4F1EA" android:pathData="M33,40h12v40h-12z"/>
-  <path android:fillColor="#FFE0742E" android:pathData="M33,40h12v9h-12z"/>
-  <path android:fillColor="#FFE0742E" android:pathData="M33,71h12v9h-12z"/>
-  <path android:fillColor="#FFF4F1EA" android:pathData="M48,34h12v46h-12z"/>
-  <path android:fillColor="#FF4FA370" android:pathData="M48,34h12v10h-12z"/>
-  <path android:fillColor="#FF4FA370" android:pathData="M48,70h12v10h-12z"/>
-  <path android:fillColor="#FFF4F1EA" android:pathData="M63,44h12v36h-12z"/>
-  <path android:fillColor="#FF5B8FD6" android:pathData="M63,44h12v8h-12z"/>
-  <path android:fillColor="#FF5B8FD6" android:pathData="M63,72h12v8h-12z"/>
-  <path android:fillColor="#FFB07CCB" android:pathData="M50,26a4,4 0 1,0 8,0a4,4 0 1,0 -8,0z"/>
+  <group
+      android:scaleX="0.22"
+      android:scaleY="0.22"
+      android:translateX="15.28"
+      android:translateY="26.06">
+    <path android:fillColor="#FFF4F1EA" android:pathData="M96,34A66,66 0,0 0,96 166V133A33,33 0,0 1,96 67ZM104,26A66,66 0,0 1,104 158V125A33,33 0,0 0,104 59ZM190,32H226V164H190ZM256,30A66,66 0,1 1,256 162A66,66 0,1 1,256 30ZM259,67A27,29 0,1 0,259 125A27,29 0,1 0,259 67Z"/>
+    <path android:fillColor="#FF5B8FD6" android:pathData="M190,164H226V224L208,206L190,224Z"/>
+  </group>
+  <path android:fillColor="#FFB07CCB" android:pathData="M50,22a4,4 0,1 0,8 0a4,4 0,1 0,-8 0z"/>
 </vector>

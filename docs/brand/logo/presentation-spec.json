@@ -1,0 +1,35 @@
+{
+  "brand": "OpenPages",
+  "tagline": "Every book you own, in one private reader",
+  "brief": "An offline-first, private ebook reader for every DRM-free format (EPUB, PDF, TXT, Markdown, HTML, FB2), for heavy readers and for researchers who annotate. It should feel calm, trustworthy and premium-dark, and stay clear of store-style reading apps and the open-book-on-orange cliché.",
+  "adjectives": ["calm", "trustworthy", "private", "simple"],
+  "criteria": "Success: ownable among reading apps, recognisable at 16 px, works in one colour, sits naturally in the app's dark Paperback Bands UI.",
+  "industry": "consumer-app",
+  "nav": ["Formats", "Privacy", "Download"],
+  "brand_color": "#E0742E",
+  "tile_color": "#111315",
+  "greyscale": false,
+  "final": true,
+  "concepts": [
+    {
+      "name": "Bookmark p",
+      "symbol": "masters/openpages-symbol-color-light.svg",
+      "lockup": "masters/openpages-horizontal-color-light.svg",
+      "stacked": "masters/openpages-stacked-color-light.svg",
+      "avatar": "masters/openpages-symbol-small-color-light.svg",
+      "symbol_on_tile": "masters/openpages-symbol-small-color-dark.svg",
+      "symbol_on_dark": "masters/openpages-symbol-small-color-dark.svg",
+      "lockup_on_dark": "masters/openpages-horizontal-color-dark.svg",
+      "stacked_on_dark": "masters/openpages-stacked-color-dark.svg",
+      "stacked_on_tile": "masters/openpages-stacked-color-dark.svg",
+      "idea": "The p of Pages, its tail cut like a bookmark ribbon: your place, kept.",
+      "rationale": [
+        "Says reading without the open-book cliché, and stays clear of orange open-book app icons",
+        "The ribbon echoes what the app protects: bookmarks, highlights and notes that are never lost",
+        "Built from one ring, one stem and one 45° cut; a heavier small-size cut keeps the notch at 16 px",
+        "Paper and press-orange on ink, taken straight from the app's design tokens"
+      ]
+    }
+  ],
+  "recommendation": "Adopt the Bookmark p as the OpenPages mark: paper-white on ink in the app, ink on light surfaces, press-orange only on the ribbon."
+}
