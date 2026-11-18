@@ -8,6 +8,7 @@ import 'package:lingua_pages/l10n/l10n.dart';
 import 'package:lingua_pages/presentation/route/app_router.gr.dart';
 import 'package:lingua_pages/presentation/theme/app_colors.dart';
 import 'package:lingua_pages/presentation/theme/base/theme_extension.dart';
+import 'package:lingua_pages/presentation/widgets/widgets.dart';
 
 /// 4-page horizontal PageView carousel for OpenPages first-run onboarding.
 ///
@@ -103,6 +104,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    return _ResponsiveOnboarding(builder: _buildScaffold);
+  }
+
+  Widget _buildScaffold(BuildContext context, _OnboardingLayout layout) {
+    final pages = _pages();
     return Scaffold(
       backgroundColor: AppColors.canvasBackground,
       appBar: AppBar(
@@ -110,15 +116,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         elevation: 0,
         scrolledUnderElevation: 0,
         automaticallyImplyLeading: false,
-        titleSpacing: 20,
+        // Every row counts on a ~400dp tall landscape phone.
+        toolbarHeight: layout == _OnboardingLayout.split ? 48 : null,
+        titleSpacing: layout.isLarge ? 32 : 20,
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              Icons.local_library_outlined,
-              color: context.accent,
-              size: 24,
-            ),
+            Icon(Icons.local_library_outlined, color: context.accent, size: 24),
             const SizedBox(width: 8),
             Flexible(
               child: Text(
@@ -136,7 +140,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         ),
         actions: [
           Padding(
-            padding: const EdgeInsets.only(right: 12),
+            padding: EdgeInsets.only(right: layout.isLarge ? 24 : 12),
             child: TextButton(
               onPressed: _handleSkip,
               style: TextButton.styleFrom(
@@ -154,25 +158,30 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 480),
+            constraints: BoxConstraints(maxWidth: layout.maxWidth),
             child: Column(
               children: [
                 Expanded(
                   child: PageView(
                     controller: _pageController,
-                    onPageChanged: (page) => setState(() => _currentPage = page),
+                    onPageChanged: (page) =>
+                        setState(() => _currentPage = page),
                     children: [
-                      _buildPage1(),
-                      _buildPage2(),
-                      _buildPage3(),
-                      _buildPage4(),
+                      for (final page in pages)
+                        layout.isSplit
+                            ? _buildSplitPage(page, layout)
+                            : _buildStackedPage(page, layout),
                     ],
                   ),
                 ),
-                _buildPageIndicators(),
-                const SizedBox(height: 20),
-                _buildFooter(),
-                const SizedBox(height: 16),
+                if (layout.isSplit)
+                  _buildFooterBar(layout)
+                else ...[
+                  _buildPageIndicators(),
+                  const SizedBox(height: 20),
+                  _buildFooter(),
+                  const SizedBox(height: 16),
+                ],
               ],
             ),
           ),
@@ -181,341 +190,233 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  Widget _buildPage1() {
+  List<_PageSpec> _pages() => [
+    _PageSpec(
+      visual: const Image(
+        image: AssetImage('assets/images/onboarding_hero_illustration.png'),
+        key: Key('onboarding_hero_image'),
+        fit: BoxFit.contain,
+      ),
+      title: 'Your books, all in one place',
+      titleStyle: _displayTitle,
+      body:
+          'EPUB, PDF, TXT, Markdown, HTML and FB2. DRM-free and stored only on your phone.',
+      pills: (alignment) => _buildFormatChips(alignment),
+    ),
+    _PageSpec(
+      visual: _framedVisual(
+        color: AppColors.surfaceContainerLowColor,
+        radius: 16,
+        padding: 8,
+        image: const Image(
+          image: AssetImage(
+            'assets/images/onboarding_page_2_reading_styles.png',
+          ),
+          key: Key('onboarding_page2_image'),
+          fit: BoxFit.contain,
+        ),
+      ),
+      title: 'Read the way you like',
+      titleStyle: _sectionTitle,
+      body:
+          'Themes, fonts, line spacing and margins. Highlights, notes and bookmarks that stay with the page.',
+      pills: (alignment) => _buildPills(alignment, [
+        (Icons.format_size, 'Custom Fonts'),
+        (Icons.format_align_justify, 'Margins & Spacing'),
+        (Icons.edit_note, 'Highlights & Notes'),
+      ]),
+    ),
+    _PageSpec(
+      visual: _framedVisual(
+        color: AppColors.cardSurface,
+        radius: 24,
+        padding: 12,
+        image: const Image(
+          image: AssetImage('assets/images/onboarding_page_3_read_aloud.png'),
+          key: Key('onboarding_page3_image'),
+          fit: BoxFit.contain,
+        ),
+      ),
+      title: 'Listen when your eyes rest',
+      titleStyle: _displayTitle,
+      body:
+          'Text-to-speech read aloud with natural voices, sentence tracking, and sleep timer, even when your screen is locked.',
+      pills: (alignment) => _buildPills(alignment, [
+        (Icons.record_voice_over_outlined, 'Natural Voices'),
+        (Icons.format_underlined, 'Sentence Tracking'),
+        (Icons.bedtime_outlined, 'Sleep Timer'),
+      ]),
+    ),
+    _PageSpec(
+      visual: _framedVisual(
+        color: AppColors.cardSurface,
+        radius: 24,
+        padding: 10,
+        image: const Image(
+          image: AssetImage('assets/images/onboarding_page_4_privacy.png'),
+          key: Key('onboarding_page4_image'),
+          fit: BoxFit.contain,
+        ),
+      ),
+      title: 'Private by design',
+      titleStyle: _sectionTitle,
+      body:
+          'No account, no telemetry, no tracking. DRM-free books stored only on your device, with free offline dictionary lookup.',
+      pills: (alignment) => _buildPills(alignment, [
+        (Icons.lock_outline, '100% Offline Vault'),
+        (Icons.shield_outlined, 'Zero Telemetry'),
+        (Icons.translate, 'Offline Dictionary'),
+      ]),
+    ),
+  ];
+
+  /// Pages 1 and 3 use the lighter display headline; 2 and 4 the heavier one.
+  static TextStyle _displayTitle(double scale) => GoogleFonts.newsreader(
+    fontSize: 30 * scale,
+    fontWeight: FontWeight.w400,
+    height: 38 / 30,
+    letterSpacing: -0.45 * scale,
+    color: AppColors.primaryInkColor,
+  );
+
+  static TextStyle _sectionTitle(double scale) => GoogleFonts.newsreader(
+    fontSize: 26 * scale,
+    fontWeight: FontWeight.w500,
+    height: 34 / 26,
+    letterSpacing: -0.26 * scale,
+    color: AppColors.primaryInkColor,
+  );
+
+  Widget _framedVisual({
+    required Color color,
+    required double radius,
+    required double padding,
+    required Widget image,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(radius),
+        border: Border.all(color: AppColors.hairlineDivider, width: 1),
+      ),
+      padding: EdgeInsets.all(padding),
+      child: image,
+    );
+  }
+
+  TextStyle _bodyStyle(double scale) => GoogleFonts.inter(
+    fontSize: 15 * scale,
+    fontWeight: FontWeight.w400,
+    height: 22 / 15,
+    color: AppColors.secondarySlateColor,
+  );
+
+  /// Phone and tablet portrait: visual above, copy centred below.
+  Widget _buildStackedPage(_PageSpec page, _OnboardingLayout layout) {
+    final scale = layout.typeScale;
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const SizedBox(height: 8),
-          const SizedBox(
-            height: 240,
-            child: Center(
-              child: Image(
-                image: AssetImage('assets/images/onboarding_hero_illustration.png'),
-                key: Key('onboarding_hero_image'),
-                fit: BoxFit.contain,
-              ),
-            ),
+          SizedBox(height: layout.isLarge ? 24 : 8),
+          SizedBox(
+            height: layout.isLarge ? 380 : 240,
+            child: Center(child: page.visual),
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: layout.isLarge ? 36 : 24),
           Text(
-            'Your books, all in one place',
+            page.title,
             textAlign: TextAlign.center,
-            style: GoogleFonts.newsreader(
-              fontSize: 30,
-              fontWeight: FontWeight.w400,
-              height: 38 / 30,
-              letterSpacing: -0.45,
-              color: AppColors.primaryInkColor,
-            ),
+            style: page.titleStyle(scale),
           ),
           const SizedBox(height: 12),
           Text(
-            'EPUB, PDF, TXT, Markdown, HTML and FB2. DRM-free and stored only on your phone.',
+            page.body,
             textAlign: TextAlign.center,
-            style: GoogleFonts.inter(
-              fontSize: 15,
-              fontWeight: FontWeight.w400,
-              height: 22 / 15,
-              color: AppColors.secondarySlateColor,
-            ),
+            style: _bodyStyle(scale),
           ),
           const SizedBox(height: 20),
-          Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            alignment: WrapAlignment.center,
-            children: const [
-              Chip(
-                label: Text('EPUB'),
-                backgroundColor: AppColors.cardSurface,
-                shape: StadiumBorder(
-                  side: BorderSide(color: AppColors.hairlineDivider, width: 1),
-                ),
-                labelStyle: TextStyle(
-                  fontFamily: 'Inter',
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.secondarySlateColor,
-                ),
-                padding: EdgeInsets.symmetric(horizontal: 4, vertical: 0),
-                visualDensity: VisualDensity.compact,
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
-              Chip(
-                label: Text('PDF'),
-                backgroundColor: AppColors.cardSurface,
-                shape: StadiumBorder(
-                  side: BorderSide(color: AppColors.hairlineDivider, width: 1),
-                ),
-                labelStyle: TextStyle(
-                  fontFamily: 'Inter',
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.secondarySlateColor,
-                ),
-                padding: EdgeInsets.symmetric(horizontal: 4, vertical: 0),
-                visualDensity: VisualDensity.compact,
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
-              Chip(
-                label: Text('TXT'),
-                backgroundColor: AppColors.cardSurface,
-                shape: StadiumBorder(
-                  side: BorderSide(color: AppColors.hairlineDivider, width: 1),
-                ),
-                labelStyle: TextStyle(
-                  fontFamily: 'Inter',
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.secondarySlateColor,
-                ),
-                padding: EdgeInsets.symmetric(horizontal: 4, vertical: 0),
-                visualDensity: VisualDensity.compact,
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
-              Chip(
-                label: Text('MD'),
-                backgroundColor: AppColors.cardSurface,
-                shape: StadiumBorder(
-                  side: BorderSide(color: AppColors.hairlineDivider, width: 1),
-                ),
-                labelStyle: TextStyle(
-                  fontFamily: 'Inter',
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.secondarySlateColor,
-                ),
-                padding: EdgeInsets.symmetric(horizontal: 4, vertical: 0),
-                visualDensity: VisualDensity.compact,
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
-              Chip(
-                label: Text('FB2'),
-                backgroundColor: AppColors.cardSurface,
-                shape: StadiumBorder(
-                  side: BorderSide(color: AppColors.hairlineDivider, width: 1),
-                ),
-                labelStyle: TextStyle(
-                  fontFamily: 'Inter',
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.secondarySlateColor,
-                ),
-                padding: EdgeInsets.symmetric(horizontal: 4, vertical: 0),
-                visualDensity: VisualDensity.compact,
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
-            ],
-          ),
+          page.pills(WrapAlignment.center),
           const SizedBox(height: 16),
         ],
       ),
     );
   }
 
-  Widget _buildPage2() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+  /// Landscape: the visual takes the start column at full height, the copy
+  /// sits beside it, so a short screen never has to scroll to read a page.
+  Widget _buildSplitPage(_PageSpec page, _OnboardingLayout layout) {
+    final large = layout.isLarge;
+    final scale = layout.typeScale;
+    return Padding(
+      padding: EdgeInsets.symmetric(
+        horizontal: large ? 48 : 24,
+        vertical: large ? 24 : 4,
+      ),
+      child: Row(
         children: [
-          const SizedBox(height: 8),
-          SizedBox(
-            height: 240,
-            child: Center(
-              child: Container(
-                decoration: BoxDecoration(
-                  color: AppColors.surfaceContainerLowColor,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: AppColors.hairlineDivider,
-                    width: 1,
-                  ),
-                ),
-                padding: const EdgeInsets.all(8),
-                child: const Image(
-                  image: AssetImage('assets/images/onboarding_page_2_reading_styles.png'),
-                  key: Key('onboarding_page2_image'),
-                  fit: BoxFit.contain,
+          Expanded(flex: 5, child: Center(child: page.visual)),
+          SizedBox(width: large ? 56 : 32),
+          Expanded(
+            flex: 6,
+            child: Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(page.title, style: page.titleStyle(scale)),
+                    SizedBox(height: large ? 16 : 8),
+                    Text(page.body, style: _bodyStyle(scale)),
+                    SizedBox(height: large ? 24 : 14),
+                    page.pills(WrapAlignment.start),
+                  ],
                 ),
               ),
             ),
           ),
-          const SizedBox(height: 24),
-          Text(
-            'Read the way you like',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.newsreader(
-              fontSize: 26,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFormatChips(WrapAlignment alignment) {
+    return Wrap(
+      spacing: 6,
+      runSpacing: 6,
+      alignment: alignment,
+      children: [
+        for (final format in const ['EPUB', 'PDF', 'TXT', 'MD', 'FB2'])
+          Chip(
+            label: Text(format),
+            backgroundColor: AppColors.cardSurface,
+            shape: const StadiumBorder(
+              side: BorderSide(color: AppColors.hairlineDivider, width: 1),
+            ),
+            labelStyle: const TextStyle(
+              fontFamily: 'Inter',
+              fontSize: 11,
               fontWeight: FontWeight.w500,
-              height: 34 / 26,
-              letterSpacing: -0.26,
-              color: AppColors.primaryInkColor,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'Themes, fonts, line spacing and margins. Highlights, notes and bookmarks that stay with the page.',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.inter(
-              fontSize: 15,
-              fontWeight: FontWeight.w400,
-              height: 22 / 15,
               color: AppColors.secondarySlateColor,
             ),
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
+            visualDensity: VisualDensity.compact,
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
-          const SizedBox(height: 20),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            alignment: WrapAlignment.center,
-            children: [
-              _buildFeaturePill(Icons.format_size, 'Custom Fonts'),
-              _buildFeaturePill(Icons.format_align_justify, 'Margins & Spacing'),
-              _buildFeaturePill(Icons.edit_note, 'Highlights & Notes'),
-            ],
-          ),
-          const SizedBox(height: 16),
-        ],
-      ),
+      ],
     );
   }
 
-  Widget _buildPage3() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const SizedBox(height: 8),
-          SizedBox(
-            height: 240,
-            child: Center(
-              child: Container(
-                decoration: BoxDecoration(
-                  color: AppColors.cardSurface,
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(
-                    color: AppColors.hairlineDivider,
-                    width: 1,
-                  ),
-                ),
-                padding: const EdgeInsets.all(12),
-                child: const Image(
-                  image: AssetImage('assets/images/onboarding_page_3_read_aloud.png'),
-                  key: Key('onboarding_page3_image'),
-                  fit: BoxFit.contain,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 24),
-          Text(
-            'Listen when your eyes rest',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.newsreader(
-              fontSize: 30,
-              fontWeight: FontWeight.w400,
-              height: 38 / 30,
-              letterSpacing: -0.45,
-              color: AppColors.primaryInkColor,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'Text-to-speech read aloud with natural voices, sentence tracking, and sleep timer, even when your screen is locked.',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.inter(
-              fontSize: 15,
-              fontWeight: FontWeight.w400,
-              height: 22 / 15,
-              color: AppColors.secondarySlateColor,
-            ),
-          ),
-          const SizedBox(height: 20),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            alignment: WrapAlignment.center,
-            children: [
-              _buildFeaturePill(Icons.record_voice_over_outlined, 'Natural Voices'),
-              _buildFeaturePill(Icons.format_underlined, 'Sentence Tracking'),
-              _buildFeaturePill(Icons.bedtime_outlined, 'Sleep Timer'),
-            ],
-          ),
-          const SizedBox(height: 16),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPage4() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const SizedBox(height: 8),
-          SizedBox(
-            height: 240,
-            child: Center(
-              child: Container(
-                decoration: BoxDecoration(
-                  color: AppColors.cardSurface,
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(
-                    color: AppColors.hairlineDivider,
-                    width: 1,
-                  ),
-                ),
-                padding: const EdgeInsets.all(10),
-                child: const Image(
-                  image: AssetImage('assets/images/onboarding_page_4_privacy.png'),
-                  key: Key('onboarding_page4_image'),
-                  fit: BoxFit.contain,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 24),
-          Text(
-            'Private by design',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.newsreader(
-              fontSize: 26,
-              fontWeight: FontWeight.w500,
-              height: 34 / 26,
-              letterSpacing: -0.26,
-              color: AppColors.primaryInkColor,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'No account, no telemetry, no tracking. DRM-free books stored only on your device, with free offline dictionary lookup.',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.inter(
-              fontSize: 15,
-              fontWeight: FontWeight.w400,
-              height: 22 / 15,
-              color: AppColors.secondarySlateColor,
-            ),
-          ),
-          const SizedBox(height: 20),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            alignment: WrapAlignment.center,
-            children: [
-              _buildFeaturePill(Icons.lock_outline, '100% Offline Vault'),
-              _buildFeaturePill(Icons.shield_outlined, 'Zero Telemetry'),
-              _buildFeaturePill(Icons.translate, 'Offline Dictionary'),
-            ],
-          ),
-          const SizedBox(height: 16),
-        ],
-      ),
+  Widget _buildPills(WrapAlignment alignment, List<(IconData, String)> pills) {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      alignment: alignment,
+      children: [
+        for (final (icon, label) in pills) _buildFeaturePill(icon, label),
+      ],
     );
   }
 
@@ -525,10 +426,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       decoration: BoxDecoration(
         color: AppColors.cardSurface,
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(
-          color: AppColors.hairlineDivider,
-          width: 1,
-        ),
+        border: Border.all(color: AppColors.hairlineDivider, width: 1),
         boxShadow: const [
           BoxShadow(
             color: Color(0x05000000),
@@ -555,9 +453,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  Widget _buildPageIndicators() {
+  Widget _buildPageIndicators({
+    MainAxisAlignment alignment = MainAxisAlignment.center,
+  }) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisAlignment: alignment,
       children: List.generate(4, (index) {
         final isActive = _currentPage == index;
         return GestureDetector(
@@ -573,9 +473,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               width: isActive ? 24 : 8,
               height: 8,
               decoration: BoxDecoration(
-                color: isActive
-                    ? context.accent
-                    : const Color(0xFFC4C6D0),
+                color: isActive ? context.accent : const Color(0xFFC4C6D0),
                 borderRadius: BorderRadius.circular(4),
               ),
               key: Key('dot_indicator_$index'),
@@ -586,127 +484,251 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  Widget _buildFooter() {
-    final note = switch (_currentPage) {
-      0 => 'Offline-first & zero telemetry',
-      1 => '100% Offline • Zero telemetry & personal storage',
-      2 => 'Offline-first & zero telemetry · Background audio session',
-      _ => 'Archived locally • Zero cloud sync required',
-    };
+  String get _footerNote => switch (_currentPage) {
+    0 => 'Offline-first & zero telemetry',
+    1 => '100% Offline • Zero telemetry & personal storage',
+    2 => 'Offline-first & zero telemetry · Background audio session',
+    _ => 'Archived locally • Zero cloud sync required',
+  };
 
+  /// [expand] fills the column width (portrait); otherwise the button sizes
+  /// to its label so it can sit in a row (landscape).
+  Widget _buildImportButton({required bool expand}) {
+    return FilledButton.icon(
+      key: const Key('import_first_book_button'),
+      style: FilledButton.styleFrom(
+        minimumSize: expand ? const Size.fromHeight(52) : const Size(0, 52),
+        padding: expand ? null : const EdgeInsets.symmetric(horizontal: 28),
+        shape: const StadiumBorder(),
+        backgroundColor: context.accent,
+        foregroundColor: Colors.white,
+        elevation: 0,
+      ),
+      onPressed: _busy ? null : _handleImportFirstBook,
+      icon: _busy
+          ? const SizedBox.square(
+              dimension: 18,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Colors.white,
+              ),
+            )
+          : const Icon(Icons.folder_open, size: 20),
+      label: Text(
+        'Import your first book',
+        style: GoogleFonts.inter(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.14,
+          color: Colors.white,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildExploreButton() {
+    return TextButton(
+      key: const Key('explore_first_button'),
+      onPressed: _busy ? null : _handleExploreFirst,
+      style: TextButton.styleFrom(
+        foregroundColor: AppColors.secondarySlateColor,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      ),
+      child: Text(
+        'Explore first',
+        style: GoogleFonts.inter(
+          fontSize: 13,
+          fontWeight: FontWeight.w500,
+          color: AppColors.secondarySlateColor,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNextButton({required bool expand}) {
+    return FilledButton.icon(
+      key: const Key('next_page_button'),
+      style: FilledButton.styleFrom(
+        minimumSize: expand ? const Size.fromHeight(52) : const Size(160, 52),
+        shape: const StadiumBorder(),
+        backgroundColor: context.accent,
+        foregroundColor: Colors.white,
+        elevation: 0,
+      ),
+      onPressed: () => _pageController.nextPage(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      ),
+      icon: const Icon(Icons.arrow_forward, size: 18),
+      label: Text(
+        'Next',
+        style: GoogleFonts.inter(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.14,
+          color: Colors.white,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildError() {
+    return Text(
+      _error!,
+      style: GoogleFonts.inter(fontSize: 12, color: AppColors.destructiveColor),
+    );
+  }
+
+  Widget _buildNote({required MainAxisAlignment alignment}) {
+    return Row(
+      mainAxisAlignment: alignment,
+      children: [
+        const Icon(
+          Icons.lock_outline,
+          size: 14,
+          color: AppColors.secondarySlateColor,
+        ),
+        const SizedBox(width: 6),
+        Flexible(
+          child: Text(
+            _footerNote,
+            textAlign: TextAlign.center,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 2,
+            style: GoogleFonts.inter(
+              fontSize: 11,
+              fontWeight: FontWeight.w400,
+              color: AppColors.secondarySlateColor,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFooter() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           if (_currentPage == 3) ...[
-            FilledButton.icon(
-              key: const Key('import_first_book_button'),
-              style: FilledButton.styleFrom(
-                minimumSize: const Size.fromHeight(52),
-                shape: const StadiumBorder(),
-                backgroundColor: context.accent,
-                foregroundColor: Colors.white,
-                elevation: 0,
-              ),
-              onPressed: _busy ? null : _handleImportFirstBook,
-              icon: _busy
-                  ? const SizedBox.square(
-                      dimension: 18,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                  : const Icon(Icons.folder_open, size: 20),
-              label: Text(
-                'Import your first book',
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.14,
-                  color: Colors.white,
-                ),
-              ),
-            ),
+            _buildImportButton(expand: true),
             const SizedBox(height: 8),
-            TextButton(
-              key: const Key('explore_first_button'),
-              onPressed: _busy ? null : _handleExploreFirst,
-              style: TextButton.styleFrom(
-                foregroundColor: AppColors.secondarySlateColor,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              ),
-              child: Text(
-                'Explore first',
-                style: GoogleFonts.inter(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.secondarySlateColor,
-                ),
-              ),
-            ),
-          ] else ...[
-            FilledButton.icon(
-              key: const Key('next_page_button'),
-              style: FilledButton.styleFrom(
-                minimumSize: const Size.fromHeight(52),
-                shape: const StadiumBorder(),
-                backgroundColor: context.accent,
-                foregroundColor: Colors.white,
-                elevation: 0,
-              ),
-              onPressed: () => _pageController.nextPage(
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeInOut,
-              ),
-              icon: const Icon(Icons.arrow_forward, size: 18),
-              label: Text(
-                'Next',
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.14,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ],
-          if (_error != null) ...[
-            const SizedBox(height: 8),
-            Text(
-              _error!,
-              style: GoogleFonts.inter(
-                fontSize: 12,
-                color: AppColors.destructiveColor,
-              ),
-            ),
-          ],
+            _buildExploreButton(),
+          ] else
+            _buildNextButton(expand: true),
+          if (_error != null) ...[const SizedBox(height: 8), _buildError()],
           const SizedBox(height: 12),
+          _buildNote(alignment: MainAxisAlignment.center),
+        ],
+      ),
+    );
+  }
+
+  /// Landscape: one bar under the pages — progress and the privacy note on
+  /// the start side, the actions on the end side.
+  Widget _buildFooterBar(_OnboardingLayout layout) {
+    final large = layout.isLarge;
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        large ? 48 : 24,
+        large ? 12 : 4,
+        large ? 48 : 24,
+        large ? 32 : 12,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          if (_error != null) ...[_buildError(), const SizedBox(height: 8)],
           Row(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(
-                Icons.lock_outline,
-                size: 14,
-                color: AppColors.secondarySlateColor,
-              ),
-              const SizedBox(width: 6),
-              Flexible(
-                child: Text(
-                  note,
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.inter(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w400,
-                    color: AppColors.secondarySlateColor,
-                  ),
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildPageIndicators(alignment: MainAxisAlignment.start),
+                    const SizedBox(height: 10),
+                    _buildNote(alignment: MainAxisAlignment.start),
+                  ],
                 ),
               ),
+              const SizedBox(width: 16),
+              if (_currentPage == 3) ...[
+                _buildExploreButton(),
+                const SizedBox(width: 8),
+                _buildImportButton(expand: false),
+              ] else
+                _buildNextButton(expand: false),
             ],
           ),
         ],
       ),
     );
   }
+}
+
+/// How the onboarding pages are arranged for the current screen.
+enum _OnboardingLayout {
+  /// Phone portrait (and split screen): the original stacked column.
+  compact(maxWidth: 480, typeScale: 1),
+
+  /// Tablet portrait: the stacked column, larger and roomier.
+  large(maxWidth: 600, typeScale: 1.2),
+
+  /// Phone landscape: visual and copy side by side, actions in a bar.
+  split(maxWidth: 960, typeScale: 0.9),
+
+  /// Tablet landscape: the split layout at tablet scale.
+  splitLarge(maxWidth: 1120, typeScale: 1.2);
+
+  const _OnboardingLayout({required this.maxWidth, required this.typeScale});
+
+  final double maxWidth;
+  final double typeScale;
+
+  bool get isSplit => this == split || this == splitLarge;
+  bool get isLarge => this == large || this == splitLarge;
+}
+
+/// Picks an [_OnboardingLayout] with the same rules as every other screen;
+/// the page state itself stays in [_OnboardingScreenState].
+class _ResponsiveOnboarding extends Screen {
+  const _ResponsiveOnboarding({required this.builder});
+
+  final Widget Function(BuildContext, _OnboardingLayout) builder;
+
+  @override
+  Widget buildMobilePortraitView(BuildContext context) =>
+      builder(context, _OnboardingLayout.compact);
+
+  @override
+  Widget buildMobileLandscapeView(BuildContext context) =>
+      builder(context, _OnboardingLayout.split);
+
+  @override
+  Widget buildTabletView(BuildContext context) => builder(
+    context,
+    Screen.isTabletLandscape(context)
+        ? _OnboardingLayout.splitLarge
+        : _OnboardingLayout.large,
+  );
+}
+
+class _PageSpec {
+  const _PageSpec({
+    required this.visual,
+    required this.title,
+    required this.titleStyle,
+    required this.body,
+    required this.pills,
+  });
+
+  final Widget visual;
+  final String title;
+  final TextStyle Function(double scale) titleStyle;
+  final String body;
+  final Widget Function(WrapAlignment alignment) pills;
 }

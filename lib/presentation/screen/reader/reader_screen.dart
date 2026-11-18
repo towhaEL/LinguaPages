@@ -51,6 +51,7 @@ import 'package:lingua_pages/presentation/screen/reader/read_aloud/read_aloud_pl
 import 'package:lingua_pages/presentation/screen/reader/read_aloud/read_aloud_mini_player.dart';
 import 'package:lingua_pages/presentation/screen/reader/read_aloud/read_aloud_session.dart';
 import 'package:lingua_pages/presentation/screen/reader/widgets/reader_chrome.dart';
+import 'package:lingua_pages/presentation/screen/reader/widgets/reader_layout.dart';
 import 'package:lingua_pages/presentation/screen/reader/widgets/reader_tap_zones.dart';
 import 'package:lingua_pages/presentation/theme/app_tokens.dart';
 import 'package:lingua_pages/presentation/widgets/state_view.dart';
@@ -99,6 +100,11 @@ class _ReaderScreenState extends State<ReaderScreen>
   /// on a page turn; the fallback pages do the same through their gestures.
   final _chromeVisible = ValueNotifier<bool>(true);
   double? _readiumProgress;
+
+  /// The bottom bar's laid-out height, safe area included. Its content
+  /// varies (chapter line, page arrows), so the read-aloud player docks on
+  /// this rather than on a fixed height.
+  double? _bottomBarHeight;
   DocumentInfo? _info;
   Publication? _publication;
   List<String> _tableOfContents = const [];
@@ -480,7 +486,14 @@ class _ReaderScreenState extends State<ReaderScreen>
                 child: ReaderChromeSlot(
                   visible: chromeVisible,
                   edge: VerticalDirection.down,
-                  child: _buildBottomBar(context, info),
+                  child: _MeasureHeight(
+                    onChanged: (height) {
+                      if (height != _bottomBarHeight) {
+                        setState(() => _bottomBarHeight = height);
+                      }
+                    },
+                    child: _buildBottomBar(context, info),
+                  ),
                 ),
               ),
             if ((_readAloudSession.book, _readAloudSession.cubit) case (
@@ -492,8 +505,9 @@ class _ReaderScreenState extends State<ReaderScreen>
                 right: 12,
                 // Docked above the reader bar, or at the bottom without it.
                 bottom: chromeVisible
-                    ? readerBottomBarHeight +
-                          MediaQuery.paddingOf(context).bottom +
+                    ? (_bottomBarHeight ??
+                              readerBottomBarExtent(context) +
+                                  MediaQuery.paddingOf(context).bottom) +
                           8
                     : MediaQuery.paddingOf(context).bottom + 12,
                 child: BlocProvider.value(
@@ -2531,6 +2545,8 @@ class _ReaderScreenState extends State<ReaderScreen>
     await showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
+      // Scrolls rather than overflowing on a phone held sideways.
+      isScrollControlled: true,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
@@ -2538,7 +2554,7 @@ class _ReaderScreenState extends State<ReaderScreen>
         ),
       ),
       builder: (sheetContext) => SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -2989,7 +3005,7 @@ class _PdfThumbnailSheetState extends State<_PdfThumbnailSheet> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: SizedBox(
-        height: MediaQuery.sizeOf(context).height * .72,
+        height: readerSheetHeight(context, .72),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -3003,8 +3019,9 @@ class _PdfThumbnailSheetState extends State<_PdfThumbnailSheet> {
             Expanded(
               child: GridView.builder(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3,
+                // Three across on a phone, more on wider screens.
+                gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                  maxCrossAxisExtent: 140,
                   crossAxisSpacing: 12,
                   mainAxisSpacing: 16,
                   childAspectRatio: .68,
@@ -3199,9 +3216,9 @@ class _ContinuousReflowablePageState extends State<_ContinuousReflowablePage> {
         controller: _scrollController,
         padding: EdgeInsets.fromLTRB(
           widget.margin,
-          widget.margin + 12 + readerTopBarHeight,
+          widget.margin + 12 + readerTopBarExtent(context),
           widget.margin,
-          widget.margin * 2.5 + readerBottomBarHeight,
+          widget.margin * 2.5 + readerBottomBarExtent(context),
         ),
         itemCount: widget.pages.length,
         separatorBuilder: (_, _) => const SizedBox(height: 24),
@@ -3269,9 +3286,9 @@ class _PdfTextPage extends StatelessWidget {
         // can scroll clear of the bottom bar.
         padding: EdgeInsets.fromLTRB(
           margin,
-          margin + 12 + readerTopBarHeight,
+          margin + 12 + readerTopBarExtent(context),
           margin,
-          margin * 2.5 + readerBottomBarHeight,
+          margin * 2.5 + readerBottomBarExtent(context),
         ),
         child: SelectableText.rich(
           markedText(
@@ -3367,9 +3384,9 @@ class _ReflowablePageState extends State<_ReflowablePage> {
   // scroll clear of the bottom bar.
   EdgeInsets get _padding => EdgeInsets.fromLTRB(
     widget.margin,
-    widget.margin + 12 + readerTopBarHeight,
+    widget.margin + 12 + readerTopBarExtent(context),
     widget.margin,
-    widget.margin * 2.5 + readerBottomBarHeight,
+    widget.margin * 2.5 + readerBottomBarExtent(context),
   );
 
   TextStyle? _style(BuildContext context) => Theme.of(context)
@@ -3404,7 +3421,7 @@ class _ReflowablePageState extends State<_ReflowablePage> {
     painter.dispose();
     final position = _scrollController.position;
     final top = caret.dy + _padding.top;
-    final visibleTop = position.pixels + readerTopBarHeight;
+    final visibleTop = position.pixels + readerTopBarExtent(context);
     // Leave room for the read-aloud player over the bottom of the page.
     final visibleBottom = position.pixels + position.viewportDimension - 120;
     if (top >= visibleTop && top + lineHeight * 2 <= visibleBottom) return;
@@ -3559,3 +3576,39 @@ EditableTextContextMenuBuilder _readerContextMenu(
     ],
   );
 };
+
+/// Reports [child]'s height after each layout in which it changed.
+class _MeasureHeight extends SingleChildRenderObjectWidget {
+  const _MeasureHeight({required this.onChanged, super.child});
+
+  final ValueChanged<double> onChanged;
+
+  @override
+  RenderObject createRenderObject(BuildContext context) =>
+      _RenderMeasureHeight(onChanged);
+
+  @override
+  void updateRenderObject(
+    BuildContext context,
+    _RenderMeasureHeight renderObject,
+  ) => renderObject.onChanged = onChanged;
+}
+
+class _RenderMeasureHeight extends RenderProxyBox {
+  _RenderMeasureHeight(this.onChanged);
+
+  ValueChanged<double> onChanged;
+  double? _last;
+
+  @override
+  void performLayout() {
+    super.performLayout();
+    final height = size.height;
+    if (height == _last) return;
+    _last = height;
+    // Reported after the frame: the parent can't rebuild during layout.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (attached) onChanged(height);
+    });
+  }
+}

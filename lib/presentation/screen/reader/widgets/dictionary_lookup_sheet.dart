@@ -14,6 +14,7 @@ import 'package:lingua_pages/presentation/screen/reader/cubit/dictionary_lookup_
 import 'package:lingua_pages/presentation/theme/app_tokens.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:lingua_pages/presentation/theme/base/theme_extension.dart';
+import 'package:lingua_pages/presentation/screen/reader/widgets/reader_layout.dart';
 
 /// Floating text selection toolbar matching Stitch screen 04c_text_selection_dictionary (3377a7d8).
 class FloatingSelectionToolbar extends StatelessWidget {
@@ -354,7 +355,7 @@ class DictionaryLookupSheet extends StatelessWidget {
             top: false,
             child: ConstrainedBox(
               constraints: BoxConstraints(
-                maxHeight: MediaQuery.sizeOf(context).height * 0.75,
+                maxHeight: readerSheetHeight(context, 0.75),
               ),
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(24, 12, 24, 20),

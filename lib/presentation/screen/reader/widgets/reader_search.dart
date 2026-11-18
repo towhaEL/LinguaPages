@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:lingua_pages/presentation/theme/app_tokens.dart';
+import 'package:lingua_pages/presentation/screen/reader/widgets/reader_layout.dart';
 
 /// A hit returned by in-book search.
 class ReaderSearchHit {
@@ -169,7 +171,15 @@ class _ReaderSearchSheetState extends State<ReaderSearchSheet> {
         padding: EdgeInsets.only(bottom: keyboard),
         child: SizedBox(
           // Tall enough for a page of results, and steady while typing.
-          height: MediaQuery.sizeOf(context).height * 0.8 - keyboard * 0.5,
+          // Never taller than what the keyboard leaves, which on a phone
+          // held sideways is little.
+          height: math.max(
+            0,
+            math.min(
+              readerSheetHeight(context, 0.8) - keyboard * 0.5,
+              MediaQuery.sizeOf(context).height - keyboard - 32,
+            ),
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [

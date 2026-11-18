@@ -10,6 +10,7 @@ import 'package:lingua_pages/presentation/screen/saved_words/cubit/saved_words_c
 import 'package:lingua_pages/presentation/theme/app_tokens.dart';
 import 'package:lingua_pages/presentation/theme/base/theme_extension.dart';
 import 'package:lingua_pages/presentation/widgets/state_view.dart';
+import 'package:lingua_pages/presentation/widgets/widgets.dart';
 
 /// Every word saved from the dictionary lookup, across the library.
 @RoutePage()
@@ -20,13 +21,35 @@ class SavedWordsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => injector<SavedWordsCubit>()..load(),
-      child: const _SavedWordsView(),
+      child: const _ResponsiveSavedWords(),
     );
   }
 }
 
+class _ResponsiveSavedWords extends Screen {
+  const _ResponsiveSavedWords();
+
+  @override
+  Widget buildMobilePortraitView(BuildContext context) {
+    return const _SavedWordsView();
+  }
+
+  @override
+  Widget buildMobileLandscapeView(BuildContext context) {
+    return const _SavedWordsView(grid: true);
+  }
+
+  @override
+  Widget buildTabletView(BuildContext context) {
+    return const _SavedWordsView(grid: true);
+  }
+}
+
 class _SavedWordsView extends StatelessWidget {
-  const _SavedWordsView();
+  const _SavedWordsView({this.grid = false});
+
+  /// Cards in as many columns as the width fits, for landscape and tablets.
+  final bool grid;
 
   Future<void> _delete(BuildContext context, SavedWordEntity word) async {
     final l10n = context.l10n;
@@ -87,16 +110,13 @@ class _SavedWordsView extends StatelessWidget {
                 children: [
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
-                    child: TextField(
-                      key: const Key('saved_words_search'),
-                      onChanged: context.read<SavedWordsCubit>().search,
-                      decoration: InputDecoration(
-                        hintText: l10n.savedWordsSearchHint,
-                        prefixIcon: const Icon(Icons.search_rounded),
-                        isDense: true,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(24),
+                    child: Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxWidth: grid ? 560 : double.infinity,
                         ),
+                        child: _search(context, state),
                       ),
                     ),
                   ),
@@ -107,6 +127,11 @@ class _SavedWordsView extends StatelessWidget {
                               icon: Icons.search_off_rounded,
                               title: l10n.savedWordsNoMatches,
                             ),
+                          )
+                        : grid
+                        ? _SavedWordGrid(
+                            words: visible,
+                            onDelete: (word) => _delete(context, word),
                           )
                         : ListView.separated(
                             padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
@@ -122,6 +147,73 @@ class _SavedWordsView extends StatelessWidget {
                 ],
               ),
             },
+          ),
+        );
+      },
+    );
+  }
+
+  // Initial value only: the cubit owns the query, and this keeps it when a
+  // rotation swaps the layout.
+  Widget _search(BuildContext context, SavedWordsState state) {
+    final l10n = context.l10n;
+    return TextFormField(
+      key: const Key('saved_words_search'),
+      initialValue: state.query,
+      onChanged: context.read<SavedWordsCubit>().search,
+      decoration: InputDecoration(
+        hintText: l10n.savedWordsSearchHint,
+        prefixIcon: const Icon(Icons.search_rounded),
+        isDense: true,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(24)),
+      ),
+    );
+  }
+}
+
+/// Rows of equal-height cards. Built row by row rather than as a [GridView]
+/// because card height follows the definition's length.
+class _SavedWordGrid extends StatelessWidget {
+  const _SavedWordGrid({required this.words, required this.onDelete});
+
+  final List<SavedWordEntity> words;
+  final ValueChanged<SavedWordEntity> onDelete;
+
+  static const _minTileWidth = 300.0;
+  static const _spacing = 12.0;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth - 32;
+        final columns = ((width + _spacing) / (_minTileWidth + _spacing))
+            .floor()
+            .clamp(1, 4);
+        final rows = (words.length / columns).ceil();
+        return ListView.separated(
+          key: const Key('saved_words_grid'),
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+          itemCount: rows,
+          separatorBuilder: (_, _) => const SizedBox(height: _spacing),
+          itemBuilder: (context, row) => IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                for (var column = 0; column < columns; column++) ...[
+                  if (column > 0) const SizedBox(width: _spacing),
+                  Expanded(
+                    child: switch (row * columns + column) {
+                      final index when index < words.length => _SavedWordCard(
+                        word: words[index],
+                        onDelete: () => onDelete(words[index]),
+                      ),
+                      _ => const SizedBox.shrink(),
+                    },
+                  ),
+                ],
+              ],
+            ),
           ),
         );
       },

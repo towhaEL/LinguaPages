@@ -17,7 +17,7 @@ There are two primary audiences, weighted equally:
 
 ## Product Purpose
 
-LinguaPages (the app name in code is "LinguaPage") is an offline-first ebook reader for every common DRM-free format: EPUB, PDF, TXT, Markdown, HTML and FB2. Users import their own files, read them in an e-reader they can configure, and keep highlights, notes, bookmarks and word definitions alongside the text. It succeeds when a reader can open any of their documents in one place and the reading and annotating never pull them out of the book.
+OpenPages (the app name in code is "LinguaPage") is an offline-first ebook reader for every common DRM-free format: EPUB, PDF, TXT, Markdown, HTML and FB2. Users import their own files, read them in an e-reader they can configure, and keep highlights, notes, bookmarks and word definitions alongside the text. It succeeds when a reader can open any of their documents in one place and the reading and annotating never pull them out of the book.
 
 It is no longer a language-learning app. Spanish, translation, vocabulary lists and spaced-repetition review are out of the product.
 

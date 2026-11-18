@@ -40,6 +40,13 @@ abstract class Screen extends StatelessWidget {
   }
 
   static Size screenSize(BuildContext context) {
+    // Checked before split screen: a landscape tablet's aspect ratio (~1.33)
+    // would otherwise read as split screen and get the phone design size.
+    if (isTablet(context)) {
+      return MediaQuery.of(context).orientation == Orientation.landscape
+          ? const Size(1024, 768)
+          : const Size(768, 1024);
+    }
     if (isSplitScreen(context)) {
       final media = MediaQuery.of(context);
       if (media.orientation == Orientation.landscape) {
@@ -53,9 +60,6 @@ abstract class Screen extends StatelessWidget {
     }
     if (isMobilePortrait(context)) {
       return const Size(402, 874);
-    }
-    if (isTablet(context)) {
-      return const Size(768, 1024);
     }
     return const Size(402, 874);
   }
@@ -73,6 +77,14 @@ abstract class Screen extends StatelessWidget {
   }
 
   Widget _getProperWidget(BuildContext context) {
+    // Tablet first, for the same reason as in [screenSize]. Tablet views lay
+    // out against the available width, so they also cope with a tablet in
+    // split screen.
+    if (isTablet(context)) {
+      Widget? child = buildTabletView(context);
+      return child ?? buildMobilePortraitView(context);
+    }
+
     if (isSplitScreen(context)) {
       return buildMobilePortraitView(context);
     }
@@ -86,11 +98,6 @@ abstract class Screen extends StatelessWidget {
       return child ?? buildMobilePortraitView(context);
     }
 
-    if (isTablet(context)) {
-      Widget? child = buildTabletView(context);
-      return child ?? buildMobilePortraitView(context);
-    }
-
     return buildMobilePortraitView(context);
   }
 
@@ -100,5 +107,11 @@ abstract class Screen extends StatelessWidget {
 
   Widget? buildMobileLandscapeView(BuildContext context) => null;
 
+  /// Used for tablets in both orientations; branch on
+  /// [isTabletLandscape] or the available width inside.
   Widget? buildTabletView(BuildContext context) => null;
+
+  static bool isTabletLandscape(BuildContext context) =>
+      isTablet(context) &&
+      MediaQuery.of(context).orientation == Orientation.landscape;
 }

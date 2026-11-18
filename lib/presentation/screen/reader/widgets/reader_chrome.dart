@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lingua_pages/presentation/theme/base/theme_extension.dart';
+import 'package:lingua_pages/presentation/screen/reader/widgets/reader_layout.dart';
 import 'package:lingua_pages/presentation/widgets/book/band_progress_bar.dart';
 
 const _tabular = [FontFeature.tabularFigures()];
@@ -8,6 +9,17 @@ const _tabular = [FontFeature.tabularFigures()];
 /// their scrolling text clear of the chrome.
 const readerTopBarHeight = 56.0;
 const readerBottomBarHeight = 120.0;
+const _compactTopBarHeight = 44.0;
+const _compactBottomBarHeight = 84.0;
+
+/// The bars' actual heights here, which are shorter on a phone held
+/// sideways (see [isReaderCompact]).
+double readerTopBarExtent(BuildContext context) =>
+    isReaderCompact(context) ? _compactTopBarHeight : readerTopBarHeight;
+
+double readerBottomBarExtent(BuildContext context) =>
+    isReaderCompact(context) ? _compactBottomBarHeight : readerBottomBarHeight;
+
 const _slide = Duration(milliseconds: 200);
 
 /// Slides [child] out through [edge] when [visible] is false. Hidden chrome
@@ -75,7 +87,8 @@ class ReaderTopBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final topBarBg = Theme.of(context).navigationBarTheme.backgroundColor ??
+    final topBarBg =
+        Theme.of(context).navigationBarTheme.backgroundColor ??
         (Theme.of(context).brightness == Brightness.dark
             ? const Color(0xFF1E1C1A)
             : const Color(0xFFF6F1E7));
@@ -100,7 +113,7 @@ class ReaderTopBar extends StatelessWidget {
       child: SafeArea(
         bottom: false,
         child: SizedBox(
-          height: readerTopBarHeight,
+          height: readerTopBarExtent(context),
           child: Row(
             children: [
               const SizedBox(width: 4),
@@ -117,20 +130,22 @@ class ReaderTopBar extends StatelessWidget {
                         title,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontFamily: 'Newsreader',
-                          fontWeight: FontWeight.w700,
-                        ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(
+                              fontFamily: 'Newsreader',
+                              fontWeight: FontWeight.w700,
+                            ),
                       ),
                       if (author != null && author!.isNotEmpty)
                         Text(
                           author!,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            fontFamily: 'Inter',
-                            color: colors.onSurfaceMuted,
-                          ),
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(
+                                fontFamily: 'Inter',
+                                color: colors.onSurfaceMuted,
+                              ),
                         ),
                     ],
                   ),
@@ -220,7 +235,9 @@ class ReaderBottomBar extends StatelessWidget {
     final colors = context.colors;
     final text = Theme.of(context).textTheme;
     final showArrows = previousLabel != null || nextLabel != null;
-    final bottomBarBg = Theme.of(context).navigationBarTheme.backgroundColor ??
+    final compact = isReaderCompact(context);
+    final bottomBarBg =
+        Theme.of(context).navigationBarTheme.backgroundColor ??
         (Theme.of(context).brightness == Brightness.dark
             ? const Color(0xFF1E1C1A)
             : const Color(0xFFFAF7F2));
@@ -245,100 +262,120 @@ class ReaderBottomBar extends StatelessWidget {
       ),
       child: SafeArea(
         top: false,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 8),
-            Container(
-              width: 36,
-              height: 4,
-              decoration: BoxDecoration(
-                color: colors.outlineVariant.withValues(alpha: 0.45),
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            if (chapterTitle != null || timeLeftLabel != null)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 6, 20, 0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    if (chapterTitle != null)
+        child: Center(
+          heightFactor: 1,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: readerControlsMaxWidth),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (!compact) ...[
+                  const SizedBox(height: 8),
+                  Container(
+                    width: 36,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: colors.outlineVariant.withValues(alpha: 0.45),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ],
+                if (!compact && (chapterTitle != null || timeLeftLabel != null))
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 6, 20, 0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        if (chapterTitle != null)
+                          Expanded(
+                            child: Text(
+                              chapterTitle!,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontFamily: 'Newsreader',
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: colors.onSurface,
+                              ),
+                            ),
+                          ),
+                        if (timeLeftLabel != null)
+                          Text(
+                            timeLeftLabel!,
+                            style: TextStyle(
+                              fontFamily: 'Inter',
+                              fontSize: 11,
+                              color: colors.onSurfaceMuted,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    showArrows ? 4 : 20,
+                    compact ? 2 : 8,
+                    4,
+                    0,
+                  ),
+                  child: Row(
+                    children: [
+                      if (showArrows)
+                        IconButton(
+                          onPressed: onPrevious,
+                          tooltip: previousLabel,
+                          icon: const Icon(Icons.chevron_left_rounded),
+                        ),
                       Expanded(
+                        child: BandProgressBar(
+                          progress: progress ?? 0,
+                          color: bandColor,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      ConstrainedBox(
+                        constraints: const BoxConstraints(minWidth: 40),
                         child: Text(
-                          chapterTitle!,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontFamily: 'Newsreader',
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: colors.onSurface,
+                          positionLabel ?? '',
+                          textAlign: TextAlign.end,
+                          style: text.labelMedium?.copyWith(
+                            color: colors.onSurfaceMuted,
+                            fontWeight: FontWeight.w700,
+                            fontFeatures: _tabular,
                           ),
                         ),
                       ),
-                    if (timeLeftLabel != null)
-                      Text(
-                        timeLeftLabel!,
-                        style: TextStyle(
-                          fontFamily: 'Inter',
-                          fontSize: 11,
-                          color: colors.onSurfaceMuted,
-                        ),
-                      ),
-                  ],
+                      if (showArrows)
+                        IconButton(
+                          onPressed: onNext,
+                          tooltip: nextLabel,
+                          icon: const Icon(Icons.chevron_right_rounded),
+                        )
+                      else
+                        const SizedBox(width: 16),
+                    ],
+                  ),
                 ),
-              ),
-            Padding(
-              padding: EdgeInsets.fromLTRB(showArrows ? 4 : 20, 8, 4, 0),
-              child: Row(
-                children: [
-                  if (showArrows)
-                    IconButton(
-                      onPressed: onPrevious,
-                      tooltip: previousLabel,
-                      icon: const Icon(Icons.chevron_left_rounded),
-                    ),
-                  Expanded(
-                    child: BandProgressBar(
-                      progress: progress ?? 0,
-                      color: bandColor,
-                    ),
+                Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    8,
+                    compact ? 0 : 6,
+                    8,
+                    compact ? 4 : 8,
                   ),
-                  const SizedBox(width: 12),
-                  ConstrainedBox(
-                    constraints: const BoxConstraints(minWidth: 40),
-                    child: Text(
-                      positionLabel ?? '',
-                      textAlign: TextAlign.end,
-                      style: text.labelMedium?.copyWith(
-                        color: colors.onSurfaceMuted,
-                        fontWeight: FontWeight.w700,
-                        fontFeatures: _tabular,
-                      ),
-                    ),
+                  child: Row(
+                    children: [
+                      for (final tool in tools)
+                        Expanded(
+                          child: _ToolButton(tool: tool, iconOnly: compact),
+                        ),
+                    ],
                   ),
-                  if (showArrows)
-                    IconButton(
-                      onPressed: onNext,
-                      tooltip: nextLabel,
-                      icon: const Icon(Icons.chevron_right_rounded),
-                    )
-                  else
-                    const SizedBox(width: 16),
-                ],
-              ),
+                ),
+              ],
             ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(8, 6, 8, 8),
-              child: Row(
-                children: [
-                  for (final tool in tools)
-                    Expanded(child: _ToolButton(tool: tool)),
-                ],
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -346,16 +383,19 @@ class ReaderBottomBar extends StatelessWidget {
 }
 
 class _ToolButton extends StatelessWidget {
-  const _ToolButton({required this.tool});
+  const _ToolButton({required this.tool, this.iconOnly = false});
 
   final ReaderTool tool;
+
+  /// Drops the label (kept as tooltip and semantics) to save height.
+  final bool iconOnly;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
     final enabled = tool.onPressed != null;
     final color = enabled ? colors.onSurface : colors.disabled;
-    return Semantics(
+    final button = Semantics(
       button: true,
       enabled: enabled,
       excludeSemantics: true,
@@ -369,7 +409,10 @@ class _ToolButton extends StatelessWidget {
             onTap: tool.onPressed,
             borderRadius: BorderRadius.circular(12),
             child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 2),
+              padding: EdgeInsets.symmetric(
+                vertical: iconOnly ? 6 : 8,
+                horizontal: 2,
+              ),
               decoration: BoxDecoration(
                 color: Theme.of(context).brightness == Brightness.dark
                     ? const Color(0xFF23272A).withValues(alpha: 0.5)
@@ -385,19 +428,24 @@ class _ToolButton extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(tool.icon, color: color, size: 22),
-                  const SizedBox(height: 4),
-                  FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text(
-                      tool.label,
-                      maxLines: 1,
-                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        color: enabled ? colors.onSurfaceMuted : colors.disabled,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 11,
+                  if (!iconOnly) ...[
+                    const SizedBox(height: 4),
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        tool.label,
+                        maxLines: 1,
+                        style: Theme.of(context).textTheme.labelMedium
+                            ?.copyWith(
+                              color: enabled
+                                  ? colors.onSurfaceMuted
+                                  : colors.disabled,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 11,
+                            ),
                       ),
                     ),
-                  ),
+                  ],
                 ],
               ),
             ),
@@ -405,5 +453,13 @@ class _ToolButton extends StatelessWidget {
         ),
       ),
     );
+    // The Semantics above already carries the label.
+    return iconOnly
+        ? Tooltip(
+            message: tool.label,
+            excludeFromSemantics: true,
+            child: button,
+          )
+        : button;
   }
 }

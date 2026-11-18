@@ -1,6 +1,6 @@
-# LinguaPages
+# OpenPages
 
-LinguaPages is an offline-first, private Flutter ebook reader. It imports
+OpenPages is an offline-first, private Flutter ebook reader. It imports
 DRM-free EPUB, PDF, TXT, Markdown, HTML and FB2 documents, stores the library
 and reading data locally, and keeps highlights, notes, bookmarks and word
 definitions inside the book. There is no account, no cloud and no store.
@@ -23,7 +23,7 @@ app's only network call; results are cached locally so repeated lookups work
 offline. The development flavor uses a mock and never touches the network.
 The app UI is English only.
 
-> **Requirements change (2026-10-29):** LinguaPages is no longer a
+> **Requirements change (2026-10-29):** OpenPages is no longer a
 > language-learning app. English→Spanish study, sentence translation,
 > language packs, vocabulary lists, spaced-repetition review, review reminders,
 > AI Recap and the Spanish UI were removed in plan Phase 1 (schema v7 drops the
@@ -92,7 +92,7 @@ while metadata, progress, annotations and settings live in Drift.
 
 ## Data and privacy model
 
-LinguaPages is local-only. Imported files, covers, annotations and settings
+OpenPages is local-only. Imported files, covers, annotations and settings
 remain on the device unless the user exports a backup. Metadata JSON backup and
 restore are available from Settings. There is no authentication, cloud sync or
 AI service. The only data that leaves the device is a word sent to

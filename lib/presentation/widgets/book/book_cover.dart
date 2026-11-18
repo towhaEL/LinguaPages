@@ -136,6 +136,9 @@ class _FallbackCover extends StatelessWidget {
 class _TitleLabel extends StatelessWidget {
   const _TitleLabel({required this.book, required this.compact});
 
+  /// The gap above the author line plus the line itself.
+  static const _authorHeight = 4 + 11 * 1.4;
+
   final BookEntity book;
   final bool compact;
 
@@ -146,13 +149,23 @@ class _TitleLabel extends StatelessWidget {
       color: bands.label,
       child: LayoutBuilder(
         // A list-row cover is too narrow to set a title without breaking words.
-        builder: (context, constraints) =>
-            constraints.maxWidth < 72 ? const SizedBox.expand() : _title(bands),
+        builder: (context, constraints) => constraints.maxWidth < 72
+            ? const SizedBox.expand()
+            : _title(bands, constraints.maxHeight),
       ),
     );
   }
 
-  Widget _title(BandColors bands) {
+  Widget _title(BandColors bands, double maxHeight) {
+    final fontSize = compact ? 9.0 : 13.0;
+    final showAuthor = !compact && book.author != null;
+    // The label band shrinks with the cover, so set only as many title lines
+    // as fit beside the author line instead of overflowing it.
+    final titleHeight = maxHeight - (showAuthor ? _authorHeight : 0);
+    final maxLines = (titleHeight / (fontSize * 1.1)).floor().clamp(
+      1,
+      compact ? 3 : 4,
+    );
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: compact ? 4 : 8),
       child: Column(
@@ -162,16 +175,16 @@ class _TitleLabel extends StatelessWidget {
           Text(
             book.title,
             textScaler: TextScaler.noScaling,
-            maxLines: compact ? 3 : 4,
+            maxLines: maxLines,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
               color: bands.onLabel,
-              fontSize: compact ? 9 : 13,
+              fontSize: fontSize,
               height: 1.1,
               fontWeight: FontWeight.w800,
             ),
           ),
-          if (!compact && book.author != null) ...[
+          if (showAuthor) ...[
             const SizedBox(height: 4),
             Text(
               book.author!,

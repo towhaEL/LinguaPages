@@ -9,6 +9,7 @@ import 'package:lingua_pages/domain/entity/vocabulary/saved_word_entity.dart';
 import 'package:lingua_pages/l10n/l10n.dart';
 import 'package:lingua_pages/presentation/theme/app_tokens.dart';
 import 'package:lingua_pages/presentation/theme/base/theme_extension.dart';
+import 'package:lingua_pages/presentation/screen/reader/widgets/reader_layout.dart';
 
 /// A bookmark or a highlight in the Notes sheet.
 class ReaderNote {
@@ -187,7 +188,7 @@ class _NotesSheetState extends State<NotesSheet> {
         top: false,
         child: SizedBox(
           // A fixed height so switching tabs does not resize the sheet.
-          height: MediaQuery.sizeOf(context).height * 0.7,
+          height: readerSheetHeight(context, 0.7),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [

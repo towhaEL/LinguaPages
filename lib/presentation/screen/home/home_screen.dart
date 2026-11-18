@@ -2,10 +2,11 @@ import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lingua_pages/core/injector/injector.dart';
+import 'package:lingua_pages/presentation/screen/home/components/library_content.dart';
 import 'package:lingua_pages/presentation/screen/home/cubits/library_cubit.dart';
 
 import '../../widgets/widgets.dart';
-import 'home_portrait_view.dart';
+import 'home_view.dart';
 
 @RoutePage()
 class HomeScreen extends Screen {
@@ -23,12 +24,18 @@ class HomeScreen extends Screen {
 
   @override
   Widget buildMobilePortraitView(BuildContext context) {
-    return const HomePortraitView();
+    return const HomeView();
   }
 
   @override
   Widget buildMobileLandscapeView(BuildContext context) {
-    // Reuse portrait view — landscape-specific layout is a future enhancement.
-    return const HomePortraitView();
+    return const HomeView(layout: LibraryLayout.phoneLandscape);
+  }
+
+  /// Both orientations; the library itself splits into side pane and shelf
+  /// once there is room for both.
+  @override
+  Widget buildTabletView(BuildContext context) {
+    return const HomeView(layout: LibraryLayout.tablet);
   }
 }

@@ -1,5 +1,5 @@
 ---
-name: LinguaPages
+name: OpenPages
 description: Paperback Bands. A dark shelf where every document format wears a flat print colour as its series band.
 colors:
   ink: "#111315"
@@ -158,7 +158,7 @@ components:
     rounded: "{rounded.cover}"
 ---
 
-# Design System: LinguaPages
+# Design System: OpenPages
 
 ## Overview
 

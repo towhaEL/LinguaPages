@@ -29,6 +29,9 @@ import 'package:lingua_pages/presentation/widgets/app_bar/widgets.dart';
 import 'package:lingua_pages/domain/entity/premium/appearance_catalog.dart';
 import 'package:lingua_pages/presentation/app/cubit/app_preferences_cubit.dart';
 import 'package:lingua_pages/presentation/theme/app_accent_palette.dart';
+import 'package:lingua_pages/presentation/widgets/widgets.dart';
+
+part 'settings_wide_view.dart';
 
 /// Keep in step with `version` in pubspec.yaml.
 const _appVersion = '1.0.0';
@@ -40,11 +43,12 @@ class SettingsPortraitView extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = context.colors;
     final l10n = context.l10n;
+    final sections = _settingsSections(context);
 
     return Scaffold(
       backgroundColor: theme.background,
       appBar: CustomAppBar(title: l10n.settingsTitle, showBackIcon: true),
-      // A readable column on tablets and in landscape.
+      // A readable column on tablets and in split screen.
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 640),
@@ -56,106 +60,154 @@ class SettingsPortraitView extends StatelessWidget {
               AppConstant.verticalGap24,
             ),
             children: [
-              // 1. Premium: an offer while locked, a thank-you once unlocked.
-              BlocBuilder<PremiumCubit, PremiumState>(
-                builder: (context, premium) => Padding(
-                  padding: const EdgeInsets.only(bottom: 20),
-                  child: _PatronBanner(unlocked: premium.unlocked),
-                ),
-              ),
-
-              // 2. Group: Appearance
-              _SettingsSection(
-                cardKey: const Key('settings_card_appearance'),
-                title: 'Appearance',
-                children: const [_AppearanceSettings()],
-              ),
-              Gap(AppConstant.verticalGap20),
-
-              // 3. Group: Reading Defaults
-              _SettingsSection(
-                cardKey: const Key('settings_card_reading_defaults'),
-                title: l10n.settingsReadingTitle,
-                footer: l10n.settingsAppearanceHint,
-                children: const [_ReadingSettings()],
-              ),
-              Gap(AppConstant.verticalGap20),
-
-              // 4. Group: Read Aloud (TTS)
-              _SettingsSection(
-                cardKey: const Key('settings_card_read_aloud'),
-                title: 'Read Aloud (TTS)',
-                children: const [_ReadAloudSettings()],
-              ),
-              Gap(AppConstant.verticalGap20),
-
-              // 5. Group: Library & Backup
-              _SettingsSection(
-                cardKey: const Key('settings_card_backup'),
-                title: l10n.settingsBackupTitle,
-                children: const [_BackupManager(), _DictionarySettings()],
-              ),
-              Gap(AppConstant.verticalGap20),
-
-              // 6. Group: About & Licenses
-              _SettingsSection(
-                cardKey: const Key('settings_card_about'),
-                title: l10n.settingsAccount,
-                children: [
-                  _SettingsTile(
-                    icon: Icons.info_outline_rounded,
-                    title: l10n.appName,
-                    subtitle: 'Version $_appVersion',
-                  ),
-                  _SettingsTile(
-                    icon: Icons.privacy_tip_outlined,
-                    title: l10n.settingsPrivacy,
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () => context.router.root.push(const PrivacyRoute()),
-                  ),
-                  _SettingsTile(
-                    icon: Icons.description_outlined,
-                    title: l10n.settingsLicenses,
-                    subtitle: l10n.settingsLicensesSubtitle,
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () => showLicensePage(
-                      context: context,
-                      applicationName: l10n.appName,
-                      applicationVersion: _appVersion,
-                    ),
-                  ),
-                ],
-              ),
+              // Premium first: an offer while locked, a thank-you once
+              // unlocked.
+              const _PremiumBanner(),
+              for (final (index, section) in sections.indexed) ...[
+                if (index > 0) Gap(AppConstant.verticalGap20),
+                _SettingsSection.of(section),
+              ],
               const SizedBox(height: 24),
-
-              // Editorial quote footer
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: Column(
-                    children: [
-                      Text(
-                        '${l10n.appName} $_appVersion · Private by design',
-                        style: GoogleFonts.inter(
-                          fontSize: 12,
-                          color: theme.onSurfaceMuted,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '“A serene sanctuary for personal stewardship.”',
-                        style: GoogleFonts.newsreader(
-                          fontSize: 13,
-                          fontStyle: FontStyle.italic,
-                          color: theme.onSurfaceMuted,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+              const _SettingsFooter(),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// One settings group: its card, plus how it is listed in the landscape
+/// and tablet navigation pane.
+class _SectionEntry {
+  const _SectionEntry({
+    required this.id,
+    required this.icon,
+    required this.title,
+    required this.children,
+    this.footer,
+  });
+
+  /// Names the card (`settings_card_<id>`) and its nav row in the
+  /// two-pane layout (`settings_nav_<id>`).
+  final String id;
+  final IconData icon;
+  final String title;
+
+  /// A note under the card, for context that is not a setting itself.
+  final String? footer;
+  final List<Widget> children;
+
+  Key get cardKey => Key('settings_card_$id');
+}
+
+/// The settings groups in display order, shared by every layout.
+List<_SectionEntry> _settingsSections(BuildContext context) {
+  final l10n = context.l10n;
+  return [
+    const _SectionEntry(
+      id: 'appearance',
+      icon: Icons.palette_outlined,
+      title: 'Appearance',
+      children: [_AppearanceSettings()],
+    ),
+    _SectionEntry(
+      id: 'reading_defaults',
+      icon: Icons.chrome_reader_mode_outlined,
+      title: l10n.settingsReadingTitle,
+      footer: l10n.settingsAppearanceHint,
+      children: const [_ReadingSettings()],
+    ),
+    const _SectionEntry(
+      id: 'read_aloud',
+      icon: Icons.record_voice_over_outlined,
+      title: 'Read Aloud (TTS)',
+      children: [_ReadAloudSettings()],
+    ),
+    _SectionEntry(
+      id: 'backup',
+      icon: Icons.inventory_2_outlined,
+      title: l10n.settingsBackupTitle,
+      children: const [_BackupManager(), _DictionarySettings()],
+    ),
+    _SectionEntry(
+      id: 'about',
+      icon: Icons.info_outline_rounded,
+      title: l10n.settingsAccount,
+      children: [
+        _SettingsTile(
+          icon: Icons.info_outline_rounded,
+          title: l10n.appName,
+          subtitle: 'Version $_appVersion',
+        ),
+        _SettingsTile(
+          icon: Icons.privacy_tip_outlined,
+          title: l10n.settingsPrivacy,
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => context.router.root.push(const PrivacyRoute()),
+        ),
+        _SettingsTile(
+          icon: Icons.description_outlined,
+          title: l10n.settingsLicenses,
+          subtitle: l10n.settingsLicensesSubtitle,
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => showLicensePage(
+            context: context,
+            applicationName: l10n.appName,
+            applicationVersion: _appVersion,
+          ),
+        ),
+      ],
+    ),
+  ];
+}
+
+class _PremiumBanner extends StatelessWidget {
+  const _PremiumBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<PremiumCubit, PremiumState>(
+      builder: (context, premium) => Padding(
+        padding: const EdgeInsets.only(bottom: 20),
+        child: _PatronBanner(unlocked: premium.unlocked),
+      ),
+    );
+  }
+}
+
+/// Version line and the editorial quote under the settings.
+class _SettingsFooter extends StatelessWidget {
+  const _SettingsFooter();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = context.colors;
+    final l10n = context.l10n;
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Column(
+          children: [
+            Text(
+              '${l10n.appName} $_appVersion · Private by design',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.inter(
+                fontSize: 12,
+                color: theme.onSurfaceMuted,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              '“A serene sanctuary for personal stewardship.”',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.newsreader(
+                fontSize: 13,
+                fontStyle: FontStyle.italic,
+                color: theme.onSurfaceMuted,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -427,7 +479,7 @@ class _BackupManagerState extends State<_BackupManager> {
       // memory; move to a streamed share/save if libraries reach ~1 GB.
       final destinationUri = await FilePicker.saveFile(
         dialogTitle: l10n.settingsBackupCreate,
-        fileName: 'linguapages-backup.zip',
+        fileName: 'openpages-backup.zip',
         bytes: await File(sourcePath).readAsBytes(),
         mimeType: 'application/zip',
         type: FileType.custom,
@@ -469,7 +521,7 @@ class _BackupManagerState extends State<_BackupManager> {
       var filePath = pickedFile.path;
       if (filePath == null) {
         temporaryFile = File(
-          '${Directory.systemTemp.path}/linguapages-restore-'
+          '${Directory.systemTemp.path}/openpages-restore-'
           '${DateTime.now().microsecondsSinceEpoch}.json',
         );
         await temporaryFile.writeAsBytes(await pickedFile.readAsBytes());
@@ -559,23 +611,14 @@ class _BackupManagerState extends State<_BackupManager> {
 
 /// A titled group of setting rows wrapped in a bordered card.
 class _SettingsSection extends StatelessWidget {
-  const _SettingsSection({
-    required this.title,
-    required this.children,
-    this.footer,
-    this.cardKey,
-  });
+  const _SettingsSection.of(this.entry);
 
-  final String title;
-  final List<Widget> children;
-
-  /// A note under the card, for context that is not a setting itself.
-  final String? footer;
-  final Key? cardKey;
+  final _SectionEntry entry;
 
   @override
   Widget build(BuildContext context) {
     final theme = context.colors;
+    final _SectionEntry(:title, :children, :footer, :cardKey) = entry;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -614,7 +657,7 @@ class _SettingsSection extends StatelessWidget {
               AppConstant.horizontalGap4,
               0,
             ),
-            child: AppText.bodySmall(footer!, color: theme.onSurfaceMuted),
+            child: AppText.bodySmall(footer, color: theme.onSurfaceMuted),
           ),
       ],
     );

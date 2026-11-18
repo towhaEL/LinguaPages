@@ -6,7 +6,7 @@ class TextApp {
   final String label;
 }
 
-/// Hands selected text to other apps. LinguaPages itself sends nothing.
+/// Hands selected text to other apps. OpenPages itself sends nothing.
 abstract interface class SelectionTextService {
   Future<void> searchWeb(String text);
 

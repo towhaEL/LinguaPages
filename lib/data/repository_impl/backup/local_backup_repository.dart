@@ -35,9 +35,9 @@ class LocalBackupRepository implements BackupRepository {
     String? passphrase,
   }) async {
     final directory = await Directory.systemTemp.createTemp(
-      'linguapages-backup-',
+      'openpages-backup-',
     );
-    final path = '${directory.path}/linguapages-backup.zip';
+    final path = '${directory.path}/openpages-backup.zip';
     final books = await _database.select(_database.libraryBooks).get();
     final payload = {
       'version': 2,

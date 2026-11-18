@@ -64,17 +64,17 @@ android {
         create("production") {
             dimension = "default"
             applicationIdSuffix = ""
-            manifestPlaceholders["appName"] = "LinguaPages"
+            manifestPlaceholders["appName"] = "OpenPages"
         }
         create("staging") {
             dimension = "default"
             applicationIdSuffix = ".stg"
-            manifestPlaceholders["appName"] = "[STG] LinguaPages"
+            manifestPlaceholders["appName"] = "[STG] OpenPages"
         }
         create("development") {
             dimension = "default"
             applicationIdSuffix = ".dev"
-            manifestPlaceholders["appName"] = "[DEV] LinguaPages"
+            manifestPlaceholders["appName"] = "[DEV] OpenPages"
         }
     }
 

@@ -9,6 +9,7 @@ import 'package:lingua_pages/presentation/screen/reader/read_aloud/sleep_timer.d
 import 'package:lingua_pages/presentation/theme/app_tokens.dart';
 import 'package:lingua_pages/presentation/widgets/book/book_cover.dart';
 import 'package:lingua_pages/presentation/theme/base/theme_extension.dart';
+import 'package:lingua_pages/presentation/screen/reader/widgets/reader_layout.dart';
 
 const _speeds = [0.75, 1.0, 1.25, 1.5, 1.75, 2.0];
 
@@ -299,184 +300,212 @@ class _ReadAloudControls extends StatelessWidget {
       });
     }
 
+    final nowPlaying = <Widget>[
+      Row(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: SizedBox(
+              width: 56,
+              height: 74,
+              child: BookCover(book: book, compact: true),
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.readAloudListening.toUpperCase(),
+                  style: TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 1.1,
+                    color: context.accent,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  book.title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontFamily: 'Newsreader',
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: WarmEditorialTokens.textPrimaryInk,
+                  ),
+                ),
+                if (book.author case final author? when author.isNotEmpty)
+                  Text(
+                    author,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 13,
+                      color: WarmEditorialTokens.subtitleSecondary,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+      const SizedBox(height: 20),
+      ValueListenableBuilder<double>(
+        valueListenable: progress,
+        builder: (context, value, _) {
+          final clamped = value.clamp(0.0, 1.0);
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: LinearProgressIndicator(
+                  value: clamped,
+                  minHeight: 5,
+                  color: context.accent,
+                  backgroundColor: WarmEditorialTokens.surfaceContainerHighest,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                l10n.readAloudStatusLine(
+                  _statusLabel(context, state),
+                  (clamped * 100).round(),
+                ),
+                style: const TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 12,
+                  color: WarmEditorialTokens.subtitleSecondary,
+                  fontFeatures: [FontFeature.tabularFigures()],
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+      const SizedBox(height: 12),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          IconButton(
+            tooltip: l10n.readAloudPrevious,
+            iconSize: 34,
+            icon: const Icon(Icons.skip_previous_rounded),
+            color: WarmEditorialTokens.textPrimaryInk,
+            onPressed: cubit.previous,
+          ),
+          const SizedBox(width: 20),
+          _PlayPauseButton(state: state, cubit: cubit, size: 64),
+          const SizedBox(width: 20),
+          IconButton(
+            tooltip: l10n.readAloudNext,
+            iconSize: 34,
+            icon: const Icon(Icons.skip_next_rounded),
+            color: WarmEditorialTokens.textPrimaryInk,
+            onPressed: cubit.next,
+          ),
+        ],
+      ),
+    ];
+    final options = <Widget>[
+      _SectionLabel(l10n.readAloudSpeed),
+      Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          for (final speed in _speeds)
+            ChoiceChip(
+              label: Text(l10n.readAloudSpeedValue(_speedText(speed))),
+              selected: state.speed == speed,
+              onSelected: (_) => cubit.setSpeed(speed),
+            ),
+        ],
+      ),
+      const SizedBox(height: 18),
+      _SectionLabel(l10n.readAloudVoice),
+      Material(
+        color: WarmEditorialTokens.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(12),
+        child: ListTile(
+          key: const Key('read_aloud_voice_tile'),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          leading: const Icon(Icons.record_voice_over_outlined),
+          title: Text(
+            state.voice?.name ?? '—',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          subtitle: state.voice == null ? null : Text(state.voice!.language),
+          trailing: const Icon(Icons.chevron_right_rounded),
+          onTap: () => _pickVoice(context, cubit),
+        ),
+      ),
+      const SizedBox(height: 18),
+      _SectionLabel(l10n.readAloudSleep),
+      Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          for (final choice in SleepTimerChoice.values)
+            ChoiceChip(
+              label: Text(_sleepLabel(context, choice)),
+              selected: state.sleep == choice,
+              onSelected: (_) => cubit.setSleep(choice),
+            ),
+        ],
+      ),
+      const SizedBox(height: 20),
+      OutlinedButton.icon(
+        key: const Key('read_aloud_stop_button'),
+        icon: const Icon(Icons.stop_rounded),
+        label: Text(l10n.readAloudStop),
+        onPressed: cubit.stop,
+      ),
+    ];
+    // Sideways, the player sits beside its options instead of above them,
+    // so the transport stays on screen without scrolling.
+    final size = MediaQuery.sizeOf(context);
+    final sideBySide = size.width > size.height && size.width >= 600;
+
     return SafeArea(
       child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-        child: Column(
-          key: const Key('read_aloud_controls_sheet'),
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: SizedBox(
-                    width: 56,
-                    height: 74,
-                    child: BookCover(book: book, compact: true),
-                  ),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.readAloudListening.toUpperCase(),
-                        style: TextStyle(
-                          fontFamily: 'Inter',
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 1.1,
-                          color: context.accent,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        book.title,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontFamily: 'Newsreader',
-                          fontSize: 20,
-                          fontWeight: FontWeight.w700,
-                          color: WarmEditorialTokens.textPrimaryInk,
-                        ),
-                      ),
-                      if (book.author case final author? when author.isNotEmpty)
-                        Text(
-                          author,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontFamily: 'Inter',
-                            fontSize: 13,
-                            color: WarmEditorialTokens.subtitleSecondary,
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            ValueListenableBuilder<double>(
-              valueListenable: progress,
-              builder: (context, value, _) {
-                final clamped = value.clamp(0.0, 1.0);
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
-                      child: LinearProgressIndicator(
-                        value: clamped,
-                        minHeight: 5,
-                        color: context.accent,
-                        backgroundColor:
-                            WarmEditorialTokens.surfaceContainerHighest,
-                      ),
+        child: sideBySide
+            ? Row(
+                key: const Key('read_aloud_controls_sheet'),
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: nowPlaying,
                     ),
-                    const SizedBox(height: 6),
-                    Text(
-                      l10n.readAloudStatusLine(
-                        _statusLabel(context, state),
-                        (clamped * 100).round(),
-                      ),
-                      style: const TextStyle(
-                        fontFamily: 'Inter',
-                        fontSize: 12,
-                        color: WarmEditorialTokens.subtitleSecondary,
-                        fontFeatures: [FontFeature.tabularFigures()],
-                      ),
-                    ),
-                  ],
-                );
-              },
-            ),
-            const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                IconButton(
-                  tooltip: l10n.readAloudPrevious,
-                  iconSize: 34,
-                  icon: const Icon(Icons.skip_previous_rounded),
-                  color: WarmEditorialTokens.textPrimaryInk,
-                  onPressed: cubit.previous,
-                ),
-                const SizedBox(width: 20),
-                _PlayPauseButton(state: state, cubit: cubit, size: 64),
-                const SizedBox(width: 20),
-                IconButton(
-                  tooltip: l10n.readAloudNext,
-                  iconSize: 34,
-                  icon: const Icon(Icons.skip_next_rounded),
-                  color: WarmEditorialTokens.textPrimaryInk,
-                  onPressed: cubit.next,
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            _SectionLabel(l10n.readAloudSpeed),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                for (final speed in _speeds)
-                  ChoiceChip(
-                    label: Text(l10n.readAloudSpeedValue(_speedText(speed))),
-                    selected: state.speed == speed,
-                    onSelected: (_) => cubit.setSpeed(speed),
                   ),
-              ],
-            ),
-            const SizedBox(height: 18),
-            _SectionLabel(l10n.readAloudVoice),
-            Material(
-              color: WarmEditorialTokens.surfaceContainerLow,
-              borderRadius: BorderRadius.circular(12),
-              child: ListTile(
-                key: const Key('read_aloud_voice_tile'),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                leading: const Icon(Icons.record_voice_over_outlined),
-                title: Text(
-                  state.voice?.name ?? '—',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                subtitle: state.voice == null
-                    ? null
-                    : Text(state.voice!.language),
-                trailing: const Icon(Icons.chevron_right_rounded),
-                onTap: () => _pickVoice(context, cubit),
+                  const SizedBox(width: 28),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: options,
+                    ),
+                  ),
+                ],
+              )
+            : Column(
+                key: const Key('read_aloud_controls_sheet'),
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  ...nowPlaying,
+                  const SizedBox(height: 20),
+                  ...options,
+                ],
               ),
-            ),
-            const SizedBox(height: 18),
-            _SectionLabel(l10n.readAloudSleep),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                for (final choice in SleepTimerChoice.values)
-                  ChoiceChip(
-                    label: Text(_sleepLabel(context, choice)),
-                    selected: state.sleep == choice,
-                    onSelected: (_) => cubit.setSleep(choice),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            OutlinedButton.icon(
-              key: const Key('read_aloud_stop_button'),
-              icon: const Icon(Icons.stop_rounded),
-              label: Text(l10n.readAloudStop),
-              onPressed: cubit.stop,
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -520,19 +549,14 @@ class _VoicePicker extends StatelessWidget {
       title: Text(voice.name, maxLines: 1, overflow: TextOverflow.ellipsis),
       subtitle: Text(voice.language),
       trailing: voice.id == state.voice?.id
-          ? Icon(
-              Icons.check_rounded,
-              color: context.accent,
-            )
+          ? Icon(Icons.check_rounded, color: context.accent)
           : null,
       onTap: () => Navigator.of(context).pop(voice),
     );
 
     return SafeArea(
       child: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.sizeOf(context).height * .75,
-        ),
+        constraints: BoxConstraints(maxHeight: readerSheetHeight(context, .75)),
         child: ListView(
           shrinkWrap: true,
           children: [
