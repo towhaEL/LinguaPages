@@ -23,7 +23,7 @@ void main() {
     testWidgets('every page fits without overflow in $name', (tester) async {
       await tester.pumpHarness(const OnboardingScreen(), viewport: viewport);
 
-      for (var page = 0; page < 3; page++) {
+      for (var page = 0; page < 2; page++) {
         expect(tester.takeException(), isNull);
         await tester.tap(find.byKey(const Key('next_page_button')));
         await tester.pumpAndSettle();
@@ -32,6 +32,7 @@ void main() {
       expect(tester.takeException(), isNull);
       expect(find.byKey(const Key('import_first_book_button')), findsOneWidget);
       expect(find.byKey(const Key('explore_first_button')), findsOneWidget);
+      expect(find.byKey(const Key('onboarding_agreement')), findsOneWidget);
     });
   }
 
@@ -42,7 +43,7 @@ void main() {
     );
 
     final image = tester.getRect(find.byKey(const Key('onboarding_hero_image')));
-    final title = tester.getRect(find.text('Your books, all in one place'));
+    final title = tester.getRect(find.text('Every book you own, on one shelf'));
     expect(image.right, lessThanOrEqualTo(title.left));
   });
 
@@ -53,7 +54,7 @@ void main() {
     );
 
     final image = tester.getRect(find.byKey(const Key('onboarding_hero_image')));
-    final title = tester.getRect(find.text('Your books, all in one place'));
+    final title = tester.getRect(find.text('Every book you own, on one shelf'));
     expect(image.bottom, lessThanOrEqualTo(title.top));
   });
 
@@ -70,7 +71,7 @@ void main() {
       const OnboardingScreen(),
       viewport: const Size(874, 402),
     );
-    await tester.tap(find.byKey(const Key('dot_indicator_3')));
+    await tester.tap(find.byKey(const Key('dot_indicator_2')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('import_first_book_button')));
     await tester.pumpAndSettle();

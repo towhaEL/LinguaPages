@@ -147,6 +147,12 @@ List<_SectionEntry> _settingsSections(BuildContext context) {
           onTap: () => context.router.root.push(const PrivacyRoute()),
         ),
         _SettingsTile(
+          icon: Icons.gavel_outlined,
+          title: l10n.settingsTerms,
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => context.router.root.push(const TermsRoute()),
+        ),
+        _SettingsTile(
           icon: Icons.description_outlined,
           title: l10n.settingsLicenses,
           subtitle: l10n.settingsLicensesSubtitle,

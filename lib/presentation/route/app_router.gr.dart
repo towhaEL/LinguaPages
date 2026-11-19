@@ -9,20 +9,22 @@
 // coverage:ignore-file
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:auto_route/auto_route.dart' as _i10;
-import 'package:flutter/foundation.dart' as _i14;
-import 'package:flutter/material.dart' as _i11;
-import 'package:lingua_pages/core/document/document_locator.dart' as _i13;
-import 'package:lingua_pages/domain/entity/library/book_entity.dart' as _i12;
+import 'package:auto_route/auto_route.dart' as _i11;
+import 'package:flutter/foundation.dart' as _i15;
+import 'package:flutter/material.dart' as _i12;
+import 'package:lingua_pages/core/document/document_locator.dart' as _i14;
+import 'package:lingua_pages/domain/entity/library/book_entity.dart' as _i13;
 import 'package:lingua_pages/presentation/screen/annotations/annotations_screen.dart'
     as _i1;
 import 'package:lingua_pages/presentation/screen/dashboard/dashboard_screen.dart'
     as _i2;
 import 'package:lingua_pages/presentation/screen/home/home_screen.dart' as _i3;
+import 'package:lingua_pages/presentation/screen/legal/privacy_screen.dart'
+    as _i5;
+import 'package:lingua_pages/presentation/screen/legal/terms_screen.dart'
+    as _i10;
 import 'package:lingua_pages/presentation/screen/onboarding/onboarding_screen.dart'
     as _i4;
-import 'package:lingua_pages/presentation/screen/privacy/privacy_screen.dart'
-    as _i5;
 import 'package:lingua_pages/presentation/screen/reader/reader_screen.dart'
     as _i6;
 import 'package:lingua_pages/presentation/screen/saved_words/saved_words_screen.dart'
@@ -34,13 +36,13 @@ import 'package:lingua_pages/presentation/screen/splash/splash_screen.dart'
 
 /// generated route for
 /// [_i1.AnnotationsScreen]
-class AnnotationsRoute extends _i10.PageRouteInfo<void> {
-  const AnnotationsRoute({List<_i10.PageRouteInfo>? children})
+class AnnotationsRoute extends _i11.PageRouteInfo<void> {
+  const AnnotationsRoute({List<_i11.PageRouteInfo>? children})
     : super(AnnotationsRoute.name, initialChildren: children);
 
   static const String name = 'AnnotationsRoute';
 
-  static _i10.PageInfo page = _i10.PageInfo(
+  static _i11.PageInfo page = _i11.PageInfo(
     name,
     builder: (data) {
       return const _i1.AnnotationsScreen();
@@ -50,13 +52,13 @@ class AnnotationsRoute extends _i10.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i2.DashboardScreen]
-class DashboardRoute extends _i10.PageRouteInfo<void> {
-  const DashboardRoute({List<_i10.PageRouteInfo>? children})
+class DashboardRoute extends _i11.PageRouteInfo<void> {
+  const DashboardRoute({List<_i11.PageRouteInfo>? children})
     : super(DashboardRoute.name, initialChildren: children);
 
   static const String name = 'DashboardRoute';
 
-  static _i10.PageInfo page = _i10.PageInfo(
+  static _i11.PageInfo page = _i11.PageInfo(
     name,
     builder: (data) {
       return const _i2.DashboardScreen();
@@ -66,13 +68,13 @@ class DashboardRoute extends _i10.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i3.HomeScreen]
-class HomeRoute extends _i10.PageRouteInfo<void> {
-  const HomeRoute({List<_i10.PageRouteInfo>? children})
+class HomeRoute extends _i11.PageRouteInfo<void> {
+  const HomeRoute({List<_i11.PageRouteInfo>? children})
     : super(HomeRoute.name, initialChildren: children);
 
   static const String name = 'HomeRoute';
 
-  static _i10.PageInfo page = _i10.PageInfo(
+  static _i11.PageInfo page = _i11.PageInfo(
     name,
     builder: (data) {
       return const _i3.HomeScreen();
@@ -82,12 +84,12 @@ class HomeRoute extends _i10.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i4.OnboardingScreen]
-class OnboardingRoute extends _i10.PageRouteInfo<OnboardingRouteArgs> {
+class OnboardingRoute extends _i11.PageRouteInfo<OnboardingRouteArgs> {
   OnboardingRoute({
-    _i11.Key? key,
-    _i11.VoidCallback? onImportFirstBook,
-    _i11.VoidCallback? onExploreFirst,
-    List<_i10.PageRouteInfo>? children,
+    _i12.Key? key,
+    _i12.VoidCallback? onImportFirstBook,
+    _i12.VoidCallback? onExploreFirst,
+    List<_i11.PageRouteInfo>? children,
   }) : super(
          OnboardingRoute.name,
          args: OnboardingRouteArgs(
@@ -100,7 +102,7 @@ class OnboardingRoute extends _i10.PageRouteInfo<OnboardingRouteArgs> {
 
   static const String name = 'OnboardingRoute';
 
-  static _i10.PageInfo page = _i10.PageInfo(
+  static _i11.PageInfo page = _i11.PageInfo(
     name,
     builder: (data) {
       final args = data.argsAs<OnboardingRouteArgs>(
@@ -122,11 +124,11 @@ class OnboardingRouteArgs {
     this.onExploreFirst,
   });
 
-  final _i11.Key? key;
+  final _i12.Key? key;
 
-  final _i11.VoidCallback? onImportFirstBook;
+  final _i12.VoidCallback? onImportFirstBook;
 
-  final _i11.VoidCallback? onExploreFirst;
+  final _i12.VoidCallback? onExploreFirst;
 
   @override
   String toString() {
@@ -149,13 +151,13 @@ class OnboardingRouteArgs {
 
 /// generated route for
 /// [_i5.PrivacyScreen]
-class PrivacyRoute extends _i10.PageRouteInfo<void> {
-  const PrivacyRoute({List<_i10.PageRouteInfo>? children})
+class PrivacyRoute extends _i11.PageRouteInfo<void> {
+  const PrivacyRoute({List<_i11.PageRouteInfo>? children})
     : super(PrivacyRoute.name, initialChildren: children);
 
   static const String name = 'PrivacyRoute';
 
-  static _i10.PageInfo page = _i10.PageInfo(
+  static _i11.PageInfo page = _i11.PageInfo(
     name,
     builder: (data) {
       return const _i5.PrivacyScreen();
@@ -165,12 +167,12 @@ class PrivacyRoute extends _i10.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i6.ReaderScreen]
-class ReaderRoute extends _i10.PageRouteInfo<ReaderRouteArgs> {
+class ReaderRoute extends _i11.PageRouteInfo<ReaderRouteArgs> {
   ReaderRoute({
-    required _i12.BookEntity book,
-    _i13.DocumentLocator? openAt,
-    _i14.Key? key,
-    List<_i10.PageRouteInfo>? children,
+    required _i13.BookEntity book,
+    _i14.DocumentLocator? openAt,
+    _i15.Key? key,
+    List<_i11.PageRouteInfo>? children,
   }) : super(
          ReaderRoute.name,
          args: ReaderRouteArgs(book: book, openAt: openAt, key: key),
@@ -179,7 +181,7 @@ class ReaderRoute extends _i10.PageRouteInfo<ReaderRouteArgs> {
 
   static const String name = 'ReaderRoute';
 
-  static _i10.PageInfo page = _i10.PageInfo(
+  static _i11.PageInfo page = _i11.PageInfo(
     name,
     builder: (data) {
       final args = data.argsAs<ReaderRouteArgs>();
@@ -195,11 +197,11 @@ class ReaderRoute extends _i10.PageRouteInfo<ReaderRouteArgs> {
 class ReaderRouteArgs {
   const ReaderRouteArgs({required this.book, this.openAt, this.key});
 
-  final _i12.BookEntity book;
+  final _i13.BookEntity book;
 
-  final _i13.DocumentLocator? openAt;
+  final _i14.DocumentLocator? openAt;
 
-  final _i14.Key? key;
+  final _i15.Key? key;
 
   @override
   String toString() {
@@ -219,13 +221,13 @@ class ReaderRouteArgs {
 
 /// generated route for
 /// [_i7.SavedWordsScreen]
-class SavedWordsRoute extends _i10.PageRouteInfo<void> {
-  const SavedWordsRoute({List<_i10.PageRouteInfo>? children})
+class SavedWordsRoute extends _i11.PageRouteInfo<void> {
+  const SavedWordsRoute({List<_i11.PageRouteInfo>? children})
     : super(SavedWordsRoute.name, initialChildren: children);
 
   static const String name = 'SavedWordsRoute';
 
-  static _i10.PageInfo page = _i10.PageInfo(
+  static _i11.PageInfo page = _i11.PageInfo(
     name,
     builder: (data) {
       return const _i7.SavedWordsScreen();
@@ -235,13 +237,13 @@ class SavedWordsRoute extends _i10.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i8.SettingsScreen]
-class SettingsRoute extends _i10.PageRouteInfo<void> {
-  const SettingsRoute({List<_i10.PageRouteInfo>? children})
+class SettingsRoute extends _i11.PageRouteInfo<void> {
+  const SettingsRoute({List<_i11.PageRouteInfo>? children})
     : super(SettingsRoute.name, initialChildren: children);
 
   static const String name = 'SettingsRoute';
 
-  static _i10.PageInfo page = _i10.PageInfo(
+  static _i11.PageInfo page = _i11.PageInfo(
     name,
     builder: (data) {
       return const _i8.SettingsScreen();
@@ -251,16 +253,32 @@ class SettingsRoute extends _i10.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i9.SplashScreen]
-class SplashRoute extends _i10.PageRouteInfo<void> {
-  const SplashRoute({List<_i10.PageRouteInfo>? children})
+class SplashRoute extends _i11.PageRouteInfo<void> {
+  const SplashRoute({List<_i11.PageRouteInfo>? children})
     : super(SplashRoute.name, initialChildren: children);
 
   static const String name = 'SplashRoute';
 
-  static _i10.PageInfo page = _i10.PageInfo(
+  static _i11.PageInfo page = _i11.PageInfo(
     name,
     builder: (data) {
       return const _i9.SplashScreen();
+    },
+  );
+}
+
+/// generated route for
+/// [_i10.TermsScreen]
+class TermsRoute extends _i11.PageRouteInfo<void> {
+  const TermsRoute({List<_i11.PageRouteInfo>? children})
+    : super(TermsRoute.name, initialChildren: children);
+
+  static const String name = 'TermsRoute';
+
+  static _i11.PageInfo page = _i11.PageInfo(
+    name,
+    builder: (data) {
+      return const _i10.TermsScreen();
     },
   );
 }

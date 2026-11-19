@@ -1,136 +1,84 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:lingua_pages/presentation/route/app_router.gr.dart';
 import 'package:lingua_pages/presentation/screen/onboarding/onboarding_screen.dart';
+import 'package:mocktail/mocktail.dart';
 
 import '../../../e2e/helpers/test_app_harness.dart';
 
+class _MockStackRouter extends Mock implements StackRouter {}
+
+class _MockRootStackRouter extends Mock implements RootStackRouter {}
+
 void main() {
   group('OnboardingScreen Widget Tests', () {
-    testWidgets('Page 1 displays brand AppBar, headline, hero image, format pills, and indicators',
-        (tester) async {
-      await tester.pumpHarness(
-        const OnboardingScreen(),
-      );
+    Future<void> goToPage(WidgetTester tester, int page) async {
+      await tester.tap(find.byKey(Key('dot_indicator_$page')));
+      await tester.pumpAndSettle();
+    }
 
-      // Verify AppBar
+    double dotWidth(WidgetTester tester, int index) => tester
+        .renderObject<RenderBox>(find.byKey(Key('dot_indicator_$index')))
+        .size
+        .width;
+
+    testWidgets('page 1 shows the brand, library copy, formats and features', (
+      tester,
+    ) async {
+      await tester.pumpHarness(const OnboardingScreen());
+
       expect(find.text('OpenPages'), findsOneWidget);
       expect(find.byIcon(Icons.local_library_outlined), findsOneWidget);
       expect(find.text('Skip'), findsOneWidget);
 
-      // Verify Page 1 Content
-      expect(find.text('Your books, all in one place'), findsOneWidget);
+      expect(find.text('1 of 3  ·  YOUR LIBRARY'), findsOneWidget);
+      expect(find.text('Every book you own, on one shelf'), findsOneWidget);
       expect(find.byKey(const Key('onboarding_hero_image')), findsOneWidget);
-      expect(
-        find.text(
-          'EPUB, PDF, TXT, Markdown, HTML and FB2. DRM-free and stored only on your phone.',
-        ),
-        findsOneWidget,
-      );
+      for (final format in ['EPUB', 'PDF', 'TXT', 'MD', 'HTML', 'FB2']) {
+        expect(find.text(format), findsOneWidget);
+      }
+      expect(find.text('Import from your files'), findsOneWidget);
+      expect(find.text('Picks up where you left off'), findsOneWidget);
 
-      // Verify Format Pills
-      expect(find.text('EPUB'), findsOneWidget);
-      expect(find.text('PDF'), findsOneWidget);
-      expect(find.text('TXT'), findsOneWidget);
-      expect(find.text('MD'), findsOneWidget);
-      expect(find.text('FB2'), findsOneWidget);
+      expect(dotWidth(tester, 0), 24);
+      expect(dotWidth(tester, 1), 8);
+      expect(dotWidth(tester, 2), 8);
+      expect(find.byKey(const Key('dot_indicator_3')), findsNothing);
 
-      // Verify Page Indicators (Dot 0 active 24x8, others 8x8)
-      final dot0 = tester.renderObject<RenderBox>(find.byKey(const Key('dot_indicator_0')));
-      final dot1 = tester.renderObject<RenderBox>(find.byKey(const Key('dot_indicator_1')));
-      final dot2 = tester.renderObject<RenderBox>(find.byKey(const Key('dot_indicator_2')));
-      final dot3 = tester.renderObject<RenderBox>(find.byKey(const Key('dot_indicator_3')));
-
-      expect(dot0.size.width, 24);
-      expect(dot0.size.height, 8);
-      expect(dot1.size.width, 8);
-      expect(dot1.size.height, 8);
-      expect(dot2.size.width, 8);
-      expect(dot3.size.width, 8);
-
-      // Verify Next Button and Reassurance Note
       expect(find.byKey(const Key('next_page_button')), findsOneWidget);
-      expect(find.text('Offline-first & zero telemetry'), findsOneWidget);
+      expect(find.byKey(const Key('import_first_book_button')), findsNothing);
+      expect(find.byKey(const Key('onboarding_agreement')), findsNothing);
 
-      // Verify strict architectural rule: NO bottom navigation bar
       tester.expectNoBottomNavigationBar();
     });
 
-    testWidgets('Tapping Next navigates from Page 1 to Page 2 with styles and feature pills',
-        (tester) async {
-      await tester.pumpHarness(
-        const OnboardingScreen(),
-      );
+    testWidgets('Next leads to page 2: reading styles and read aloud', (
+      tester,
+    ) async {
+      await tester.pumpHarness(const OnboardingScreen());
 
       await tester.tap(find.byKey(const Key('next_page_button')));
       await tester.pumpAndSettle();
 
-      expect(find.text('Read the way you like'), findsOneWidget);
+      expect(find.text('2 of 3  ·  READING'), findsOneWidget);
+      expect(find.text('Read your way, or listen instead'), findsOneWidget);
       expect(find.byKey(const Key('onboarding_page2_image')), findsOneWidget);
       expect(
-        find.text(
-          'Themes, fonts, line spacing and margins. Highlights, notes and bookmarks that stay with the page.',
-        ),
+        find.byKey(const Key('onboarding_page2_audio_image')),
         findsOneWidget,
       );
-
-      // Verify Feature Pills
-      expect(find.text('Custom Fonts'), findsOneWidget);
-      expect(find.text('Margins & Spacing'), findsOneWidget);
-      expect(find.text('Highlights & Notes'), findsOneWidget);
-
-      // Dot 1 is active (24x8)
-      final dot1 = tester.renderObject<RenderBox>(find.byKey(const Key('dot_indicator_1')));
-      expect(dot1.size.width, 24);
-      expect(dot1.size.height, 8);
-
-      // Reassurance Note
-      expect(
-        find.text('100% Offline • Zero telemetry & personal storage'),
-        findsOneWidget,
-      );
+      expect(find.text('Themes, fonts and spacing'), findsOneWidget);
+      expect(find.text('Highlights, notes and word lookups'), findsOneWidget);
+      expect(find.text('Read aloud with a sleep timer'), findsOneWidget);
+      expect(dotWidth(tester, 1), 24);
     });
 
-    testWidgets('Tapping Next navigates to Page 3 with read-aloud features',
-        (tester) async {
-      await tester.pumpHarness(
-        const OnboardingScreen(),
-      );
-
-      await tester.tap(find.byKey(const Key('next_page_button')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('next_page_button')));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Listen when your eyes rest'), findsOneWidget);
-      expect(find.byKey(const Key('onboarding_page3_image')), findsOneWidget);
-      expect(
-        find.text(
-          'Text-to-speech read aloud with natural voices, sentence tracking, and sleep timer, even when your screen is locked.',
-        ),
-        findsOneWidget,
-      );
-
-      // Feature pills
-      expect(find.text('Natural Voices'), findsOneWidget);
-      expect(find.text('Sentence Tracking'), findsOneWidget);
-      expect(find.text('Sleep Timer'), findsOneWidget);
-
-      // Dot 2 is active
-      final dot2 = tester.renderObject<RenderBox>(find.byKey(const Key('dot_indicator_2')));
-      expect(dot2.size.width, 24);
-
-      // Reassurance note
-      expect(
-        find.text('Offline-first & zero telemetry · Background audio session'),
-        findsOneWidget,
-      );
-    });
-
-    testWidgets('Tapping Next navigates to Page 4 with dual actions and privacy assurance',
-        (tester) async {
+    testWidgets('the last page shows privacy, the agreement and both actions', (
+      tester,
+    ) async {
       var importCalled = false;
       var exploreCalled = false;
-
       await tester.pumpHarness(
         OnboardingScreen(
           onImportFirstBook: () => importCalled = true,
@@ -138,38 +86,29 @@ void main() {
         ),
       );
 
-      // Navigate to page 4
-      await tester.tap(find.byKey(const Key('next_page_button')));
-      await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('next_page_button')));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('next_page_button')));
       await tester.pumpAndSettle();
 
-      expect(find.text('Private by design'), findsOneWidget);
-      expect(find.byKey(const Key('onboarding_page4_image')), findsOneWidget);
+      expect(find.text('3 of 3  ·  PRIVACY'), findsOneWidget);
+      expect(find.text('Your reading stays yours'), findsOneWidget);
+      expect(find.byKey(const Key('onboarding_page3_image')), findsOneWidget);
+      expect(find.text('Stored only on this device'), findsOneWidget);
+      expect(find.text('No ads, analytics or tracking'), findsOneWidget);
+      expect(find.text('Only looked-up words go online'), findsOneWidget);
+      expect(dotWidth(tester, 2), 24);
+
+      expect(find.byKey(const Key('next_page_button')), findsNothing);
       expect(
-        find.text(
-          'No account, no telemetry, no tracking. DRM-free books stored only on your device, with free offline dictionary lookup.',
+        find.textContaining(
+          'By continuing, you agree to the Terms of Use and acknowledge the '
+          'Privacy Policy.',
+          findRichText: true,
         ),
         findsOneWidget,
       );
 
-      // Feature pills
-      expect(find.text('100% Offline Vault'), findsOneWidget);
-      expect(find.text('Zero Telemetry'), findsOneWidget);
-      expect(find.text('Offline Dictionary'), findsOneWidget);
-
-      // Dual CTAs
-      expect(find.byKey(const Key('import_first_book_button')), findsOneWidget);
-      expect(find.byKey(const Key('explore_first_button')), findsOneWidget);
-      expect(find.text('Archived locally • Zero cloud sync required'), findsOneWidget);
-
-      // Dot 3 is active
-      final dot3 = tester.renderObject<RenderBox>(find.byKey(const Key('dot_indicator_3')));
-      expect(dot3.size.width, 24);
-
-      // Tap actions
       await tester.tap(find.byKey(const Key('import_first_book_button')));
       expect(importCalled, isTrue);
 
@@ -177,34 +116,58 @@ void main() {
       expect(exploreCalled, isTrue);
     });
 
-    testWidgets('Tapping Skip from Page 1 navigates directly to Page 4',
-        (tester) async {
-      await tester.pumpHarness(
-        const OnboardingScreen(),
-      );
+    testWidgets('Skip from page 1 jumps to the last page', (tester) async {
+      await tester.pumpHarness(const OnboardingScreen());
 
-      expect(find.text('Your books, all in one place'), findsOneWidget);
-
-      // Tap Skip
       await tester.tap(find.text('Skip'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Private by design'), findsOneWidget);
+      expect(find.text('Your reading stays yours'), findsOneWidget);
       expect(find.byKey(const Key('import_first_book_button')), findsOneWidget);
       expect(find.byKey(const Key('explore_first_button')), findsOneWidget);
     });
 
-    testWidgets('Tapping indicator dot 2 jumps directly to Page 3',
-        (tester) async {
-      await tester.pumpHarness(
-        const OnboardingScreen(),
-      );
+    group('agreement links', () {
+      late _MockStackRouter router;
+      late _MockRootStackRouter root;
 
-      await tester.tap(find.byKey(const Key('dot_indicator_2')));
-      await tester.pumpAndSettle();
+      setUpAll(() => registerFallbackValue(const TermsRoute()));
 
-      expect(find.text('Listen when your eyes rest'), findsOneWidget);
-      expect(find.byKey(const Key('onboarding_page3_image')), findsOneWidget);
+      setUp(() {
+        router = _MockStackRouter();
+        root = _MockRootStackRouter();
+        when(() => router.root).thenReturn(root);
+        when(() => root.push<Object?>(any())).thenAnswer((_) async => null);
+      });
+
+      Future<void> pumpLastPage(WidgetTester tester) async {
+        await tester.pumpHarness(
+          StackRouterScope(
+            controller: router,
+            stateHash: 0,
+            child: const OnboardingScreen(),
+          ),
+        );
+        await goToPage(tester, 2);
+      }
+
+      testWidgets('Terms of Use opens the terms screen', (tester) async {
+        await pumpLastPage(tester);
+
+        await tester.tapOnText(find.textRange.ofSubstring('Terms of Use'));
+        await tester.pump();
+
+        verify(() => root.push<Object?>(const TermsRoute())).called(1);
+      });
+
+      testWidgets('Privacy Policy opens the privacy screen', (tester) async {
+        await pumpLastPage(tester);
+
+        await tester.tapOnText(find.textRange.ofSubstring('Privacy Policy'));
+        await tester.pump();
+
+        verify(() => root.push<Object?>(const PrivacyRoute())).called(1);
+      });
     });
   });
 }

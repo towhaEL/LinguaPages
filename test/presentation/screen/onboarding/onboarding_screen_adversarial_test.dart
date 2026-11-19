@@ -74,11 +74,11 @@ void main() {
 
         await pumpScreen(tester);
 
-        // Jump to Page 4 via Dot 3
-        await tester.tap(find.byKey(const Key('dot_indicator_3')));
+        // Jump to the last page via its dot
+        await tester.tap(find.byKey(const Key('dot_indicator_2')));
         await tester.pumpAndSettle();
 
-        expect(find.text('Private by design'), findsOneWidget);
+        expect(find.text('Your reading stays yours'), findsOneWidget);
         expect(find.text('Something went wrong. Try again.'), findsNothing);
 
         // Tap Import First Book
@@ -118,8 +118,8 @@ void main() {
 
         await pumpScreen(tester);
 
-        // Jump to Page 4 via Dot 3
-        await tester.tap(find.byKey(const Key('dot_indicator_3')));
+        // Jump to the last page via its dot
+        await tester.tap(find.byKey(const Key('dot_indicator_2')));
         await tester.pumpAndSettle();
 
         // Tap Explore first
@@ -142,7 +142,7 @@ void main() {
 
         await pumpScreen(tester);
 
-        await tester.tap(find.byKey(const Key('dot_indicator_3')));
+        await tester.tap(find.byKey(const Key('dot_indicator_2')));
         await tester.pumpAndSettle();
 
         // First tap initiates async completion
@@ -180,7 +180,7 @@ void main() {
 
         await pumpScreen(tester);
 
-        await tester.tap(find.byKey(const Key('dot_indicator_3')));
+        await tester.tap(find.byKey(const Key('dot_indicator_2')));
         await tester.pumpAndSettle();
 
         // Tap Explore first
@@ -204,22 +204,22 @@ void main() {
     );
 
     testWidgets(
-      'Scenario 1.5: Tapping Skip on Page 4 while _busy is true does not trigger duplicate completion',
+      'Scenario 1.5: Skip is inert on the last page while _busy is true and does not trigger duplicate completion',
       (tester) async {
         final completer = Completer<void>();
         when(() => mockPreferences.complete()).thenAnswer((_) => completer.future);
 
         await pumpScreen(tester);
 
-        await tester.tap(find.byKey(const Key('dot_indicator_3')));
+        await tester.tap(find.byKey(const Key('dot_indicator_2')));
         await tester.pumpAndSettle();
 
         await tester.tap(find.byKey(const Key('import_first_book_button')));
         await tester.pump();
 
-        // On Page 4, Skip delegates to _handleExploreFirst() -> _completeOnboarding()
-        // But _busy is true, so it must return immediately without duplicate execution
-        await tester.tap(find.text('Skip'));
+        // Skip is hidden and disabled on the last page; a tap must not
+        // start a second completion.
+        await tester.tap(find.text('Skip'), warnIfMissed: false);
         await tester.pump();
 
         completer.complete();
@@ -238,7 +238,7 @@ void main() {
 
         await pumpScreen(tester);
 
-        await tester.tap(find.byKey(const Key('dot_indicator_3')));
+        await tester.tap(find.byKey(const Key('dot_indicator_2')));
         await tester.pumpAndSettle();
 
         // Initiate import
@@ -274,7 +274,7 @@ void main() {
 
         await pumpScreen(tester);
 
-        await tester.tap(find.byKey(const Key('dot_indicator_3')));
+        await tester.tap(find.byKey(const Key('dot_indicator_2')));
         await tester.pumpAndSettle();
 
         // Initiate explore first
@@ -307,7 +307,7 @@ void main() {
 
         await pumpScreen(tester);
 
-        await tester.tap(find.byKey(const Key('dot_indicator_3')));
+        await tester.tap(find.byKey(const Key('dot_indicator_2')));
         await tester.pumpAndSettle();
 
         // Rapid dual taps back-to-back before frame pump
@@ -341,11 +341,6 @@ void main() {
 
         // Page 3
         await tester.tap(find.byKey(const Key('dot_indicator_2')));
-        await tester.pumpAndSettle();
-        tester.expectNoBottomNavigationBar();
-
-        // Page 4
-        await tester.tap(find.byKey(const Key('dot_indicator_3')));
         await tester.pumpAndSettle();
         tester.expectNoBottomNavigationBar();
       },
@@ -397,7 +392,7 @@ void main() {
 
         await pumpScreen(tester);
 
-        await tester.tap(find.byKey(const Key('dot_indicator_3')));
+        await tester.tap(find.byKey(const Key('dot_indicator_2')));
         await tester.pumpAndSettle();
 
         await tester.tap(find.byKey(const Key('import_first_book_button')));
@@ -424,7 +419,7 @@ void main() {
 
         await pumpScreen(tester);
 
-        await tester.tap(find.byKey(const Key('dot_indicator_3')));
+        await tester.tap(find.byKey(const Key('dot_indicator_2')));
         await tester.pumpAndSettle();
 
         await tester.tap(find.byKey(const Key('import_first_book_button')));
@@ -456,7 +451,7 @@ void main() {
       final size = entry.value;
 
       testWidgets(
-        'Scenario 3: Zero RenderFlex overflow on all 4 pages under $label',
+        'Scenario 3: Zero RenderFlex overflow on all 3 pages under $label',
         (tester) async {
           FlutterErrorDetails? errorDetails;
           final originalOnError = FlutterError.onError;
@@ -473,22 +468,17 @@ void main() {
           }
 
           // Verify Page 1
-          expect(find.text('Your books, all in one place'), findsOneWidget);
+          expect(find.text('Every book you own, on one shelf'), findsOneWidget);
 
           // Verify Page 2
           await tester.tap(find.byKey(const Key('dot_indicator_1')));
           await tester.pumpAndSettle();
-          expect(find.text('Read the way you like'), findsOneWidget);
+          expect(find.text('Read your way, or listen instead'), findsOneWidget);
 
           // Verify Page 3
           await tester.tap(find.byKey(const Key('dot_indicator_2')));
           await tester.pumpAndSettle();
-          expect(find.text('Listen when your eyes rest'), findsOneWidget);
-
-          // Verify Page 4
-          await tester.tap(find.byKey(const Key('dot_indicator_3')));
-          await tester.pumpAndSettle();
-          expect(find.text('Private by design'), findsOneWidget);
+          expect(find.text('Your reading stays yours'), findsOneWidget);
           expect(find.byKey(const Key('import_first_book_button')), findsOneWidget);
           expect(find.byKey(const Key('explore_first_button')), findsOneWidget);
 

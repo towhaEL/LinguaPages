@@ -5,10 +5,14 @@ import 'package:lingua_pages/presentation/theme/app_colors.dart';
 
 import '../../../e2e/helpers/test_app_harness.dart';
 
+const _page1 = 'Every book you own, on one shelf';
+const _page2 = 'Read your way, or listen instead';
+const _page3 = 'Your reading stays yours';
+
 void main() {
-  group('Milestone 2 Challenger Stress & Boundary Tests', () {
+  group('Onboarding stress & boundary tests', () {
     void verifyIndicatorDots(WidgetTester tester, int activeIndex) {
-      for (var i = 0; i < 4; i++) {
+      for (var i = 0; i < 3; i++) {
         final dotFinder = find.byKey(Key('dot_indicator_$i'));
         expect(dotFinder, findsOneWidget);
 
@@ -17,355 +21,251 @@ void main() {
         final decoration = animatedContainer.decoration as BoxDecoration?;
 
         expect(decoration, isNotNull);
+        expect(renderBox.size.height, 8, reason: 'Dot $i should be 8px tall');
         if (i == activeIndex) {
-          expect(renderBox.size.width, 24, reason: 'Active dot $i should be 24px wide');
-          expect(renderBox.size.height, 8, reason: 'Active dot $i should be 8px tall');
-          expect(
-            decoration!.color,
-            AppColors.accentInkBlueColor,
-            reason: 'Active dot $i should be #2F4A7A',
-          );
+          expect(renderBox.size.width, 24, reason: 'Active dot $i is 24px');
+          expect(decoration!.color, AppColors.accentInkBlueColor);
         } else {
-          expect(renderBox.size.width, 8, reason: 'Inactive dot $i should be 8px wide');
-          expect(renderBox.size.height, 8, reason: 'Inactive dot $i should be 8px tall');
-          expect(
-            decoration!.color,
-            const Color(0xFFC4C6D0),
-            reason: 'Inactive dot $i should be #C4C6D0',
-          );
+          expect(renderBox.size.width, 8, reason: 'Inactive dot $i is 8px');
+          expect(decoration!.color, AppColors.outlineVariantColor);
         }
       }
     }
 
-    testWidgets('1. Rapid swiping left and right across pages 1 to 4 with gesture stress',
-        (tester) async {
+    Future<void> swipe(WidgetTester tester, double dx) async {
+      await tester.drag(find.byType(PageView), Offset(dx, 0));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('1. Swiping forward and back across all three pages', (
+      tester,
+    ) async {
       await tester.pumpHarness(const OnboardingScreen());
 
       verifyIndicatorDots(tester, 0);
-      expect(find.text('Your books, all in one place'), findsOneWidget);
+      expect(find.text(_page1), findsOneWidget);
 
-      // Swipe from Page 1 to Page 2
-      await tester.drag(find.byType(PageView), const Offset(-300, 0));
-      await tester.pumpAndSettle();
-      expect(find.text('Read the way you like'), findsOneWidget);
+      await swipe(tester, -300);
+      expect(find.text(_page2), findsOneWidget);
       verifyIndicatorDots(tester, 1);
 
-      // Swipe from Page 2 to Page 3
-      await tester.drag(find.byType(PageView), const Offset(-300, 0));
-      await tester.pumpAndSettle();
-      expect(find.text('Listen when your eyes rest'), findsOneWidget);
+      await swipe(tester, -300);
+      expect(find.text(_page3), findsOneWidget);
       verifyIndicatorDots(tester, 2);
 
-      // Swipe from Page 3 to Page 4
-      await tester.drag(find.byType(PageView), const Offset(-300, 0));
-      await tester.pumpAndSettle();
-      expect(find.text('Private by design'), findsOneWidget);
-      verifyIndicatorDots(tester, 3);
-
-      // Swipe back from Page 4 to Page 3
-      await tester.drag(find.byType(PageView), const Offset(300, 0));
-      await tester.pumpAndSettle();
-      expect(find.text('Listen when your eyes rest'), findsOneWidget);
-      verifyIndicatorDots(tester, 2);
-
-      // Swipe back from Page 3 to Page 2
-      await tester.drag(find.byType(PageView), const Offset(300, 0));
-      await tester.pumpAndSettle();
-      expect(find.text('Read the way you like'), findsOneWidget);
+      await swipe(tester, 300);
+      expect(find.text(_page2), findsOneWidget);
       verifyIndicatorDots(tester, 1);
 
-      // Swipe back from Page 2 to Page 1
-      await tester.drag(find.byType(PageView), const Offset(300, 0));
-      await tester.pumpAndSettle();
-      expect(find.text('Your books, all in one place'), findsOneWidget);
+      await swipe(tester, 300);
+      expect(find.text(_page1), findsOneWidget);
       verifyIndicatorDots(tester, 0);
 
-      // Interrupted rapid gestures: drag left, don't wait for settle, drag right, pumpAndSettle
+      // Interrupted gestures: drag left, don't settle, drag right.
       await tester.drag(find.byType(PageView), const Offset(-200, 0));
       await tester.pump(const Duration(milliseconds: 30));
       await tester.drag(find.byType(PageView), const Offset(200, 0));
       await tester.pumpAndSettle();
 
-      // State remains consistent without crash
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('2. Over-scrolling past Page 1 (backward) and Page 4 (forward) maintains bounds',
-        (tester) async {
+    testWidgets('2. Over-scrolling past the first and last page keeps bounds', (
+      tester,
+    ) async {
       await tester.pumpHarness(const OnboardingScreen());
 
-      // On Page 1, over-scroll backward aggressively multiple times
       for (var i = 0; i < 3; i++) {
         await tester.fling(find.byType(PageView), const Offset(600, 0), 3000);
         await tester.pumpAndSettle();
       }
-
-      // Page 1 remains active without exceptions or negative indices
-      expect(find.text('Your books, all in one place'), findsOneWidget);
+      expect(find.text(_page1), findsOneWidget);
       verifyIndicatorDots(tester, 0);
 
-      // Navigate to Page 4
       await tester.tap(find.text('Skip'));
       await tester.pumpAndSettle();
-      expect(find.text('Private by design'), findsOneWidget);
-      verifyIndicatorDots(tester, 3);
+      expect(find.text(_page3), findsOneWidget);
+      verifyIndicatorDots(tester, 2);
 
-      // On Page 4, over-scroll forward aggressively multiple times
       for (var i = 0; i < 3; i++) {
         await tester.fling(find.byType(PageView), const Offset(-600, 0), 3000);
         await tester.pumpAndSettle();
       }
-
-      // Page 4 remains active without index out of bounds
-      expect(find.text('Private by design'), findsOneWidget);
-      verifyIndicatorDots(tester, 3);
+      expect(find.text(_page3), findsOneWidget);
+      verifyIndicatorDots(tester, 2);
     });
 
-    testWidgets('3A. Tapping Skip from Page 1 jumps directly to Page 4',
-        (tester) async {
+    testWidgets('3A. Skip from page 1 jumps to the last page', (tester) async {
       await tester.pumpHarness(const OnboardingScreen());
-      expect(find.text('Your books, all in one place'), findsOneWidget);
-      verifyIndicatorDots(tester, 0);
 
       await tester.tap(find.text('Skip'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Private by design'), findsOneWidget);
+      expect(find.text(_page3), findsOneWidget);
       expect(find.byKey(const Key('import_first_book_button')), findsOneWidget);
       expect(find.byKey(const Key('explore_first_button')), findsOneWidget);
-      verifyIndicatorDots(tester, 3);
+      verifyIndicatorDots(tester, 2);
     });
 
-    testWidgets('3B. Tapping Skip from Page 2 jumps directly to Page 4',
-        (tester) async {
+    testWidgets('3B. Skip from page 2 jumps to the last page', (tester) async {
       await tester.pumpHarness(const OnboardingScreen());
-      // Navigate to Page 2
       await tester.tap(find.byKey(const Key('next_page_button')));
       await tester.pumpAndSettle();
-      expect(find.text('Read the way you like'), findsOneWidget);
-      verifyIndicatorDots(tester, 1);
+      expect(find.text(_page2), findsOneWidget);
 
       await tester.tap(find.text('Skip'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Private by design'), findsOneWidget);
-      expect(find.byKey(const Key('import_first_book_button')), findsOneWidget);
-      verifyIndicatorDots(tester, 3);
-    });
-
-    testWidgets('3C. Tapping Skip from Page 3 jumps directly to Page 4',
-        (tester) async {
-      await tester.pumpHarness(const OnboardingScreen());
-      // Jump to Page 3 via dot indicator 2
-      await tester.tap(find.byKey(const Key('dot_indicator_2')));
-      await tester.pumpAndSettle();
-      expect(find.text('Listen when your eyes rest'), findsOneWidget);
+      expect(find.text(_page3), findsOneWidget);
       verifyIndicatorDots(tester, 2);
-
-      await tester.tap(find.text('Skip'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Private by design'), findsOneWidget);
-      expect(find.byKey(const Key('import_first_book_button')), findsOneWidget);
-      verifyIndicatorDots(tester, 3);
     });
 
-    testWidgets('3D. Tapping Skip on Page 4 triggers explore / completion callback',
-        (tester) async {
+    testWidgets('3C. Skip is hidden and inert on the last page', (
+      tester,
+    ) async {
       var exploreTriggered = false;
       await tester.pumpHarness(
         OnboardingScreen(onExploreFirst: () => exploreTriggered = true),
       );
-      // Navigate to Page 4
-      await tester.tap(find.byKey(const Key('dot_indicator_3')));
-      await tester.pumpAndSettle();
-      expect(find.text('Private by design'), findsOneWidget);
-
-      await tester.tap(find.text('Skip'));
-      await tester.pumpAndSettle();
-      expect(exploreTriggered, isTrue);
-    });
-
-    testWidgets('4. Indicator dots update dynamically with animation on each page change',
-        (tester) async {
-      await tester.pumpHarness(const OnboardingScreen());
-
-      // Check Page 1 initial dots
-      verifyIndicatorDots(tester, 0);
-
-      // Trigger transition to Page 2
-      await tester.tap(find.byKey(const Key('next_page_button')));
-
-      // Mid-transition pump (100ms into 250ms animation duration)
-      await tester.pump(const Duration(milliseconds: 100));
-      // AnimatedContainer scales smoothly without framework errors
-      expect(tester.takeException(), isNull);
-
-      await tester.pumpAndSettle();
-      verifyIndicatorDots(tester, 1);
-
-      // Trigger transition to Page 3
-      await tester.tap(find.byKey(const Key('next_page_button')));
-      await tester.pumpAndSettle();
-      verifyIndicatorDots(tester, 2);
-
-      // Trigger transition to Page 4
-      await tester.tap(find.byKey(const Key('next_page_button')));
-      await tester.pumpAndSettle();
-      verifyIndicatorDots(tester, 3);
-    });
-
-    testWidgets('5. Tapping indicator dots directly navigates to the respective page',
-        (tester) async {
-      await tester.pumpHarness(const OnboardingScreen());
-
-      // Start at Page 1 (dot 0)
-      verifyIndicatorDots(tester, 0);
-
-      // Jump to dot 3 (Page 4)
-      await tester.tap(find.byKey(const Key('dot_indicator_3')));
-      await tester.pumpAndSettle();
-      expect(find.text('Private by design'), findsOneWidget);
-      verifyIndicatorDots(tester, 3);
-
-      // Jump to dot 1 (Page 2)
-      await tester.tap(find.byKey(const Key('dot_indicator_1')));
-      await tester.pumpAndSettle();
-      expect(find.text('Read the way you like'), findsOneWidget);
-      verifyIndicatorDots(tester, 1);
-
-      // Jump to dot 2 (Page 3)
       await tester.tap(find.byKey(const Key('dot_indicator_2')));
       await tester.pumpAndSettle();
-      expect(find.text('Listen when your eyes rest'), findsOneWidget);
+
+      expect(
+        find.byKey(const Key('onboarding_skip_button')).hitTestable(),
+        findsNothing,
+      );
+      await tester.tap(find.text('Skip'), warnIfMissed: false);
+      await tester.pumpAndSettle();
+      expect(exploreTriggered, isFalse);
+      expect(find.text(_page3), findsOneWidget);
+    });
+
+    testWidgets('4. Dots animate on each page change', (tester) async {
+      await tester.pumpHarness(const OnboardingScreen());
+      verifyIndicatorDots(tester, 0);
+
+      await tester.tap(find.byKey(const Key('next_page_button')));
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(tester.takeException(), isNull);
+      await tester.pumpAndSettle();
+      verifyIndicatorDots(tester, 1);
+
+      await tester.tap(find.byKey(const Key('next_page_button')));
+      await tester.pumpAndSettle();
+      verifyIndicatorDots(tester, 2);
+    });
+
+    testWidgets('5. Back returns to the previous page', (tester) async {
+      await tester.pumpHarness(const OnboardingScreen());
+
+      final back = find.byKey(const Key('previous_page_button'));
+      expect(back.hitTestable(), findsNothing, reason: 'Hidden on page 1');
+
+      await tester.tap(find.byKey(const Key('next_page_button')));
+      await tester.pumpAndSettle();
+      await tester.tap(back);
+      await tester.pumpAndSettle();
+
+      expect(find.text(_page1), findsOneWidget);
+      verifyIndicatorDots(tester, 0);
+    });
+
+    testWidgets('6. Tapping dots navigates to the respective page', (
+      tester,
+    ) async {
+      await tester.pumpHarness(const OnboardingScreen());
+
+      await tester.tap(find.byKey(const Key('dot_indicator_2')));
+      await tester.pumpAndSettle();
+      expect(find.text(_page3), findsOneWidget);
       verifyIndicatorDots(tester, 2);
 
-      // Jump back to dot 0 (Page 1)
+      await tester.tap(find.byKey(const Key('dot_indicator_1')));
+      await tester.pumpAndSettle();
+      expect(find.text(_page2), findsOneWidget);
+      verifyIndicatorDots(tester, 1);
+
       await tester.tap(find.byKey(const Key('dot_indicator_0')));
       await tester.pumpAndSettle();
-      expect(find.text('Your books, all in one place'), findsOneWidget);
+      expect(find.text(_page1), findsOneWidget);
       verifyIndicatorDots(tester, 0);
     });
 
-    testWidgets('6. Rapid consecutive indicator dot taps handle animation interruptions gracefully',
-        (tester) async {
+    testWidgets('7. Rapid consecutive dot taps settle on the last one', (
+      tester,
+    ) async {
       await tester.pumpHarness(const OnboardingScreen());
 
-      // Tap dot 3, then quickly tap dot 1, then dot 2 without waiting for pumpAndSettle
-      await tester.tap(find.byKey(const Key('dot_indicator_3')));
-      await tester.pump(const Duration(milliseconds: 40));
-
-      await tester.tap(find.byKey(const Key('dot_indicator_1')));
-      await tester.pump(const Duration(milliseconds: 40));
-
       await tester.tap(find.byKey(const Key('dot_indicator_2')));
+      await tester.pump(const Duration(milliseconds: 40));
+      await tester.tap(find.byKey(const Key('dot_indicator_0')));
+      await tester.pump(const Duration(milliseconds: 40));
+      await tester.tap(find.byKey(const Key('dot_indicator_1')));
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);
-      expect(find.text('Listen when your eyes rest'), findsOneWidget);
-      verifyIndicatorDots(tester, 2);
+      expect(find.text(_page2), findsOneWidget);
+      verifyIndicatorDots(tester, 1);
     });
 
-    testWidgets('7. Rapid swiping across all pages under 320dp narrow viewports produces zero RenderFlex overflow',
-        (tester) async {
-      final narrowSizes = [
-        const Size(320, 640),
-        const Size(320, 480),
-      ];
-
-      for (final size in narrowSizes) {
+    for (final size in const [Size(320, 640), Size(320, 480)]) {
+      testWidgets('8. Swiping and dot taps at $size raise no errors', (
+        tester,
+      ) async {
         FlutterErrorDetails? errorDetails;
         final originalOnError = FlutterError.onError;
-        FlutterError.onError = (details) {
-          errorDetails = details;
-        };
+        FlutterError.onError = (details) => errorDetails = details;
+        addTearDown(() => FlutterError.onError = originalOnError);
 
         await tester.pumpHarness(const OnboardingScreen(), viewport: size);
-        FlutterError.onError = originalOnError;
 
-        expect(errorDetails, isNull, reason: 'Error on initial render at $size');
-
-        // Rapidly swipe through all pages forward
-        for (var i = 0; i < 3; i++) {
-          await tester.drag(find.byType(PageView), const Offset(-250, 0));
-          await tester.pumpAndSettle();
+        for (var i = 0; i < 2; i++) {
+          await swipe(tester, -250);
         }
-        expect(find.text('Private by design'), findsOneWidget);
-        verifyIndicatorDots(tester, 3);
-
-        // Rapidly swipe back
-        for (var i = 0; i < 3; i++) {
-          await tester.drag(find.byType(PageView), const Offset(250, 0));
-          await tester.pumpAndSettle();
-        }
-        expect(find.text('Your books, all in one place'), findsOneWidget);
-        verifyIndicatorDots(tester, 0);
-
-        expect(errorDetails, isNull, reason: 'RenderFlex overflow occurred during swiping at $size');
-      }
-    });
-
-    testWidgets('8. Rapid indicator dot taps with animation interruptions under 320dp width produce zero errors',
-        (tester) async {
-      final narrowSizes = [
-        const Size(320, 640),
-        const Size(320, 480),
-      ];
-
-      for (final size in narrowSizes) {
-        FlutterErrorDetails? errorDetails;
-        final originalOnError = FlutterError.onError;
-        FlutterError.onError = (details) {
-          errorDetails = details;
-        };
-
-        await tester.pumpHarness(const OnboardingScreen(), viewport: size);
-        FlutterError.onError = originalOnError;
-
-        // Rapid interrupted dot tapping under 320dp width
-        await tester.tap(find.byKey(const Key('dot_indicator_3')));
-        await tester.pump(const Duration(milliseconds: 30));
-
-        await tester.tap(find.byKey(const Key('dot_indicator_1')));
-        await tester.pump(const Duration(milliseconds: 30));
-
-        await tester.tap(find.byKey(const Key('dot_indicator_0')));
-        await tester.pump(const Duration(milliseconds: 30));
-
-        await tester.tap(find.byKey(const Key('dot_indicator_2')));
-        await tester.pumpAndSettle();
-
-        expect(find.text('Listen when your eyes rest'), findsOneWidget);
+        expect(find.text(_page3), findsOneWidget);
         verifyIndicatorDots(tester, 2);
 
-        expect(errorDetails, isNull, reason: 'RenderFlex overflow or exception during dot taps at $size');
-      }
-    });
+        for (var i = 0; i < 2; i++) {
+          await swipe(tester, 250);
+        }
+        expect(find.text(_page1), findsOneWidget);
 
-    testWidgets('9. Aggressive over-scroll and fling gestures under 320dp maintain boundary safety',
-        (tester) async {
-      await tester.pumpHarness(const OnboardingScreen(), viewport: const Size(320, 480));
+        await tester.tap(find.byKey(const Key('dot_indicator_2')));
+        await tester.pump(const Duration(milliseconds: 30));
+        await tester.tap(find.byKey(const Key('dot_indicator_0')));
+        await tester.pump(const Duration(milliseconds: 30));
+        await tester.tap(find.byKey(const Key('dot_indicator_1')));
+        await tester.pumpAndSettle();
+        expect(find.text(_page2), findsOneWidget);
 
-      // Over-scroll backwards aggressively on Page 1
+        FlutterError.onError = originalOnError;
+        expect(errorDetails, isNull, reason: 'Layout error at $size');
+      });
+    }
+
+    testWidgets('9. Aggressive flings at 320x480 stay within bounds', (
+      tester,
+    ) async {
+      await tester.pumpHarness(
+        const OnboardingScreen(),
+        viewport: const Size(320, 480),
+      );
+
       for (var i = 0; i < 5; i++) {
         await tester.fling(find.byType(PageView), const Offset(500, 0), 2000);
         await tester.pumpAndSettle();
       }
-      expect(find.text('Your books, all in one place'), findsOneWidget);
+      expect(find.text(_page1), findsOneWidget);
       verifyIndicatorDots(tester, 0);
 
-      // Jump to Page 4 and over-scroll forwards aggressively
-      await tester.tap(find.byKey(const Key('dot_indicator_3')));
+      await tester.tap(find.byKey(const Key('dot_indicator_2')));
       await tester.pumpAndSettle();
-      expect(find.text('Private by design'), findsOneWidget);
-      verifyIndicatorDots(tester, 3);
-
       for (var i = 0; i < 5; i++) {
         await tester.fling(find.byType(PageView), const Offset(-500, 0), 2000);
         await tester.pumpAndSettle();
       }
-      expect(find.text('Private by design'), findsOneWidget);
-      verifyIndicatorDots(tester, 3);
+      expect(find.text(_page3), findsOneWidget);
+      verifyIndicatorDots(tester, 2);
       expect(tester.takeException(), isNull);
     });
   });

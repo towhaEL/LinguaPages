@@ -126,21 +126,43 @@ void main() {
     }
   });
 
-  testWidgets('phone landscape puts the plans beside the offer', (
+  testWidgets('close is dimmed and inactive for the first two seconds', (
     tester,
   ) async {
-    await open(tester, const Size(874, 402), offered);
+    await open(tester, const Size(402, 874), offered);
 
-    final strip = tester.getRect(
-      find.byKey(const Key('paywall_3theme_preview')),
-    );
-    final plans = tester.getRect(
-      find.byKey(const Key('paywall_yearly_plan_card')),
-    );
-    expect(strip.right, lessThanOrEqualTo(plans.left));
+    final close = find.byKey(const Key('paywall_close_button'));
+    double opacity() => tester
+        .widget<AnimatedOpacity>(
+          find.ancestor(of: close, matching: find.byType(AnimatedOpacity)),
+        )
+        .opacity;
+    expect(tester.widget<IconButton>(close).onPressed, isNull);
+    expect(opacity(), 0.5);
+
+    await tester.pump(const Duration(seconds: 2));
+    await tester.pumpAndSettle();
+    expect(opacity(), 1);
+
+    await tester.tap(close);
+    await tester.pumpAndSettle();
+    expect(find.byType(PremiumPaywallSheet), findsNothing);
   });
 
-  testWidgets('a long price and a trial fit side by side', (tester) async {
+  testWidgets('the sheet fills the screen and shows the legal links', (
+    tester,
+  ) async {
+    await open(tester, const Size(402, 874), offered);
+
+    expect(find.byKey(const Key('paywall_privacy_button')), findsOneWidget);
+    expect(find.byKey(const Key('paywall_terms_button')), findsOneWidget);
+    expect(
+      tester.getSize(find.byType(PremiumPaywallSheet)).height,
+      greaterThan(800),
+    );
+  });
+
+  testWidgets('a long price and a trial fit in the plan row', (tester) async {
     await open(
       tester,
       const Size(360, 740),
