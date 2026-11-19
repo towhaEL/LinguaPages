@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:lingua_pages/domain/entity/settings/settings_entity.dart';
+import 'package:lingua_pages/l10n/l10n.dart';
 import 'package:lingua_pages/presentation/screen/reader/widgets/appearance_sheet.dart';
 import 'package:lingua_pages/presentation/screen/reader/widgets/reader_chrome.dart';
 import 'package:lingua_pages/presentation/screen/reader/widgets/reader_layout.dart';
@@ -22,7 +24,12 @@ void main() {
     addTearDown(tester.view.reset);
   }
 
-  Widget app(Widget home) => MaterialApp(theme: AppTheme.light(), home: home);
+  Widget app(Widget home) => MaterialApp(
+    theme: AppTheme.light(),
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
+    home: home,
+  );
 
   final tools = [
     for (final (icon, label) in [
@@ -125,7 +132,7 @@ void main() {
                   context: context,
                   isScrollControlled: true,
                   backgroundColor: Colors.transparent,
-                  builder: (_) => const AppearanceSheet(selectedTheme: 'Paper'),
+                  builder: (_) => const AppearanceSheet(selectedTheme: ReaderTheme.light),
                 ),
                 child: const Text('open'),
               ),
@@ -155,7 +162,7 @@ void main() {
     ) async {
       await open(tester, _phoneLandscape);
 
-      final swatch = tester.getRect(find.byKey(const Key('swatch_Paper')));
+      final swatch = tester.getRect(find.byKey(const Key('swatch_light')));
       final typeface = tester.getRect(find.text('Typeface'));
       expect(swatch.right, lessThanOrEqualTo(typeface.left));
       // No drag handle or subtitle on a phone held sideways.
@@ -165,7 +172,7 @@ void main() {
     testWidgets('portrait keeps one column with the subtitle', (tester) async {
       await open(tester, _phone);
 
-      final swatch = tester.getRect(find.byKey(const Key('swatch_Paper')));
+      final swatch = tester.getRect(find.byKey(const Key('swatch_light')));
       final typeface = tester.getRect(find.text('Typeface'));
       expect(swatch.bottom, lessThanOrEqualTo(typeface.top));
       expect(find.text('Offline reading aesthetics'), findsOneWidget);

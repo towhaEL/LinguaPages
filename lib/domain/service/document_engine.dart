@@ -21,12 +21,12 @@ abstract interface class DocumentEngine {
 
   Future<int?> pageIndexForLocator(DocumentLocator locator);
 
-  /// The first text offset on reflowable page [pageIndex] of the open
-  /// document. Fixed layouts have no text offsets and return 0.
+  /// The first offset of page [pageIndex] in [text]. Fixed layouts without
+  /// text return 0.
   int pageStartOffset(int pageIndex);
 
-  /// The reflowable page holding text [offset] of the open document. Fixed
-  /// layouts return 0.
+  /// The page holding [offset] in [text]. Fixed layouts without text
+  /// return 0.
   int pageIndexForOffset(int offset);
 
   Future<Uint8List?> renderPage(int pageIndex);

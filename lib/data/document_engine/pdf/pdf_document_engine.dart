@@ -107,11 +107,24 @@ class PdfDocumentEngine implements DocumentEngine {
     };
   }
 
+  /// Pages sit in [text] in order, joined by a blank line, so read aloud
+  /// can start on and follow the page on screen.
   @override
-  int pageStartOffset(int pageIndex) => 0;
+  int pageStartOffset(int pageIndex) {
+    if (_pages.isEmpty || pageIndex <= 0) return 0;
+    if (pageIndex >= _pages.length) return _text?.length ?? 0;
+    return _pages[pageIndex].globalOffset;
+  }
 
   @override
-  int pageIndexForOffset(int offset) => 0;
+  int pageIndexForOffset(int offset) {
+    var index = 0;
+    for (var i = 1; i < _pages.length; i++) {
+      if (_pages[i].globalOffset > offset) break;
+      index = i;
+    }
+    return index;
+  }
 
   @override
   Future<Uint8List?> renderPage(int pageIndex) async {

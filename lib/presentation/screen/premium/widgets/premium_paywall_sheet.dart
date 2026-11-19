@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -12,13 +14,15 @@ import 'package:lingua_pages/presentation/theme/app_tokens.dart';
 import 'package:lingua_pages/presentation/theme/base/theme_extension.dart';
 
 /// Opens the premium offer.
-Future<void> showPremiumPaywall(BuildContext context) =>
-    showModalBottomSheet<void>(
-      context: context,
-      showDragHandle: true,
-      isScrollControlled: true,
-      builder: (_) => const PremiumPaywallSheet(),
-    );
+Future<void> showPremiumPaywall(BuildContext context) {
+  unawaited(context.read<PremiumCubit>().paywallOpened());
+  return showModalBottomSheet<void>(
+    context: context,
+    showDragHandle: true,
+    isScrollControlled: true,
+    builder: (_) => const PremiumPaywallSheet(),
+  );
+}
 
 /// A calm offer, kept short: the looks themselves, what premium adds in one
 /// line each, both plans at the store's prices, and a restore action. No
@@ -265,7 +269,9 @@ class _Offer extends StatelessWidget {
         Semantics(
           header: true,
           child: Text(
-            unlocked ? 'Thank you for reading with us' : 'Make every page yours',
+            unlocked
+                ? 'Thank you for reading with us'
+                : 'Make every page yours',
             style: GoogleFonts.newsreader(
               fontSize: 24,
               fontWeight: FontWeight.w600,

@@ -8,7 +8,7 @@ import 'package:lingua_pages/domain/service/billing_service.dart';
 @LazySingleton(as: BillingService, env: [AppEnvironment.development])
 class MockBillingService implements BillingService {
   final _events = StreamController<BillingEvent>.broadcast();
-  var _owned = false;
+  final _owned = <PremiumPlan>{};
 
   @override
   Stream<BillingEvent> get events => _events.stream;
@@ -34,10 +34,10 @@ class MockBillingService implements BillingService {
 
   @override
   Future<void> buy(PremiumPlan plan) async {
-    _owned = true;
-    _events.add(const BillingPurchased());
+    _owned.add(plan);
+    _events.add(BillingPurchased(plan));
   }
 
   @override
-  Future<bool?> ownsPremium() async => _owned;
+  Future<Set<PremiumPlan>?> ownedPlans() async => {..._owned};
 }

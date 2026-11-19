@@ -32,8 +32,12 @@ class PremiumState {
   /// store is unavailable.
   final Map<PremiumPlan, BillingProduct> products;
 
+  /// Whether buying and restoring wait: a purchase or restore is running,
+  /// or a payment the store has not confirmed yet would be bought twice.
   bool get isBusy =>
-      status == PremiumStatus.purchasing || status == PremiumStatus.restoring;
+      status == PremiumStatus.purchasing ||
+      status == PremiumStatus.restoring ||
+      status == PremiumStatus.pending;
 
   PremiumState copyWith({
     bool? unlocked,

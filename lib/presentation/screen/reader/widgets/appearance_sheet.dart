@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lingua_pages/domain/entity/premium/appearance_catalog.dart';
 import 'package:lingua_pages/domain/entity/settings/settings_entity.dart';
+import 'package:lingua_pages/l10n/l10n.dart';
 import 'package:lingua_pages/presentation/screen/premium/cubit/premium_cubit.dart';
+import 'package:lingua_pages/presentation/screen/premium/widgets/premium_paywall_sheet.dart';
 import 'package:lingua_pages/presentation/theme/app_tokens.dart';
 import 'package:lingua_pages/presentation/theme/base/theme_extension.dart';
 import 'package:lingua_pages/presentation/screen/reader/widgets/reader_layout.dart';
@@ -33,8 +36,8 @@ class AppearanceSheet extends StatefulWidget {
   final ValueChanged<SettingsEntity>? onChanged;
 
   /// Standalone contract overrides for testing / external callers
-  final String? selectedTheme;
-  final ValueChanged<String>? onThemeSelected;
+  final ReaderTheme? selectedTheme;
+  final ValueChanged<ReaderTheme>? onThemeSelected;
   final double? fontSize;
   final ValueChanged<double>? onFontSizeChanged;
   final VoidCallback? onReset;
@@ -54,8 +57,7 @@ class AppearanceSheet extends StatefulWidget {
 
 class _AppearanceSheetState extends State<AppearanceSheet> {
   late SettingsEntity _settings = widget.settings ?? const SettingsEntity();
-  late String _activeThemeName =
-      widget.selectedTheme ?? _themeToName(_settings.readerTheme);
+  late ReaderTheme _activeTheme = widget.selectedTheme ?? _settings.readerTheme;
   late double _fontSize =
       widget.fontSize ?? _settings.fontSize.clamp(12.0, 28.0);
   late double _lineSpacing = _settings.lineSpacing.clamp(1.1, 2.2);
@@ -63,39 +65,19 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
   late double _brightness = (widget.brightness ?? 0.85).clamp(0.1, 1.0);
   late bool _followSystemBrightness = widget.followsSystemBrightness;
 
-  static String _themeToName(ReaderTheme theme) => switch (theme) {
-    ReaderTheme.light => 'Paper',
-    ReaderTheme.sepia => 'Sepia',
-    ReaderTheme.dark => 'Night',
-    ReaderTheme.nightContrast => 'OLED',
-    ReaderTheme.sage => 'Grey',
-    _ => 'White',
-  };
-
-  static ReaderTheme _nameToTheme(String name) => switch (name) {
-    'Paper' => ReaderTheme.light,
-    'White' => ReaderTheme.light,
-    'Sepia' => ReaderTheme.sepia,
-    'Grey' => ReaderTheme.sage,
-    'Night' => ReaderTheme.dark,
-    'OLED' => ReaderTheme.nightContrast,
-    _ => ReaderTheme.light,
-  };
-
   @override
   void didUpdateWidget(covariant AppearanceSheet oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.settings != null && widget.settings != oldWidget.settings) {
       _settings = widget.settings!;
-      _activeThemeName =
-          widget.selectedTheme ?? _themeToName(_settings.readerTheme);
+      _activeTheme = widget.selectedTheme ?? _settings.readerTheme;
       _fontSize = widget.fontSize ?? _settings.fontSize.clamp(12.0, 28.0);
       _lineSpacing = _settings.lineSpacing.clamp(1.1, 2.2);
       _margin = _settings.margin.clamp(12.0, 44.0);
     }
     if (widget.selectedTheme != null &&
         widget.selectedTheme != oldWidget.selectedTheme) {
-      _activeThemeName = widget.selectedTheme!;
+      _activeTheme = widget.selectedTheme!;
     }
     if (widget.fontSize != null && widget.fontSize != oldWidget.fontSize) {
       _fontSize = widget.fontSize!;
@@ -111,12 +93,22 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
     widget.onChanged?.call(next);
   }
 
-  void _selectTheme(String name, bool isLocked, bool premiumUnlocked) {
-    setState(() => _activeThemeName = name);
-    widget.onThemeSelected?.call(name);
+  /// A locked premium theme, font or preset still applies here: the reader
+  /// previews it without saving it, and the sheet says so.
+  void _selectTheme(ReaderTheme theme) {
+    setState(() => _activeTheme = theme);
+    widget.onThemeSelected?.call(theme);
+    _updateSettings(_settings.copyWith(readerTheme: theme));
+  }
 
-    final mappedTheme = _nameToTheme(name);
-    _updateSettings(_settings.copyWith(readerTheme: mappedTheme));
+  void _applyPreset(ReaderStylePreset preset) {
+    setState(() {
+      _fontSize = preset.fontSize;
+      _lineSpacing = preset.lineSpacing;
+      _margin = preset.margin;
+    });
+    widget.onFontSizeChanged?.call(preset.fontSize);
+    _updateSettings(preset.applyTo(_settings));
   }
 
   void _changeFontSize(double val) {
@@ -135,44 +127,57 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
     const defaultSettings = SettingsEntity();
     setState(() {
       _settings = defaultSettings;
-      _activeThemeName = 'Paper';
+      _activeTheme = ReaderTheme.light;
       _fontSize = 18;
       _lineSpacing = 1.5;
       _margin = 16;
       _brightness = 0.85;
     });
-    widget.onThemeSelected?.call('Paper');
+    widget.onThemeSelected?.call(ReaderTheme.light);
     widget.onFontSizeChanged?.call(18);
     widget.onChanged?.call(defaultSettings);
   }
 
+  static String _presetLabel(ReaderStylePresetId id) => switch (id) {
+    ReaderStylePresetId.standard => 'Standard',
+    ReaderStylePresetId.classic => 'Classic',
+    ReaderStylePresetId.airy => 'Airy',
+    ReaderStylePresetId.compact => 'Compact',
+  };
+
   @override
   Widget build(BuildContext context) {
-    // If wrapped in BlocProvider for PremiumCubit, check unlocked status
-    bool premiumUnlocked = false;
-    try {
-      final state = context.watch<PremiumCubit>().state;
-      premiumUnlocked = state.unlocked;
-    } catch (_) {
-      // Standalone test harness context where cubit is not provided
-    }
+    // Null in standalone harnesses, which then show premium items locked.
+    final premiumUnlocked =
+        context.watch<PremiumCubit?>()?.state.unlocked ?? false;
+    final previewingPremium =
+        !premiumUnlocked && AppearanceCatalog.usesPremium(_settings);
+    final l10n = context.l10n;
+    String themeLabel(ReaderTheme theme) => switch (theme) {
+      ReaderTheme.light => l10n.readerThemeLight,
+      ReaderTheme.sepia => l10n.readerThemeSepia,
+      ReaderTheme.dark => l10n.readerThemeDark,
+      ReaderTheme.twilight => l10n.readerThemeTwilight,
+      ReaderTheme.nightContrast => l10n.readerThemeNightContrast,
+      ReaderTheme.sepiaContrast => l10n.readerThemeSepiaContrast,
+      ReaderTheme.sage => l10n.readerThemeSage,
+    };
 
-    final swatches = [
-      ('Paper', const Color(0xFFF6F1E7), false),
-      ('White', const Color(0xFFFFFFFF), false),
-      ('Sepia', const Color(0xFFF4ECD8), false),
-      ('Grey', const Color(0xFFEAE6DF), false),
-      ('Night', const Color(0xFF23272A), true),
-      ('OLED', const Color(0xFF121212), true),
-    ];
-
+    // Every font the reader can render, labelled as it actually renders.
     final typefaces = [
-      (ReaderFont.serif, 'Newsreader', 'Default', 'Newsreader'),
-      (ReaderFont.sans, 'Inter', 'Modern Sans', 'Inter'),
-      (ReaderFont.literata, 'Literata', 'Book Serif', 'Literata'),
-      (ReaderFont.ebGaramond, 'Garamond', 'Classic', 'EB Garamond'),
-      (ReaderFont.sourceSerif, 'Source Serif', 'Warm', 'Source Serif 4'),
+      for (final font in ReaderFont.values)
+        switch (font) {
+          ReaderFont.original => (font, l10n.readerFontOriginal, 'Publisher'),
+          ReaderFont.serif => (font, l10n.readerFontSerif, 'System'),
+          ReaderFont.sans => (font, l10n.readerFontSans, 'System'),
+          ReaderFont.literata => (font, 'Literata', 'Book Serif'),
+          ReaderFont.sourceSerif => (font, 'Source Serif', 'Warm'),
+          ReaderFont.ebGaramond => (font, 'Garamond', 'Classic'),
+        },
     ];
+    final activeTypeface = typefaces
+        .firstWhere((typeface) => typeface.$1 == _settings.readerFont)
+        .$2;
 
     // Sideways the page tone and brightness sit beside the type settings,
     // which keeps the sheet short enough to preview the page above it.
@@ -196,7 +201,7 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
             ),
           ),
           Text(
-            _activeThemeName,
+            themeLabel(_activeTheme),
             style: const TextStyle(
               fontFamily: 'Inter',
               fontSize: 12,
@@ -210,75 +215,16 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
         scrollDirection: Axis.horizontal,
         child: Row(
           children: [
-            for (final (name, color, isLocked) in swatches)
+            for (final theme in ReaderTheme.values)
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 7),
-                child: GestureDetector(
-                  key: Key('swatch_$name'),
-                  onTap: () => _selectTheme(name, isLocked, premiumUnlocked),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: color,
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: _activeThemeName == name
-                                ? WarmEditorialTokens.accentInkBlue
-                                : (color == Colors.white
-                                      ? WarmEditorialTokens.hairlineDivider
-                                      : Colors.transparent),
-                            width: _activeThemeName == name ? 2.5 : 1.0,
-                          ),
-                          boxShadow: [
-                            if (_activeThemeName == name)
-                              BoxShadow(
-                                color: WarmEditorialTokens.accentInkBlue
-                                    .withValues(alpha: 0.2),
-                                blurRadius: 4,
-                                spreadRadius: 1,
-                              ),
-                          ],
-                        ),
-                        child: isLocked && !premiumUnlocked
-                            ? const Center(
-                                child: Icon(
-                                  Icons.lock,
-                                  size: 16,
-                                  color: Color(0xFF6B401E),
-                                ),
-                              )
-                            : (_activeThemeName == name
-                                  ? Icon(
-                                      Icons.check,
-                                      size: 18,
-                                      color:
-                                          (color == const Color(0xFF23272A) ||
-                                              color == const Color(0xFF121212))
-                                          ? Colors.white
-                                          : WarmEditorialTokens.accentInkBlue,
-                                    )
-                                  : null),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        name,
-                        style: TextStyle(
-                          fontFamily: 'Inter',
-                          fontSize: 11,
-                          fontWeight: _activeThemeName == name
-                              ? FontWeight.w600
-                              : FontWeight.w400,
-                          color: _activeThemeName == name
-                              ? context.accent
-                              : WarmEditorialTokens.subtitleSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
+                child: _ThemeSwatch(
+                  key: Key('swatch_${theme.name}'),
+                  theme: theme,
+                  label: themeLabel(theme),
+                  selected: _activeTheme == theme,
+                  locked: theme.isPremium && !premiumUnlocked,
+                  onTap: () => _selectTheme(theme),
                 ),
               ),
           ],
@@ -414,10 +360,10 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
       // SECTIONS 2-4: Typeface, Typography & Spacing, Layout &
       // Flow. A PDF shown as page images has no text to style.
       if (!widget.isPdf || _settings.readerPdfMode == ReaderPdfMode.text) ...[
-        const Row(
+        Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Expanded(
+            const Expanded(
               child: Text(
                 'Typeface',
                 style: TextStyle(
@@ -429,8 +375,8 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
               ),
             ),
             Text(
-              'Editorial Serif',
-              style: TextStyle(
+              activeTypeface,
+              style: const TextStyle(
                 fontFamily: 'Inter',
                 fontSize: 12,
                 color: WarmEditorialTokens.subtitleSecondary,
@@ -443,10 +389,11 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
           scrollDirection: Axis.horizontal,
           child: Row(
             children: [
-              for (final (font, title, subtitle, family) in typefaces)
+              for (final (font, title, subtitle) in typefaces)
                 Padding(
                   padding: const EdgeInsets.only(right: 8),
                   child: InkWell(
+                    key: Key('typeface_${font.name}'),
                     onTap: () {
                       _updateSettings(_settings.copyWith(readerFont: font));
                     },
@@ -472,7 +419,7 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                           Text(
                             'Aa',
                             style: TextStyle(
-                              fontFamily: family,
+                              fontFamily: font.family,
                               fontSize: 18,
                               fontWeight: FontWeight.w500,
                               color: _settings.readerFont == font
@@ -515,6 +462,13 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                               size: 16,
                               color: Colors.white,
                             ),
+                          ] else if (font.isPremium && !premiumUnlocked) ...[
+                            const SizedBox(width: 6),
+                            const Icon(
+                              Icons.lock,
+                              size: 14,
+                              color: WarmEditorialTokens.subtitleSecondary,
+                            ),
                           ],
                         ],
                       ),
@@ -523,6 +477,36 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                 ),
             ],
           ),
+        ),
+        const SizedBox(height: 12),
+
+        // Style presets: font, size, spacing, margins and alignment at once.
+        Text(
+          l10n.premiumPresetsHeading,
+          style: const TextStyle(
+            fontFamily: 'Inter',
+            fontWeight: FontWeight.w600,
+            fontSize: 13,
+            color: WarmEditorialTokens.textPrimaryInk,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final preset in AppearanceCatalog.presets)
+              ChoiceChip(
+                key: Key('preset_${preset.id.name}'),
+                label: Text(_presetLabel(preset.id)),
+                selected: preset.matches(_settings),
+                avatar: preset.isPremium && !premiumUnlocked
+                    ? const Icon(Icons.lock, size: 14)
+                    : null,
+                showCheckmark: false,
+                onSelected: (_) => _applyPreset(preset),
+              ),
+          ],
         ),
         const SizedBox(height: 10),
         const Divider(height: 1, color: WarmEditorialTokens.hairlineDivider),
@@ -1239,6 +1223,7 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
                 height: 1,
                 color: WarmEditorialTokens.hairlineDivider,
               ),
+              if (previewingPremium) const _PremiumPreviewNotice(),
 
               // Scrollable Settings
               Expanded(
@@ -1272,6 +1257,123 @@ class _AppearanceSheetState extends State<AppearanceSheet> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// One page theme as a round swatch in its real page colour.
+class _ThemeSwatch extends StatelessWidget {
+  const _ThemeSwatch({
+    required this.theme,
+    required this.label,
+    required this.selected,
+    required this.locked,
+    required this.onTap,
+    super.key,
+  });
+
+  final ReaderTheme theme;
+  final String label;
+  final bool selected;
+  final bool locked;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final ink = Color(theme.textArgb);
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: locked ? '$label, premium' : label,
+      excludeSemantics: true,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: Color(theme.backgroundArgb),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: selected
+                      ? WarmEditorialTokens.accentInkBlue
+                      : WarmEditorialTokens.hairlineDivider,
+                  width: selected ? 2.5 : 1.0,
+                ),
+                boxShadow: [
+                  if (selected)
+                    BoxShadow(
+                      color: WarmEditorialTokens.accentInkBlue.withValues(
+                        alpha: 0.2,
+                      ),
+                      blurRadius: 4,
+                      spreadRadius: 1,
+                    ),
+                ],
+              ),
+              child: selected
+                  ? Icon(Icons.check, size: 18, color: ink)
+                  : locked
+                  ? Icon(Icons.lock, size: 16, color: ink)
+                  : null,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                fontFamily: 'Inter',
+                fontSize: 11,
+                fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                color: selected
+                    ? context.accent
+                    : WarmEditorialTokens.subtitleSecondary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Says that a premium look is only a preview and offers the unlock.
+class _PremiumPreviewNotice extends StatelessWidget {
+  const _PremiumPreviewNotice();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      key: const Key('appearance_premium_preview_notice'),
+      color: WarmEditorialTokens.surfaceContainerLow,
+      padding: const EdgeInsets.fromLTRB(20, 6, 12, 6),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.lock_outline,
+            size: 16,
+            color: WarmEditorialTokens.subtitleSecondary,
+          ),
+          const SizedBox(width: 8),
+          const Expanded(
+            child: Text(
+              "Previewing a Premium look. It isn't kept when you close.",
+              style: TextStyle(
+                fontFamily: 'Inter',
+                fontSize: 12,
+                color: WarmEditorialTokens.textPrimaryInk,
+              ),
+            ),
+          ),
+          TextButton(
+            key: const Key('appearance_unlock_button'),
+            onPressed: () => showPremiumPaywall(context),
+            child: Text(context.l10n.premiumUnlock),
+          ),
+        ],
       ),
     );
   }

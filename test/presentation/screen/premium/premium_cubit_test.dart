@@ -77,7 +77,7 @@ void main() {
 
   test('a refunded purchase locks again and clears the cache', () async {
     await grantCached();
-    billing.owns = false;
+    billing.owns = {};
 
     await cubit.start();
 
@@ -91,7 +91,7 @@ void main() {
     expect(cubit.state.status, PremiumStatus.purchasing);
     expect(billing.boughtPlan, PremiumPlan.yearly);
 
-    billing.emit(const BillingPurchased());
+    billing.emit(const BillingPurchased(PremiumPlan.yearly));
     await pumpEventQueue();
 
     expect(cubit.state.unlocked, isTrue);
@@ -99,6 +99,79 @@ void main() {
     final cached = await entitlements.getCurrent();
     expect(cached.source, PremiumEntitlementSource.purchase);
     expect(cached.lastVerifiedAt, DateTime(2026, 11));
+    expect(
+      cached.expiresAt,
+      DateTime(2026, 11).add(PremiumCubit.subscriptionGrace),
+    );
+  });
+
+  test('a lifetime purchase never expires', () async {
+    await cubit.start();
+    billing.emit(const BillingPurchased(PremiumPlan.lifetime));
+    await pumpEventQueue();
+
+    expect((await entitlements.getCurrent()).expiresAt, isNull);
+  });
+
+  test('offline, a subscription past its grace locks', () async {
+    await entitlements.save(
+      PremiumEntitlementEntity(
+        isPremium: true,
+        source: PremiumEntitlementSource.purchase,
+        expiresAt: DateTime(2026, 10, 31),
+      ),
+    );
+    billing.owns = null;
+
+    await cubit.start();
+
+    expect(cubit.state.unlocked, isFalse);
+  });
+
+  test('a store check renews the subscription grace', () async {
+    await entitlements.save(
+      PremiumEntitlementEntity(
+        isPremium: true,
+        source: PremiumEntitlementSource.purchase,
+        expiresAt: DateTime(2026, 10, 31),
+      ),
+    );
+    billing.owns = {PremiumPlan.yearly};
+
+    await cubit.start();
+
+    expect(cubit.state.unlocked, isTrue);
+    expect(
+      (await entitlements.getCurrent()).expiresAt,
+      DateTime(2026, 11).add(PremiumCubit.subscriptionGrace),
+    );
+  });
+
+  test('owning both plans caches the lifetime unlock', () async {
+    billing.owns = {PremiumPlan.yearly, PremiumPlan.lifetime};
+    await cubit.start();
+
+    expect((await entitlements.getCurrent()).expiresAt, isNull);
+  });
+
+  test('refresh notices a subscription that lapsed while open', () async {
+    billing.owns = {PremiumPlan.yearly};
+    await cubit.start();
+    expect(cubit.state.unlocked, isTrue);
+
+    billing.owns = {};
+    await cubit.refresh();
+
+    expect(cubit.state.unlocked, isFalse);
+  });
+
+  test('refresh calls made together ask the store once', () async {
+    await cubit.start();
+    final calls = billing.ownsCalls;
+
+    await Future.wait([cubit.refresh(), cubit.refresh()]);
+
+    expect(billing.ownsCalls, calls + 1);
   });
 
   test('pending, canceled and failed purchases stay locked', () async {
@@ -129,11 +202,53 @@ void main() {
     },
   );
 
+  group('opening the paywall', () {
+    test('clears the last attempt\'s message', () async {
+      await cubit.start();
+      billing.emit(const BillingFailed('declined'));
+      await pumpEventQueue();
+      expect(cubit.state.status, PremiumStatus.failed);
+
+      await cubit.paywallOpened();
+
+      expect(cubit.state.status, PremiumStatus.idle);
+    });
+
+    test('keeps a pending payment and blocks buying it twice', () async {
+      await cubit.start();
+      billing.emit(const BillingPending());
+      await pumpEventQueue();
+
+      await cubit.paywallOpened();
+      await cubit.buy(PremiumPlan.lifetime);
+
+      expect(cubit.state.status, PremiumStatus.pending);
+      expect(billing.boughtPlan, isNull);
+    });
+
+    test('asks for prices the store could not give at launch', () async {
+      billing.products = const {};
+      await cubit.start();
+      expect(cubit.state.products, isEmpty);
+
+      billing.products = const {
+        PremiumPlan.lifetime: BillingProduct(
+          id: BillingService.lifetimeProductId,
+          plan: PremiumPlan.lifetime,
+          price: r'$14.99',
+        ),
+      };
+      await cubit.paywallOpened();
+
+      expect(cubit.state.products, contains(PremiumPlan.lifetime));
+    });
+  });
+
   group('restore', () {
     setUp(() => cubit.start());
 
     test('unlocks an owned purchase', () async {
-      billing.owns = true;
+      billing.owns = {PremiumPlan.lifetime};
       await cubit.restore();
 
       expect(cubit.state.unlocked, isTrue);
@@ -145,7 +260,7 @@ void main() {
     });
 
     test('reports when there is nothing to restore', () async {
-      billing.owns = false;
+      billing.owns = {};
       await cubit.restore();
 
       expect(cubit.state.unlocked, isFalse);
@@ -176,7 +291,7 @@ class _FakeBilling implements BillingService {
     ),
   };
   PremiumPlan? boughtPlan;
-  bool? owns = false;
+  Set<PremiumPlan>? owns = {};
   Object? buyError;
   var ownsCalls = 0;
 
@@ -195,7 +310,7 @@ class _FakeBilling implements BillingService {
   }
 
   @override
-  Future<bool?> ownsPremium() async {
+  Future<Set<PremiumPlan>?> ownedPlans() async {
     ownsCalls++;
     return owns;
   }

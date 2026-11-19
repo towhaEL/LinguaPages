@@ -43,7 +43,11 @@ abstract class Env {
       }
     });
     await configureDependencies(name);
-    unawaited(injector<PremiumCubit>().start());
+    final premium = injector<PremiumCubit>();
+    unawaited(premium.start());
+    // A refund or lapsed subscription is noticed without a restart. The
+    // listener lives as long as the app.
+    AppLifecycleListener(onResume: () => unawaited(premium.refresh()));
 
     Bloc.observer = const AppBlocObserver();
 

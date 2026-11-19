@@ -45,9 +45,11 @@ class PlayBillingService implements BillingService {
     if (purchase.pendingCompletePurchase) {
       await _complete(purchase);
     }
+    // Only known product IDs reach here, so the plan is always found.
+    final plan = BillingService.planFor(purchase.productID)!;
     return switch (purchase.status) {
-      PurchaseStatus.purchased => const BillingPurchased(),
-      PurchaseStatus.restored => const BillingPurchased(restored: true),
+      PurchaseStatus.purchased => BillingPurchased(plan),
+      PurchaseStatus.restored => BillingPurchased(plan, restored: true),
       PurchaseStatus.pending => const BillingPending(),
       PurchaseStatus.canceled => const BillingCanceled(),
       PurchaseStatus.error => BillingFailed(
@@ -145,7 +147,7 @@ class PlayBillingService implements BillingService {
   }
 
   @override
-  Future<bool?> ownsPremium() async {
+  Future<Set<PremiumPlan>?> ownedPlans() async {
     // Play only lists subscriptions that are still active, so an expired or
     // canceled-and-lapsed yearly plan reads as not owned.
     try {
@@ -153,13 +155,15 @@ class PlayBillingService implements BillingService {
           .getPlatformAddition<InAppPurchaseAndroidPlatformAddition>();
       final response = await android.queryPastPurchases();
       if (response.error != null) return null;
-      var owned = false;
+      final owned = <PremiumPlan>{};
       for (final purchase in response.pastPurchases) {
-        if (!_productIds.contains(purchase.productID)) continue;
+        final plan = BillingService.planFor(purchase.productID);
+        if (plan == null) continue;
         if (purchase.pendingCompletePurchase) await _complete(purchase);
-        owned |=
-            purchase.status == PurchaseStatus.purchased ||
-            purchase.status == PurchaseStatus.restored;
+        if (purchase.status == PurchaseStatus.purchased ||
+            purchase.status == PurchaseStatus.restored) {
+          owned.add(plan);
+        }
       }
       return owned;
     } on PlatformException catch (error) {

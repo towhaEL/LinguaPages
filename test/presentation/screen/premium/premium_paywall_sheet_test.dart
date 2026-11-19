@@ -59,6 +59,7 @@ void main() {
     when(() => cubit.stream).thenAnswer((_) => const Stream.empty());
     when(() => cubit.close()).thenAnswer((_) async {});
     when(() => cubit.buy(any())).thenAnswer((_) async {});
+    when(() => cubit.paywallOpened()).thenAnswer((_) async {});
     await tester.pumpWidget(
       BlocProvider<PremiumCubit>.value(
         value: cubit,

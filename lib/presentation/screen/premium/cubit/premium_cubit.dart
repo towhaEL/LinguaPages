@@ -13,9 +13,18 @@ import 'package:logger/logger.dart';
 ///
 /// The cached entitlement decides immediately, so the reader never waits on
 /// the store and an offline user keeps what they bought. The store is then
-/// asked once per launch; only a definite "not owned" (a refund) locks again.
+/// asked at launch and whenever the app returns to the foreground; only a
+/// definite "not owned" (a refund or a lapsed subscription) locks again.
+///
+/// A lifetime unlock is cached for good. A yearly subscription is cached for
+/// [subscriptionGrace] past its last check, so a subscription that lapses
+/// while the device stays offline does not unlock forever.
 @lazySingleton
 class PremiumCubit extends Cubit<PremiumState> {
+  /// How long a yearly subscription stays unlocked without reaching the
+  /// store.
+  static const subscriptionGrace = Duration(days: 14);
+
   PremiumCubit(
     this._billing,
     this._entitlements,
@@ -31,6 +40,7 @@ class PremiumCubit extends Cubit<PremiumState> {
   final Logger _logger;
   final DateTime Function() _clock;
   StreamSubscription<BillingEvent>? _events;
+  Future<void>? _verifying;
 
   Future<void> start() async {
     if (!_flags.premiumEnabled || _events != null) return;
@@ -38,8 +48,24 @@ class PremiumCubit extends Cubit<PremiumState> {
     _events = _billing.events.listen(_onEvent);
     final cached = await _entitlements.getCurrent();
     if (isClosed) return;
-    emit(state.copyWith(unlocked: cached.isActive));
-    await Future.wait([_verify(), loadProducts()]);
+    emit(state.copyWith(unlocked: cached.isActiveAt(_clock())));
+    await Future.wait([refresh(), loadProducts()]);
+  }
+
+  /// Asks the store again, for example when the app returns to the
+  /// foreground. Calls made while a check is running share it.
+  Future<void> refresh() {
+    if (!_flags.premiumEnabled || _events == null) return Future.value();
+    return _verifying ??= _verify().whenComplete(() => _verifying = null);
+  }
+
+  /// A fresh start for the offer: the last attempt's message is cleared,
+  /// and prices the store could not give earlier are asked for again.
+  Future<void> paywallOpened() async {
+    if (!state.isBusy && state.status != PremiumStatus.idle) {
+      emit(state.copyWith(status: PremiumStatus.idle));
+    }
+    if (_flags.premiumEnabled && state.products.isEmpty) await loadProducts();
   }
 
   Future<void> loadProducts() async {
@@ -69,41 +95,54 @@ class PremiumCubit extends Cubit<PremiumState> {
   Future<void> restore() async {
     if (state.isBusy) return;
     emit(state.copyWith(status: PremiumStatus.restoring));
-    final owned = await _billing.ownsPremium();
+    final owned = await _billing.ownedPlans();
     if (isClosed) return;
-    switch (owned) {
-      case null:
-        emit(state.copyWith(status: PremiumStatus.storeUnavailable));
-      case true:
-        await _grant(PremiumEntitlementSource.restored);
-        emit(state.copyWith(status: PremiumStatus.restored));
-      case false:
-        emit(state.copyWith(status: PremiumStatus.nothingToRestore));
+    if (owned == null) {
+      emit(state.copyWith(status: PremiumStatus.storeUnavailable));
+    } else if (owned.isEmpty) {
+      emit(state.copyWith(status: PremiumStatus.nothingToRestore));
+    } else {
+      await _grant(PremiumEntitlementSource.restored, _bestOf(owned));
+      if (!isClosed) emit(state.copyWith(status: PremiumStatus.restored));
     }
   }
 
   Future<void> _verify() async {
-    final owned = await _billing.ownsPremium();
-    if (isClosed || owned == null) return;
-    if (owned) {
-      final cached = await _entitlements.getCurrent();
-      await _grant(
-        cached.isActive ? cached.source : PremiumEntitlementSource.restored,
-      );
-    } else {
+    final owned = await _billing.ownedPlans();
+    if (isClosed) return;
+    final cached = await _entitlements.getCurrent();
+    if (isClosed) return;
+    if (owned == null) {
+      // Offline: the cache decides, and a subscription past its grace
+      // locks.
+      emit(state.copyWith(unlocked: cached.isActiveAt(_clock())));
+    } else if (owned.isEmpty) {
       await _entitlements.clear();
       if (!isClosed) emit(state.copyWith(unlocked: false));
+    } else {
+      await _grant(
+        cached.isActiveAt(_clock())
+            ? cached.source
+            : PremiumEntitlementSource.restored,
+        _bestOf(owned),
+      );
     }
   }
+
+  static PremiumPlan _bestOf(Set<PremiumPlan> owned) =>
+      owned.contains(PremiumPlan.lifetime)
+      ? PremiumPlan.lifetime
+      : PremiumPlan.yearly;
 
   Future<void> _onEvent(BillingEvent event) async {
     if (isClosed) return;
     switch (event) {
-      case BillingPurchased(:final restored):
+      case BillingPurchased(:final plan, :final restored):
         await _grant(
           restored
               ? PremiumEntitlementSource.restored
               : PremiumEntitlementSource.purchase,
+          plan,
         );
         if (!isClosed) {
           emit(
@@ -124,12 +163,16 @@ class PremiumCubit extends Cubit<PremiumState> {
     }
   }
 
-  Future<void> _grant(PremiumEntitlementSource source) async {
+  Future<void> _grant(PremiumEntitlementSource source, PremiumPlan plan) async {
+    final now = _clock();
     await _entitlements.save(
       PremiumEntitlementEntity(
         isPremium: true,
         source: source,
-        lastVerifiedAt: _clock(),
+        expiresAt: plan == PremiumPlan.lifetime
+            ? null
+            : now.add(subscriptionGrace),
+        lastVerifiedAt: now,
       ),
     );
     if (!isClosed) emit(state.copyWith(unlocked: true));

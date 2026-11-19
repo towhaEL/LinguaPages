@@ -37,10 +37,10 @@ abstract interface class BillingService {
   /// [events].
   Future<void> buy(PremiumPlan plan);
 
-  /// Whether the store reports the lifetime unlock or an active yearly
-  /// subscription as owned. Null when the store cannot be reached, so
-  /// callers keep their cached state.
-  Future<bool?> ownsPremium();
+  /// The plans the store reports as owned: the lifetime unlock, an active
+  /// yearly subscription, both or neither. Null when the store cannot be
+  /// reached, so callers keep their cached state.
+  Future<Set<PremiumPlan>?> ownedPlans();
 }
 
 class BillingProduct {
@@ -75,8 +75,9 @@ sealed class BillingEvent {
 }
 
 class BillingPurchased extends BillingEvent {
-  const BillingPurchased({this.restored = false});
+  const BillingPurchased(this.plan, {this.restored = false});
 
+  final PremiumPlan plan;
   final bool restored;
 }
 

@@ -152,37 +152,38 @@ void main() {
       expect(currentSettings.margin, equals(16.0));
     });
 
-    testWidgets('Stress 4: Theme switching across all 6 swatches in rapid succession', (tester) async {
-      final List<String> selectedThemes = [];
+    testWidgets('Stress 4: Theme switching across every swatch in rapid succession', (tester) async {
+      final List<ReaderTheme> selectedThemes = [];
       final List<SettingsEntity> receivedSettings = [];
 
       await tester.pumpHarness(
         AppearanceSheet(
-          selectedTheme: 'Paper',
-          onThemeSelected: (name) => selectedThemes.add(name),
+          selectedTheme: ReaderTheme.light,
+          onThemeSelected: selectedThemes.add,
           settings: const SettingsEntity(),
           onChanged: (s) => receivedSettings.add(s),
         ),
       );
 
-      final swatches = ['Paper', 'White', 'Sepia', 'Grey', 'Night', 'OLED'];
+      const swatches = ReaderTheme.values;
+      final taps = swatches.length * 4;
 
-      // Rapidly cycle through all swatches 4 full cycles (24 taps)
+      // Rapidly cycle through all swatches 4 full cycles
       for (int cycle = 0; cycle < 4; cycle++) {
-        for (final swatchName in swatches) {
-          final swatchKey = Key('swatch_$swatchName');
-          await tester.tap(find.byKey(swatchKey));
+        for (final theme in swatches) {
+          final swatch = find.byKey(Key('swatch_${theme.name}'));
+          await tester.ensureVisible(swatch);
+          await tester.tap(swatch);
           await tester.pump(const Duration(milliseconds: 20));
         }
       }
 
       await tester.pumpAndSettle();
 
-      expect(selectedThemes.length, equals(24));
-      expect(receivedSettings.length, equals(24));
-      // Final selected theme should be OLED
-      expect(selectedThemes.last, equals('OLED'));
-      expect(receivedSettings.last.readerTheme, equals(ReaderTheme.nightContrast));
+      expect(selectedThemes.length, equals(taps));
+      expect(receivedSettings.length, equals(taps));
+      expect(selectedThemes.last, equals(swatches.last));
+      expect(receivedSettings.last.readerTheme, equals(swatches.last));
     });
 
     testWidgets('Stress 5: Small viewport and large text scale factor do not produce RenderFlex overflows', (tester) async {
@@ -200,7 +201,7 @@ void main() {
       );
 
       expect(find.text('Appearance'), findsOneWidget);
-      expect(find.byKey(const Key('swatch_Paper')), findsOneWidget);
+      expect(find.byKey(const Key('swatch_light')), findsOneWidget);
       await tester.scrollUntilVisible(
         find.byKey(const Key('appearance_font_slider')),
         50,

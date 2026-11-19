@@ -193,9 +193,15 @@ class _ReaderScreenState extends State<ReaderScreen>
     _syncReadAloud();
     _pageTurnSubscription = _volumeKeys.pageTurns.listen(_turnPage);
     _chromeVisible.addListener(_rebuild);
-    _premiumSubscription = _premium.stream.listen((_) {
+    _premiumSubscription = _premium.stream.listen((state) {
       if (!mounted) return;
       final previous = _display;
+      // Unlocking from the sheet keeps the look being previewed.
+      final preview = _sheetSettings;
+      if (state.unlocked && preview != null) {
+        _settings = preview;
+        unawaited(_persistReaderSettings(preview));
+      }
       setState(() {});
       _applyDisplay(previous);
     });
@@ -2092,6 +2098,21 @@ class _ReaderScreenState extends State<ReaderScreen>
   }
 
   List<PageMark> _pdfTextPageMarks(int pageIndex) => [
+    if ((_spokenRange, _engine) case (
+      final range?,
+      final engine?,
+    ) when engine.pageIndexForOffset(range.start) == pageIndex)
+      PageMark(
+        start: range.start - engine.pageStartOffset(pageIndex),
+        text: engine.text
+            .substring(
+              range.start,
+              math.min(range.end, _pageEndOffset(engine, pageIndex)),
+            )
+            .trim(),
+        color: HighlightColor.yellow,
+        customColor: WarmEditorialTokens.spokenHighlight,
+      ),
     for (final highlight in _highlights)
       if (highlight.locator case PdfLocator(
         :final page,
@@ -2340,6 +2361,8 @@ class _ReaderScreenState extends State<ReaderScreen>
         readiumStart = Locator.fromJsonString(locatorJson);
       case TextLocator(:final offset) when !_usesReadium:
         textStart = offset;
+      case PdfLocator(:final page, :final textOffset?) when !_usesReadium:
+        textStart = (_engine?.pageStartOffset(page - 1) ?? 0) + textOffset;
       default:
         return;
     }
@@ -2357,6 +2380,16 @@ class _ReaderScreenState extends State<ReaderScreen>
     if (session.isFor(widget.book.id)) {
       final cubit = session.cubit!;
       if (!cubit.state.isPlaying) await cubit.play();
+      return;
+    }
+    // A scanned PDF has pages but no text to speak.
+    if (!_usesReadium &&
+        (_info == null || _engine == null || _engine!.text.trim().isEmpty)) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(content: Text(context.l10n.readAloudCouldNotStart)),
+        );
       return;
     }
     final service = _createReadAloudService(
@@ -3296,11 +3329,7 @@ class _PdfTextPage extends StatelessWidget {
             marks,
             darkPage: darkPage,
           ),
-          contextMenuBuilder: _readerContextMenu(
-            onSelectionAction,
-            // PDF page text has no offsets into the spoken text.
-            canListen: false,
-          ),
+          contextMenuBuilder: _readerContextMenu(onSelectionAction),
           textAlign: _readerTextAlign(textAlignment),
           style: Theme.of(context).textTheme.bodyLarge
               ?.copyWith(
@@ -3531,9 +3560,8 @@ enum _SelectionAction {
 /// The fallback pages' selection toolbar: Highlight and Look up first, as in
 /// the EPUB reader, then the platform's own items (Copy, Select all, ...).
 EditableTextContextMenuBuilder _readerContextMenu(
-  void Function(TextSelection selection, _SelectionAction action) onAction, {
-  bool canListen = true,
-}) => (context, state) {
+  void Function(TextSelection selection, _SelectionAction action) onAction,
+) => (context, state) {
   final selection = state.textEditingValue.selection;
   void run(_SelectionAction action) {
     state
@@ -3559,11 +3587,10 @@ EditableTextContextMenuBuilder _readerContextMenu(
         label: context.l10n.readerLookup,
         onPressed: () => run(_SelectionAction.lookup),
       ),
-      if (canListen)
-        ContextMenuButtonItem(
-          label: context.l10n.readerListenFromHere,
-          onPressed: () => run(_SelectionAction.listen),
-        ),
+      ContextMenuButtonItem(
+        label: context.l10n.readerListenFromHere,
+        onPressed: () => run(_SelectionAction.listen),
+      ),
       ContextMenuButtonItem(
         label: context.l10n.readerShareSelection,
         onPressed: () => run(_SelectionAction.share),
